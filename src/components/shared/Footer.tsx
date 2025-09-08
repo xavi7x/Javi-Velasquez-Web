@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Linkedin, Dribbble, Mail } from 'lucide-react';
+import { Linkedin, Dribbble, Mail, Mountain } from 'lucide-react';
 import { BehanceIcon } from '@/components/icons/BehanceIcon';
 
 export function Footer() {
@@ -13,44 +13,39 @@ export function Footer() {
   }, []);
 
   return (
-    <footer className="w-full bg-secondary py-8">
-      <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 md:flex-row md:px-6">
-        <div className="flex flex-col items-center md:items-start">
-          <p className="text-sm text-secondary-foreground">
-            © {year} Velásquez Digital. Todos los derechos reservados.
-          </p>
-          <div className="mt-2 flex items-center gap-2">
-            <Mail className="h-5 w-5 text-secondary-foreground" />
-            <a
-              href="mailto:hello@velasquez.digital"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              hello@velasquez.digital
-            </a>
+    <footer className="w-full bg-secondary">
+      <div className="container mx-auto px-4 md:px-6 py-8">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <Mountain className="h-6 w-6 text-primary" />
+            <span className="font-headline text-lg font-bold">Velasquez</span>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link
-            href="#"
-            aria-label="LinkedIn"
-            className="text-secondary-foreground transition-colors hover:text-primary"
-          >
-            <Linkedin className="h-6 w-6" />
-          </Link>
-          <Link
-            href="#"
-            aria-label="Behance"
-            className="text-secondary-foreground transition-colors hover:text-primary"
-          >
-            <BehanceIcon className="h-6 w-6" />
-          </Link>
-          <Link
-            href="#"
-            aria-label="Dribbble"
-            className="text-secondary-foreground transition-colors hover:text-primary"
-          >
-            <Dribbble className="h-6 w-6" />
-          </Link>
+          <p className="text-sm text-muted-foreground">
+            © {year} Velasquez. Todos los derechos reservados.
+          </p>
+          <div className="flex items-center gap-4">
+            <Link
+              href="#"
+              aria-label="LinkedIn"
+              className="text-muted-foreground transition-colors hover:text-primary"
+            >
+              <Linkedin className="h-6 w-6" />
+            </Link>
+            <Link
+              href="#"
+              aria-label="Behance"
+              className="text-muted-foreground transition-colors hover:text-primary"
+            >
+              <BehanceIcon className="h-6 w-6" />
+            </Link>
+            <Link
+              href="#"
+              aria-label="Dribbble"
+              className="text-muted-foreground transition-colors hover:text-primary"
+            >
+              <Dribbble className="h-6 w-6" />
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

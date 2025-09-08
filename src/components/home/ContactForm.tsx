@@ -46,19 +46,19 @@ export function ContactForm() {
       setIsSubmitting(false);
       toast({
         title: '¡Mensaje Enviado!',
-        description: "Gracias por contactarme. Te responderé pronto.",
+        description: "Gracias por contactarnos. Te responderemos pronto.",
       });
       form.reset();
     }, 1500);
   }
 
   return (
-    <section id="contact" className="w-full bg-secondary py-12 md:py-24 lg:py-32">
+    <section id="contact" className="w-full py-12 md:py-24 lg:py-32">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-xl space-y-4 text-center">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Ponte en Contacto</h2>
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Inicia tu Proyecto</h2>
           <p className="text-muted-foreground">
-            ¿Tienes un proyecto en mente o solo quieres saludar? Envíame un mensaje.
+            ¿Listo para empezar? Cuéntanos tu idea.
           </p>
         </div>
         <div className="mx-auto mt-12 max-w-xl">
@@ -98,7 +98,7 @@ export function ContactForm() {
                     <FormLabel>Mensaje</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Cuéntame sobre tu proyecto..."
+                        placeholder="Cuéntanos sobre tu proyecto..."
                         {...field}
                         className="min-h-[150px]"
                       />
