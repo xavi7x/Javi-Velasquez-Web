@@ -51,10 +51,10 @@ const generateHeroImageFlow = ai.defineFlow(
     outputSchema: GenerateHeroImageOutputSchema,
   },
   async input => {
-    const {media} = await ai.generate({
-      model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: `Generate a hero background image with the following characteristics:\n\nStyle: ${input.style}\nColor Palette: ${input.colorPalette}\n\nEnsure the image is visually appealing and suitable for a hero section of a website.`,
-    });
-    return {imageUrl: media.url!};
+    // TEMPORARY FIX: Return a placeholder image to avoid Imagen API billing error.
+    // Replace this with the original implementation when billing is enabled.
+    return {
+      imageUrl: `https://picsum.photos/1920/1080?random=${Math.random()}`,
+    };
   }
 );
