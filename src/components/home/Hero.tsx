@@ -29,8 +29,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
-  style: z.string().min(1, 'Style is required.'),
-  colorPalette: z.string().min(1, 'Color palette is required.'),
+  style: z.string().min(1, 'El estilo es obligatorio.'),
+  colorPalette: z.string().min(1, 'La paleta de colores es obligatoria.'),
 });
 
 export function Hero() {
@@ -53,15 +53,15 @@ export function Hero() {
       if (result.imageUrl) {
         setImageUrl(result.imageUrl);
         toast({
-          title: 'Image Generated!',
-          description: 'The new hero image has been set.',
+          title: '¡Imagen Generada!',
+          description: 'La nueva imagen de héroe ha sido establecida.',
         });
       }
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Generation Failed',
-        description: 'Could not generate a new image. Please try again.',
+        title: 'Falló la Generación',
+        description: 'No se pudo generar una nueva imagen. Por favor, inténtalo de nuevo.',
       });
       console.error(error);
     } finally {
@@ -73,7 +73,7 @@ export function Hero() {
     <section className="relative flex h-[80vh] min-h-[600px] w-full items-center justify-center text-center">
       <Image
         src={imageUrl}
-        alt="Hero background"
+        alt="Fondo de héroe"
         fill
         className="-z-10 object-cover"
         data-ai-hint="background texture"
@@ -86,11 +86,11 @@ export function Hero() {
           Velásquez Digital
         </h1>
         <p className="mx-auto mt-4 max-w-2xl font-body text-lg text-gray-200 md:text-xl">
-          A Creative Technologist & Designer Crafting Modern Digital Experiences.
+          Un Tecnólogo Creativo y Diseñador Creando Experiencias Digitales Modernas.
         </p>
         <div className="mt-8 flex justify-center">
           <Button asChild size="lg">
-            <a href="#portfolio">View My Work</a>
+            <a href="#portfolio">Ver Mi Trabajo</a>
           </Button>
         </div>
       </div>
@@ -101,13 +101,13 @@ export function Hero() {
             variant="outline"
             className="absolute bottom-4 right-4 bg-background/80 hover:bg-background"
           >
-            Generate Image
+            Generar Imagen
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-80">
           <Card className="border-0 shadow-none">
             <CardHeader>
-              <CardTitle>Generate Hero Image</CardTitle>
+              <CardTitle>Generar Imagen de Héroe</CardTitle>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -117,18 +117,18 @@ export function Hero() {
                     name="style"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Style</FormLabel>
+                        <FormLabel>Estilo</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a style" />
+                              <SelectValue placeholder="Selecciona un estilo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="minimalist">Minimalist</SelectItem>
-                            <SelectItem value="abstract">Abstract</SelectItem>
-                            <SelectItem value="realistic">Realistic</SelectItem>
-                            <SelectItem value="vibrant">Vibrant</SelectItem>
+                            <SelectItem value="minimalist">Minimalista</SelectItem>
+                            <SelectItem value="abstract">Abstracto</SelectItem>
+                            <SelectItem value="realistic">Realista</SelectItem>
+                            <SelectItem value="vibrant">Vibrante</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -140,17 +140,17 @@ export function Hero() {
                     name="colorPalette"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Color Palette</FormLabel>
+                        <FormLabel>Paleta de Colores</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a color palette" />
+                              <SelectValue placeholder="Selecciona una paleta de colores" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="warm">Warm</SelectItem>
-                            <SelectItem value="cool">Cool</SelectItem>
-                            <SelectItem value="monochromatic">Monochromatic</SelectItem>
+                            <SelectItem value="warm">Cálida</SelectItem>
+                            <SelectItem value="cool">Fría</SelectItem>
+                            <SelectItem value="monochromatic">Monocromática</SelectItem>
                             <SelectItem value="pastel">Pastel</SelectItem>
                           </SelectContent>
                         </Select>
@@ -160,7 +160,7 @@ export function Hero() {
                   />
                   <Button type="submit" disabled={isGenerating} className="w-full">
                     {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Generate
+                    Generar
                   </Button>
                 </form>
               </Form>

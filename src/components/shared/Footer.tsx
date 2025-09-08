@@ -17,7 +17,7 @@ export function Footer() {
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 md:flex-row md:px-6">
         <div className="flex flex-col items-center md:items-start">
           <p className="text-sm text-secondary-foreground">
-            © {year} Velásquez Digital. All rights reserved.
+            © {year} Velásquez Digital. Todos los derechos reservados.
           </p>
           <div className="mt-2 flex items-center gap-2">
             <Mail className="h-5 w-5 text-secondary-foreground" />

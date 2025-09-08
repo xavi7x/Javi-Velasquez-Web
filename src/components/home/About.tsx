@@ -3,10 +3,10 @@ import { Code, PenTool, LayoutTemplate, BarChart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 const skills = [
-  { name: 'UI/UX Design', icon: PenTool },
-  { name: 'Web Development', icon: Code },
-  { name: 'Prototyping', icon: LayoutTemplate },
-  { name: 'Data Analytics', icon: BarChart },
+  { name: 'Diseño UI/UX', icon: PenTool },
+  { name: 'Desarrollo Web', icon: Code },
+  { name: 'Prototipado', icon: LayoutTemplate },
+  { name: 'Análisis de Datos', icon: BarChart },
 ];
 
 export function About() {
@@ -16,13 +16,13 @@ export function About() {
         <div className="grid gap-10 lg:grid-cols-2">
           <div className="space-y-4">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              About Me
+              Sobre Mí
             </h2>
             <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              I am a passionate and results-oriented designer and developer with a knack for creating
-              beautiful, functional, and user-centered digital experiences. With a background in
-              both art and computer science, I bridge the gap between creative vision and
-              technical execution.
+              Soy un diseñador y desarrollador apasionado y orientado a resultados con un don para crear
+              experiencias digitales hermosas, funcionales y centradas en el usuario. Con experiencia en
+              arte y ciencias de la computación, cierro la brecha entre la visión creativa y
+              la ejecución técnica.
             </p>
             <div className="grid grid-cols-2 gap-4 pt-4">
               {skills.map((skill) => (
@@ -40,7 +40,7 @@ export function About() {
               src="https://picsum.photos/550/550"
               width={550}
               height={550}
-              alt="Professional Photo"
+              alt="Foto Profesional"
               className="aspect-square rounded-full object-cover"
               data-ai-hint="professional portrait"
             />

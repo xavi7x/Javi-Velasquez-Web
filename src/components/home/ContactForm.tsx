@@ -19,9 +19,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  message: z.string().min(10, { message: 'Message must be at least 10 characters.' }),
+  name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
+  email: z.string().email({ message: 'Por favor, introduce una dirección de correo electrónico válida.' }),
+  message: z.string().min(10, { message: 'El mensaje debe tener al menos 10 caracteres.' }),
 });
 
 export function ContactForm() {
@@ -41,12 +41,12 @@ export function ContactForm() {
     setIsSubmitting(true);
     console.log(values);
 
-    // Simulate API call
+    // Simular llamada a la API
     setTimeout(() => {
       setIsSubmitting(false);
       toast({
-        title: 'Message Sent!',
-        description: "Thanks for reaching out. I'll get back to you soon.",
+        title: '¡Mensaje Enviado!',
+        description: "Gracias por contactarme. Te responderé pronto.",
       });
       form.reset();
     }, 1500);
@@ -56,9 +56,9 @@ export function ContactForm() {
     <section id="contact" className="w-full bg-secondary py-12 md:py-24 lg:py-32">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-xl space-y-4 text-center">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Get in Touch</h2>
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Ponte en Contacto</h2>
           <p className="text-muted-foreground">
-            Have a project in mind or just want to say hello? Drop me a line.
+            ¿Tienes un proyecto en mente o solo quieres saludar? Envíame un mensaje.
           </p>
         </div>
         <div className="mx-auto mt-12 max-w-xl">
@@ -69,9 +69,9 @@ export function ContactForm() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Nombre</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your Name" {...field} />
+                      <Input placeholder="Tu Nombre" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -82,9 +82,9 @@ export function ContactForm() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Correo Electrónico</FormLabel>
                     <FormControl>
-                      <Input placeholder="your.email@example.com" {...field} />
+                      <Input placeholder="tu.email@ejemplo.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -95,10 +95,10 @@ export function ContactForm() {
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Message</FormLabel>
+                    <FormLabel>Mensaje</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Tell me about your project..."
+                        placeholder="Cuéntame sobre tu proyecto..."
                         {...field}
                         className="min-h-[150px]"
                       />
@@ -109,7 +109,7 @@ export function ContactForm() {
               />
               <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Send Message
+                Enviar Mensaje
               </Button>
             </form>
           </Form>

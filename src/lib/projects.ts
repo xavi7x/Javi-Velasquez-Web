@@ -3,8 +3,8 @@ import type { Project } from '@/lib/types';
 export const projects: Project[] = [
   {
     slug: 'brand-identity-revamp',
-    title: 'Brand Identity Revamp',
-    tagline: 'Refreshing a Classic Brand for a Modern Audience',
+    title: 'Renovación de Identidad de Marca',
+    tagline: 'Refrescando una Marca Clásica para una Audiencia Moderna',
     thumbnail: 'https://picsum.photos/600/400?random=1',
     images: [
       'https://picsum.photos/1200/800?random=11',
@@ -13,18 +13,18 @@ export const projects: Project[] = [
     ],
     description: {
       challenge:
-        'The client, a well-established company, was losing market share to newer, more agile competitors. Their brand identity felt dated and failed to connect with a younger demographic.',
+        'El cliente, una empresa bien establecida, estaba perdiendo cuota de mercado frente a competidores más nuevos y ágiles. Su identidad de marca se sentía anticuada y no lograba conectar con un grupo demográfico más joven.',
       solution:
-        'We conducted a comprehensive brand audit and developed a new visual identity that was modern, vibrant, and authentic. This included a new logo, color palette, typography, and a full suite of marketing materials.',
+        'Realizamos una auditoría de marca completa y desarrollamos una nueva identidad visual que era moderna, vibrante y auténtica. Esto incluyó un nuevo logotipo, paleta de colores, tipografía y un conjunto completo de materiales de marketing.',
       results:
-        'The rebranding led to a 40% increase in social media engagement and a 25% uplift in sales within the first quarter. The brand is now perceived as a contemporary leader in its field.',
+        'El cambio de marca condujo a un aumento del 40% en la participación en las redes sociales y un aumento del 25% en las ventas en el primer trimestre. La marca ahora es percibida como un líder contemporáneo en su campo.',
     },
-    skills: ['Branding', 'UI/UX Design', 'Figma', 'Adobe Illustrator'],
+    skills: ['Branding', 'Diseño UI/UX', 'Figma', 'Adobe Illustrator'],
   },
   {
     slug: 'e-commerce-platform',
-    title: 'E-commerce Platform',
-    tagline: 'Building a Seamless Online Shopping Experience',
+    title: 'Plataforma de E-commerce',
+    tagline: 'Construyendo una Experiencia de Compra en Línea Perfecta',
     thumbnail: 'https://picsum.photos/600/400?random=2',
     images: [
       'https://picsum.photos/1200/800?random=21',
@@ -33,18 +33,18 @@ export const projects: Project[] = [
     ],
     description: {
       challenge:
-        'Our client needed a scalable e-commerce solution to handle their growing product line and customer base. Their existing site was slow, difficult to navigate, and not mobile-friendly.',
+        'Nuestro cliente necesitaba una solución de comercio electrónico escalable para manejar su creciente línea de productos y base de clientes. Su sitio existente era lento, difícil de navegar y no era compatible con dispositivos móviles.',
       solution:
-        'We designed and developed a custom e-commerce platform from the ground up, focusing on performance, user experience, and mobile-first design. Key features included intuitive navigation, a streamlined checkout process, and personalized product recommendations.',
+        'Diseñamos y desarrollamos una plataforma de comercio electrónico personalizada desde cero, centrándonos en el rendimiento, la experiencia del usuario y el diseño móvil primero. Las características clave incluyeron una navegación intuitiva, un proceso de pago simplificado y recomendaciones de productos personalizadas.',
       results:
-        'The new platform resulted in a 60% increase in conversion rates, a 50% reduction in page load times, and a significant improvement in customer satisfaction scores.',
+        'La nueva plataforma resultó en un aumento del 60% en las tasas de conversión, una reducción del 50% en los tiempos de carga de la página y una mejora significativa en los puntajes de satisfacción del cliente.',
     },
-    skills: ['Web Development', 'React', 'Node.js', 'PostgreSQL', 'UX Research'],
+    skills: ['Desarrollo Web', 'React', 'Node.js', 'PostgreSQL', 'Investigación de UX'],
   },
   {
     slug: 'mobile-banking-app',
-    title: 'Mobile Banking App',
-    tagline: 'Secure and Convenient Banking on the Go',
+    title: 'Aplicación de Banca Móvil',
+    tagline: 'Banca Segura y Conveniente sobre la Marcha',
     thumbnail: 'https://picsum.photos/600/400?random=3',
     images: [
       'https://picsum.photos/1200/800?random=31',
@@ -53,18 +53,18 @@ export const projects: Project[] = [
     ],
     description: {
       challenge:
-        'A regional bank wanted to launch a mobile app to provide its customers with modern banking features. Security, ease of use, and a trustworthy design were top priorities.',
+        'Un banco regional quería lanzar una aplicación móvil para proporcionar a sus clientes características bancarias modernas. La seguridad, la facilidad de uso y un diseño confiable eran las principales prioridades.',
       solution:
-        'We created a native mobile app for iOS and Android with features like biometric login, fund transfers, bill payments, and real-time transaction alerts. The UI was designed to be clean, intuitive, and reassuring for users.',
+        'Creamos una aplicación móvil nativa para iOS y Android con funciones como inicio de sesión biométrico, transferencias de fondos, pagos de facturas y alertas de transacciones en tiempo real. La interfaz de usuario fue diseñada para ser limpia, intuitiva y tranquilizadora para los usuarios.',
       results:
-        'The app achieved 100,000 downloads in its first month and holds a 4.8-star rating on both app stores. It has significantly reduced in-branch traffic for routine transactions.',
+        'La aplicación alcanzó las 100,000 descargas en su primer mes y tiene una calificación de 4.8 estrellas en ambas tiendas de aplicaciones. Ha reducido significativamente el tráfico en las sucursales para transacciones de rutina.',
     },
-    skills: ['Mobile App Design', 'Swift', 'Kotlin', 'Security', 'API Integration'],
+    skills: ['Diseño de Apps Móviles', 'Swift', 'Kotlin', 'Seguridad', 'Integración de API'],
   },
   {
     slug: 'saas-dashboard-design',
-    title: 'SaaS Dashboard Design',
-    tagline: 'Data Visualization and Analytics Made Simple',
+    title: 'Diseño de Dashboard SaaS',
+    tagline: 'Visualización y Análisis de Datos Simplificados',
     thumbnail: 'https://picsum.photos/600/400?random=4',
     images: [
       'https://picsum.photos/1200/800?random=41',
@@ -73,12 +73,12 @@ export const projects: Project[] = [
     ],
     description: {
       challenge:
-        'A B2B SaaS company had a powerful analytics tool, but its user interface was complex and overwhelming. Users struggled to find the information they needed and make sense of the data.',
+        'Una empresa de SaaS B2B tenía una potente herramienta de análisis, pero su interfaz de usuario era compleja y abrumadora. Los usuarios tenían dificultades para encontrar la información que necesitaban y para dar sentido a los datos.',
       solution:
-        'We redesigned the entire dashboard, focusing on clear data visualization and a user-centric workflow. We introduced customizable widgets, interactive charts, and a powerful search functionality to make data accessible and actionable.',
+        'Rediseñamos todo el tablero, centrándonos en una visualización de datos clara y un flujo de trabajo centrado en el usuario. Introdujimos widgets personalizables, gráficos interactivos y una potente funcionalidad de búsqueda para que los datos fueran accesibles y procesables.',
       results:
-        'The new design led to a 30% increase in user retention and a 50% decrease in support tickets related to usability. Customers praised the new interface for its clarity and ease of use.',
+        'El nuevo diseño condujo a un aumento del 30% en la retención de usuarios y una disminución del 50% en los tickets de soporte relacionados con la usabilidad. Los clientes elogiaron la nueva interfaz por su claridad y facilidad de uso.',
     },
-    skills: ['Data Visualization', 'SaaS', 'UI Design', 'Figma', 'React'],
+    skills: ['Visualización de Datos', 'SaaS', 'Diseño UI', 'Figma', 'React'],
   },
 ];

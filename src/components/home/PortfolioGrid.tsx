@@ -11,9 +11,9 @@ export function PortfolioGrid() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">My Recent Work</h2>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Mi Trabajo Reciente</h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Here are a few projects I've worked on recently. Want to see more? Email me.
+              Aquí hay algunos proyectos en los que he trabajado recientemente. ¿Quieres ver más? Envíame un correo.
             </p>
           </div>
         </div>
@@ -48,7 +48,7 @@ export function PortfolioGrid() {
                     ))}
                   </div>
                   <div className="mt-4 flex items-center font-medium text-primary">
-                    View Case Study
+                    Ver Caso de Estudio
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </div>
                 </CardContent>

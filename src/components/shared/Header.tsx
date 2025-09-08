@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Mountain } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 export function Header() {
   return (
@@ -9,17 +10,20 @@ export function Header() {
           <Mountain className="h-6 w-6 text-primary" />
           <span className="font-headline text-lg font-semibold">Velásquez Digital</span>
         </Link>
-        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-          <Link href="#about" className="transition-colors hover:text-primary" prefetch={false}>
-            About
-          </Link>
-          <Link href="#portfolio" className="transition-colors hover:text-primary" prefetch={false}>
-            Portfolio
-          </Link>
-          <Link href="#contact" className="transition-colors hover:text-primary" prefetch={false}>
-            Contact
-          </Link>
-        </nav>
+        <div className="flex items-center gap-4">
+          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+            <Link href="#about" className="transition-colors hover:text-primary" prefetch={false}>
+              Sobre Mí
+            </Link>
+            <Link href="#portfolio" className="transition-colors hover:text-primary" prefetch={false}>
+              Portafolio
+            </Link>
+            <Link href="#contact" className="transition-colors hover:text-primary" prefetch={false}>
+              Contacto
+            </Link>
+          </nav>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

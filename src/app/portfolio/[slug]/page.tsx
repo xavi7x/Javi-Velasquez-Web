@@ -43,7 +43,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             <Button asChild variant="ghost">
               <Link href="/#portfolio">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Portfolio
+                Volver al Portafolio
               </Link>
             </Button>
           </div>
@@ -65,7 +65,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                         src={img}
                         width={1200}
                         height={800}
-                        alt={`Project image ${index + 1}`}
+                        alt={`Imagen del proyecto ${index + 1}`}
                         className="aspect-[3/2] w-full rounded-lg object-cover"
                         data-ai-hint="project screenshot"
                       />
@@ -80,19 +80,19 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             <div className="grid gap-8 p-8 md:grid-cols-3 md:p-12">
               <div className="space-y-6 md:col-span-2">
                 <div>
-                  <h2 className="font-headline text-2xl font-bold">The Challenge</h2>
+                  <h2 className="font-headline text-2xl font-bold">El Desafío</h2>
                   <p className="mt-2 leading-relaxed text-muted-foreground">
                     {project.description.challenge}
                   </p>
                 </div>
                 <div>
-                  <h2 className="font-headline text-2xl font-bold">The Solution</h2>
+                  <h2 className="font-headline text-2xl font-bold">La Solución</h2>
                   <p className="mt-2 leading-relaxed text-muted-foreground">
                     {project.description.solution}
                   </p>
                 </div>
                 <div>
-                  <h2 className="font-headline text-2xl font-bold">The Results</h2>
+                  <h2 className="font-headline text-2xl font-bold">Los Resultados</h2>
                   <p className="mt-2 leading-relaxed text-muted-foreground">
                     {project.description.results}
                   </p>
@@ -100,7 +100,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
               </div>
               <aside className="space-y-6">
                 <div>
-                  <h3 className="font-headline text-xl font-bold">Skills & Tools</h3>
+                  <h3 className="font-headline text-xl font-bold">Habilidades y Herramientas</h3>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {project.skills.map((skill) => (
                       <Badge key={skill} variant="secondary">
