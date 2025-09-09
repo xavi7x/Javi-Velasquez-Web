@@ -1,4 +1,4 @@
-import { Code, PenTool, LayoutTemplate, BarChart } from 'lucide-react';
+import { Code, PenTool, LayoutTemplate, Share2 } from 'lucide-react';
 
 const services = [
   {
@@ -17,9 +17,9 @@ const services = [
     icon: LayoutTemplate,
   },
   {
-    name: 'Optimización y Datos',
-    description: 'Analizo datos para optimizar la experiencia y los resultados.',
-    icon: BarChart,
+    name: 'Contenido para Redes',
+    description: 'Diseño visual atractivo y estratégico para potenciar tu marca en redes sociales.',
+    icon: Share2,
   },
 ];
 
