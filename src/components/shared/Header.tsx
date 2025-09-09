@@ -17,24 +17,42 @@ const navLinks = [
 export function Header() {
   const pathname = usePathname();
 
-  const NavLinks = ({ className }: { className?: string }) => (
-    <>
-      {navLinks.map(link => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={cn(
-            'transition-colors hover:text-primary',
-            pathname === link.href ? 'text-primary' : '',
-            className
-          )}
-          prefetch={false}
-        >
-          {link.label}
-        </Link>
-      ))}
-    </>
-  );
+  const NavLinks = ({ inSheet }: { inSheet?: boolean }) => {
+    if (inSheet) {
+      return (
+        <nav className="flex flex-col gap-4 text-lg font-medium">
+          {navLinks.map(link => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-2xl transition-colors hover:text-primary"
+              prefetch={false}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      );
+    }
+
+    return (
+      <nav className="hidden items-center rounded-lg bg-secondary p-1 text-sm font-medium md:flex">
+        {navLinks.map(link => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={cn(
+              'rounded-md px-4 py-2 text-sm font-medium transition-colors',
+              pathname === link.href ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/20'
+            )}
+            prefetch={false}
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
+    );
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm">
@@ -44,9 +62,7 @@ export function Header() {
           <span className="font-headline text-lg font-bold">Velasquez</span>
         </Link>
         <div className="flex items-center gap-4">
-          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-            <NavLinks />
-          </nav>
+          <NavLinks />
           <ThemeToggle />
           <div className="md:hidden">
             <Sheet>
@@ -61,9 +77,7 @@ export function Header() {
                     <Mountain className="h-6 w-6 text-primary" />
                     <span className="font-headline text-lg font-bold">Velasquez</span>
                   </Link>
-                  <nav className="flex flex-col gap-4 text-lg font-medium">
-                    <NavLinks className="text-2xl" />
-                  </nav>
+                  <NavLinks inSheet />
                 </div>
               </SheetContent>
             </Sheet>

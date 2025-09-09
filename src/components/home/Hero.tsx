@@ -14,10 +14,10 @@ export function Hero() {
 
       <div className="container px-4 text-white md:px-6">
         <h1 className="font-headline animate-fade-in-up bg-gradient-to-br from-white via-neutral-300 to-primary bg-clip-text text-4xl font-bold uppercase tracking-tight text-transparent sm:text-6xl md:text-7xl lg:text-8xl">
-          Creamos soluciones
+          Soy Javier Velasquez
         </h1>
         <p className="mx-auto mt-6 max-w-3xl font-body text-lg text-gray-300 md:text-xl">
-          Diseño, desarrollo y tecnología para impulsar tu negocio.
+          ... Y hago Diseño, desarrollo y tecnología para impulsar tu negocio.
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button asChild size="lg" className="w-full sm:w-auto">
