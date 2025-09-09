@@ -17,11 +17,11 @@ export function Hero() {
           Soy Javier Velasquez
         </h1>
         <p className="mx-auto mt-6 max-w-3xl font-body text-lg text-gray-300 md:text-xl">
-          ... Y hago Diseño, desarrollo y tecnología para impulsar tu negocio.
+          ... Y hago diseño, desarrollo y tecnología para impulsar tu negocio.
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button asChild size="lg" className="w-full sm:w-auto">
-            <a href="#portfolio">Nuestros Proyectos</a>
+            <a href="#portfolio">Mis Proyectos</a>
           </Button>
           <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
             <a href="#contact">Hablemos</a>

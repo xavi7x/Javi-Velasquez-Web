@@ -3,7 +3,7 @@ import { Code, PenTool, LayoutTemplate, BarChart } from 'lucide-react';
 const services = [
   {
     name: 'Diseño Estratégico',
-    description: 'Creamos interfaces intuitivas y atractivas centradas en el usuario.',
+    description: 'Creo interfaces intuitivas y atractivas centradas en el usuario.',
     icon: PenTool,
   },
   {
@@ -13,12 +13,12 @@ const services = [
   },
   {
     name: 'Prototipos Funcionales',
-    description: 'Validamos ideas rápidamente con prototipos interactivos y realistas.',
+    description: 'Valido ideas rápidamente con prototipos interactivos y realistas.',
     icon: LayoutTemplate,
   },
   {
     name: 'Optimización y Datos',
-    description: 'Analizamos datos para optimizar la experiencia y los resultados.',
+    description: 'Analizo datos para optimizar la experiencia y los resultados.',
     icon: BarChart,
   },
 ];
@@ -29,10 +29,10 @@ export function About() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-            Tu Socio en Tecnología y Diseño
+            Uniendo Tecnología y Diseño
           </h2>
           <p className="mt-4 max-w-[600px] mx-auto text-muted-foreground md:text-xl/relaxed">
-            Combinamos creatividad y tecnología para construir soluciones digitales que resuelven problemas reales y generan un impacto medible.
+            Combino creatividad y tecnología para construir soluciones digitales que resuelven problemas reales y generan un impacto medible.
           </p>
         </div>
         <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
