@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/shared/ThemeProvider';
 import './globals.css';
+import { AvailabilityStatus } from '@/components/shared/AvailabilityStatus';
 
 export const metadata: Metadata = {
   title: 'Velásquez Digital',
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           {children}
+          <AvailabilityStatus />
           <Toaster />
         </ThemeProvider>
       </body>
