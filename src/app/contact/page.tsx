@@ -23,7 +23,7 @@ export default function ContactPage() {
       <main className="flex-1">
         <div className="container mx-auto flex h-full min-h-[calc(100vh-160px)] flex-col items-center justify-center px-4 text-center md:px-6">
           <div className="space-y-4">
-            <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
+            <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
               Hablemos.
             </h1>
             <p className="mx-auto max-w-xl text-muted-foreground md:text-xl">
