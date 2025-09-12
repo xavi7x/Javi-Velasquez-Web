@@ -16,7 +16,7 @@ export function PortfolioGrid() {
               href={`/portfolio/${project.slug}`}
               className="group block"
             >
-              <div className="overflow-hidden rounded-lg">
+              <div className="overflow-hidden rounded-2xl">
                 <Image
                   src={project.thumbnail}
                   width={600}
