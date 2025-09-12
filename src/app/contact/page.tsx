@@ -6,23 +6,6 @@ import { Footer } from '@/components/shared/Footer';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-const WavyText = ({ text, className }: { text: string, className?: string }) => {
-  return (
-    <div className="flex">
-      {text.split('').map((char, index) => (
-        <span
-          key={`${char}-${index}`}
-          className="transition-transform duration-300 ease-in-out hover:-translate-y-2"
-          style={{ transitionDelay: `${index * 50}ms` }}
-        >
-          {char === ' ' ? '\u00A0' : char}
-        </span>
-      ))}
-    </div>
-  );
-};
-
-
 export default function ContactPage() {
   const { toast } = useToast();
   const email = 'hey@javivelasquez.com';
@@ -30,8 +13,7 @@ export default function ContactPage() {
   const handleCopy = () => {
     navigator.clipboard.writeText(email);
     toast({
-      title: '¡Correo Copiado!',
-      description: 'El correo ha sido copiado a tu portapapeles.',
+      description: 'Copiado al portapapeles',
     });
   };
 
