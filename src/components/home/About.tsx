@@ -1,4 +1,7 @@
 import { Code, LayoutTemplate, PenTool, Share2 } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 
 const services = [
   {
@@ -31,7 +34,7 @@ export function About() {
   return (
     <section
       id="about"
-      className="flex h-full w-full items-center justify-center"
+      className="w-full py-16 md:py-32"
     >
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-3xl text-center">
@@ -55,6 +58,14 @@ export function About() {
             </div>
           ))}
         </div>
+         <div className="mt-16 text-center">
+            <Button asChild variant="link" size="lg" className="group">
+              <Link href="/about">
+                Conoce más sobre mí
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </Button>
+          </div>
       </div>
     </section>
   );
