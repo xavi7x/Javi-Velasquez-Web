@@ -58,7 +58,7 @@ export default function AboutPage() {
             </div>
             <div className="mt-16 flex flex-wrap justify-center gap-4">
               {tools.map((tool) => (
-                <Badge key={tool.name} variant="default" className="text-lg py-2 px-4">
+                <Badge key={tool.name} variant="default" className="rounded-full text-lg py-2 px-4">
                   {tool.name}
                 </Badge>
               ))}
