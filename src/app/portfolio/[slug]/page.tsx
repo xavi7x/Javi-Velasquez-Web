@@ -57,7 +57,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                   width={1200}
                   height={800}
                   alt={`Imagen del proyecto ${index + 1}`}
-                  className="aspect-[3/2] w-full rounded-2xl object-cover"
+                  className="aspect-[3/2] w-full rounded-3xl object-cover"
                   data-ai-hint="project screenshot"
                 />
               ))}
