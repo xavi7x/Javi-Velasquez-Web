@@ -61,7 +61,7 @@ export function Hero() {
               style={{ animationDelay: '0.6s' }}
               className="animate-fade-in-up mt-4 bg-gradient-to-br from-foreground to-primary bg-clip-text font-headline text-xl font-medium tracking-tight text-transparent sm:text-2xl md:text-3xl"
             >
-              Tecnólogo Creativo &amp; Diseño {text}
+              Hago Diseño {text}
               <span className="animate-pulse">|</span>
             </p>
           </div>
