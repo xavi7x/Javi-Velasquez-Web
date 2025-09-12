@@ -34,7 +34,7 @@ export default function ContactPage() {
             <button
               onClick={handleCopy}
               className={cn(
-                'group relative font-headline text-2xl tracking-tight text-foreground transition-colors hover:text-primary sm:text-3xl md:text-4xl'
+                'group relative font-headline text-2xl font-bold tracking-tight text-foreground transition-colors hover:text-primary sm:text-3xl md:text-4xl'
               )}
             >
               <div className="flex">
