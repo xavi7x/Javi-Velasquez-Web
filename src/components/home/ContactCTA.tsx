@@ -17,8 +17,8 @@ export function ContactCTA() {
             algo increíble juntos.
           </p>
           <div className="mt-8">
-            <Button asChild size="lg">
-              <Link href="/contact">Ponerse en contacto</Link>
+            <Button asChild size="lg" className="rounded-full">
+              <Link href="/contact">¡Contáctame!</Link>
             </Button>
           </div>
         </div>
