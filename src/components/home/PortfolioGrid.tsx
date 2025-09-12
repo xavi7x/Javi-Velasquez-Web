@@ -15,7 +15,7 @@ export function PortfolioGrid() {
                   width={600}
                   height={400}
                   alt={project.title}
-                  className="w-full object-cover aspect-video"
+                  className="w-full object-cover aspect-video transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
               <div className="mt-4">
