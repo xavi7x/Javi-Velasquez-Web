@@ -6,6 +6,23 @@ import { Footer } from '@/components/shared/Footer';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
+const WavyText = ({ text, className }: { text: string, className?: string }) => {
+  return (
+    <div className="flex">
+      {text.split('').map((char, index) => (
+        <span
+          key={`${char}-${index}`}
+          className="transition-transform duration-300 ease-in-out hover:-translate-y-2"
+          style={{ transitionDelay: `${index * 50}ms` }}
+        >
+          {char === ' ' ? '\u00A0' : char}
+        </span>
+      ))}
+    </div>
+  );
+};
+
+
 export default function ContactPage() {
   const { toast } = useToast();
   const email = 'hey@javivelasquez.com';
@@ -35,11 +52,20 @@ export default function ContactPage() {
             <button
               onClick={handleCopy}
               className={cn(
-                'group relative text-2xl font-medium tracking-tight text-foreground transition-colors hover:text-primary sm:text-3xl md:text-4xl'
+                'group relative font-headline text-2xl tracking-tight text-foreground transition-colors hover:text-primary sm:text-3xl md:text-4xl'
               )}
             >
-              {email}
-              <span className="absolute bottom-0 left-0 h-0.5 w-full origin-left scale-x-0 bg-primary transition-transform group-hover:scale-x-100"></span>
+              <div className="flex">
+                 {email.split('').map((char, index) => (
+                    <span
+                      key={index}
+                      className="transition-all duration-300 group-hover:-translate-y-1.5"
+                      style={{ transitionDelay: `${index * 30}ms` }}
+                    >
+                      {char}
+                    </span>
+                  ))}
+              </div>
             </button>
           </div>
         </div>
