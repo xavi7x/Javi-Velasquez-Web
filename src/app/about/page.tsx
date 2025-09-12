@@ -10,7 +10,6 @@ const tools = [
   { name: 'Firebase' },
   { name: 'Next.js' },
   { name: 'React' },
-  { name: 'Figma' },
   { name: 'Tailwind CSS' },
 ];
 
