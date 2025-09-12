@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Linkedin, Dribbble, Mail } from 'lucide-react';
 import { BehanceIcon } from '@/components/icons/BehanceIcon';
-import { ThemeToggle } from './ThemeToggle';
 
 export function Footer() {
   const [year, setYear] = useState(new Date().getFullYear());
@@ -42,7 +41,6 @@ export function Footer() {
             >
               <Dribbble className="h-5 w-5" />
             </Link>
-             <ThemeToggle />
           </div>
         </div>
       </div>
