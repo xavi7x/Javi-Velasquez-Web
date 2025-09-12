@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Linkedin, Dribbble, Mail, Mountain } from 'lucide-react';
+import { Linkedin, Dribbble, Mail } from 'lucide-react';
 import { BehanceIcon } from '@/components/icons/BehanceIcon';
+import { ThemeToggle } from './ThemeToggle';
 
 export function Footer() {
   const [year, setYear] = useState(new Date().getFullYear());
@@ -13,15 +14,11 @@ export function Footer() {
   }, []);
 
   return (
-    <footer className="w-full bg-secondary">
+    <footer className="w-full">
       <div className="container mx-auto px-4 md:px-6 py-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <Mountain className="h-6 w-6 text-primary" />
-            <span className="font-headline text-lg font-bold">Velasquez</span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            © {year} Velasquez. Todos los derechos reservados.
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm">
+          <p className="text-muted-foreground">
+            © {year} Javier Velasquez
           </p>
           <div className="flex items-center gap-4">
             <Link
@@ -29,22 +26,23 @@ export function Footer() {
               aria-label="LinkedIn"
               className="text-muted-foreground transition-colors hover:text-primary"
             >
-              <Linkedin className="h-6 w-6" />
+              <Linkedin className="h-5 w-5" />
             </Link>
             <Link
               href="#"
               aria-label="Behance"
               className="text-muted-foreground transition-colors hover:text-primary"
             >
-              <BehanceIcon className="h-6 w-6" />
+              <BehanceIcon className="h-5 w-5" />
             </Link>
             <Link
               href="#"
               aria-label="Dribbble"
               className="text-muted-foreground transition-colors hover:text-primary"
             >
-              <Dribbble className="h-6 w-6" />
+              <Dribbble className="h-5 w-5" />
             </Link>
+             <ThemeToggle />
           </div>
         </div>
       </div>

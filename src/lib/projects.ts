@@ -5,11 +5,11 @@ export const projects: Project[] = [
     slug: 'brand-identity-revamp',
     title: 'Renovación de Identidad de Marca',
     tagline: 'Refrescando una Marca Clásica para una Audiencia Moderna',
-    thumbnail: 'https://picsum.photos/600/400?random=1',
+    thumbnail: 'https://picsum.photos/seed/1/600/400',
     images: [
-      'https://picsum.photos/1200/800?random=11',
-      'https://picsum.photos/1200/800?random=12',
-      'https://picsum.photos/1200/800?random=13',
+      'https://picsum.photos/seed/11/1200/800',
+      'https://picsum.photos/seed/12/1200/800',
+      'https://picsum.photos/seed/13/1200/800',
     ],
     description: {
       challenge:
@@ -25,11 +25,11 @@ export const projects: Project[] = [
     slug: 'e-commerce-platform',
     title: 'Plataforma de E-commerce',
     tagline: 'Construyendo una Experiencia de Compra en Línea Perfecta',
-    thumbnail: 'https://picsum.photos/600/400?random=2',
+    thumbnail: 'https://picsum.photos/seed/2/600/400',
     images: [
-      'https://picsum.photos/1200/800?random=21',
-      'https://picsum.photos/1200/800?random=22',
-      'https://picsum.photos/1200/800?random=23',
+      'https://picsum.photos/seed/21/1200/800',
+      'https://picsum.photos/seed/22/1200/800',
+      'https://picsum.photos/seed/23/1200/800',
     ],
     description: {
       challenge:
@@ -45,11 +45,11 @@ export const projects: Project[] = [
     slug: 'mobile-banking-app',
     title: 'Aplicación de Banca Móvil',
     tagline: 'Banca Segura y Conveniente sobre la Marcha',
-    thumbnail: 'https://picsum.photos/600/400?random=3',
+    thumbnail: 'https://picsum.photos/seed/3/600/400',
     images: [
-      'https://picsum.photos/1200/800?random=31',
-      'https://picsum.photos/1200/800?random=32',
-      'https://picsum.photos/1200/800?random=33',
+      'https://picsum.photos/seed/31/1200/800',
+      'https://picsum.photos/seed/32/1200/800',
+      'https://picsum.photos/seed/33/1200/800',
     ],
     description: {
       challenge:
@@ -65,11 +65,11 @@ export const projects: Project[] = [
     slug: 'saas-dashboard-design',
     title: 'Diseño de Dashboard SaaS',
     tagline: 'Visualización y Análisis de Datos Simplificados',
-    thumbnail: 'https://picsum.photos/600/400?random=4',
+    thumbnail: 'https://picsum.photos/seed/4/600/400',
     images: [
-      'https://picsum.photos/1200/800?random=41',
-      'https://picsum.photos/1200/800?random=42',
-      'https://picsum.photos/1200/800?random=43',
+      'https://picsum.photos/seed/41/1200/800',
+      'https://picsum.photos/seed/42/1200/800',
+      'https://picsum.photos/seed/43/1200/800',
     ],
     description: {
       challenge:
@@ -80,5 +80,39 @@ export const projects: Project[] = [
         'El nuevo diseño condujo a un aumento del 30% en la retención de usuarios y una disminución del 50% en los tickets de soporte relacionados con la usabilidad. Los clientes elogiaron la nueva interfaz por su claridad y facilidad de uso.',
     },
     skills: ['Visualización de Datos', 'SaaS', 'Diseño UI', 'Figma', 'React'],
+  },
+    {
+    slug: 'project-5',
+    title: 'Proyecto Cinco',
+    tagline: 'Una breve descripción del proyecto cinco.',
+    thumbnail: 'https://picsum.photos/seed/5/600/400',
+    images: [
+      'https://picsum.photos/seed/51/1200/800',
+      'https://picsum.photos/seed/52/1200/800',
+      'https://picsum.photos/seed/53/1200/800',
+    ],
+    description: {
+      challenge: 'El desafío para el proyecto cinco.',
+      solution: 'La solución implementada para el proyecto cinco.',
+      results: 'Los resultados obtenidos del proyecto cinco.',
+    },
+    skills: ['React', 'TypeScript', 'Next.js'],
+  },
+  {
+    slug: 'project-6',
+    title: 'Proyecto Seis',
+    tagline: 'Una breve descripción del proyecto seis.',
+    thumbnail: 'https://picsum.photos/seed/6/600/400',
+    images: [
+      'https://picsum.photos/seed/61/1200/800',
+      'https://picsum.photos/seed/62/1200/800',
+      'https://picsum.photos/seed/63/1200/800',
+    ],
+    description: {
+      challenge: 'El desafío para el proyecto seis.',
+      solution: 'La solución implementada para el proyecto seis.',
+      results: 'Los resultados obtenidos del proyecto seis.',
+    },
+    skills: ['Vue', 'JavaScript', 'Firebase'],
   },
 ];
