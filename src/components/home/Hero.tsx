@@ -2,10 +2,10 @@ export function Hero() {
   const name = 'Javier Velásquez';
 
   return (
-    <section className="relative w-full overflow-hidden py-20 md:py-32">
+    <section className="relative flex h-full w-full items-center justify-center overflow-hidden">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="flex flex-col items-center group">
+          <div className="group flex flex-col items-center">
             <h1
               style={{ animationDelay: '0.2s' }}
               className="animate-fade-in-up font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl"
@@ -17,7 +17,7 @@ export function Hero() {
                     className="transition-all duration-300 group-hover:-translate-y-1.5"
                     style={{ transitionDelay: `${index * 30}ms` }}
                   >
-                    {char === ' ' ? '\u00A0' : char}
+                    {char === ' ' ? ' ' : char}
                   </span>
                 ))}
               </div>
