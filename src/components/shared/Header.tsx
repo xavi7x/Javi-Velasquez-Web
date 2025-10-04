@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { Lock } from 'lucide-react';
 
 const navLinks = [
   { href: '/', label: 'Proyectos' },
@@ -31,6 +32,17 @@ export function Header() {
             </Link>
           )
         })}
+         <Link
+          href="/propietario"
+          className={cn(
+            "transition-colors hover:text-primary",
+            pathname === '/propietario' ? "text-primary font-semibold" : "text-muted-foreground"
+          )}
+          prefetch={false}
+          aria-label="Admin"
+        >
+          <Lock className="h-4 w-4" />
+        </Link>
       </nav>
     );
   };
