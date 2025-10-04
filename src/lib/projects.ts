@@ -1,25 +1,26 @@
+
 import type { Project } from '@/lib/types';
 
 export const projects: Project[] = [
   {
-    slug: 'brand-identity-revamp',
-    title: 'Renovación de Identidad de Marca',
-    tagline: 'Refrescando una Marca Clásica para una Audiencia Moderna',
-    thumbnail: 'https://picsum.photos/seed/1/600/400',
+    slug: 'al-punto-app',
+    title: 'Al Punto - App para Restaurantes',
+    tagline: 'Desarrollo de aplicación web para la gestión de equipos de restaurantes.',
+    thumbnail: 'https://picsum.photos/seed/restaurant/600/400',
     images: [
-      'https://picsum.photos/seed/11/1200/800',
-      'https://picsum.photos/seed/12/1200/800',
-      'https://picsum.photos/seed/13/1200/800',
+      'https://picsum.photos/seed/appscreen1/1200/800',
+      'https://picsum.photos/seed/appscreen2/1200/800',
+      'https://picsum.photos/seed/appscreen3/1200/800',
     ],
     description: {
       challenge:
-        'El cliente, una empresa bien establecida, estaba perdiendo cuota de mercado frente a competidores más nuevos y ágiles. Su identidad de marca se sentía anticuada y no lograba conectar con un grupo demográfico más joven.',
+        'Los equipos de restaurantes enfrentan desafíos constantes en comunicación, organización de tareas y capacitación. La falta de una herramienta centralizada resultaba en ineficiencias, errores en el servicio y una curva de aprendizaje lenta para el nuevo personal.',
       solution:
-        'Realizamos una auditoría de marca completa y desarrollamos una nueva identidad visual que era moderna, vibrante y auténtica. Esto incluyó un nuevo logotipo, paleta de colores, tipografía y un conjunto completo de materiales de marketing.',
+        'Creamos "Al Punto", una aplicación web integral que centraliza la comunicación interna, la gestión de checklists, el material de capacitación y los protocolos. La plataforma fue diseñada para ser intuitiva y accesible desde cualquier dispositivo, facilitando la colaboración en tiempo real.',
       results:
-        'El cambio de marca condujo a un aumento del 40% en la participación en las redes sociales y un aumento del 25% en las ventas en el primer trimestre. La marca ahora es percibida como un líder contemporáneo en su campo.',
+        'La implementación de "Al Punto" resultó en una mejora del 35% en la eficiencia operativa, una reducción significativa en los errores de comunicación y una incorporación más rápida y estandarizada del personal. Los restaurantes que usan la app reportan una mayor cohesión y satisfacción en sus equipos.',
     },
-    skills: ['Branding', 'Diseño UI/UX', 'Figma', 'Adobe Illustrator'],
+    skills: ['Desarrollo Web', 'Next.js', 'React', 'Firebase', 'Diseño UI/UX', 'Figma'],
   },
   {
     slug: 'e-commerce-platform',
