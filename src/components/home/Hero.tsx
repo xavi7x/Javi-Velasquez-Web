@@ -47,16 +47,16 @@ export function Hero() {
           <div className="group flex flex-col items-center">
             <h1
               style={{ animationDelay: '0.2s' }}
-              className="animate-fade-in-up font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl"
-            >
-              {name}
-            </h1>
-            <p
-              style={{ animationDelay: '0.6s' }}
-              className="animate-fade-in-up mt-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text font-headline text-xl font-medium tracking-tight text-transparent sm:text-2xl md:text-3xl"
+              className="animate-fade-in-up bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text font-headline text-4xl font-bold tracking-tighter text-transparent sm:text-5xl md:text-6xl lg:text-7xl"
             >
               Desarrollo {text}
               <span className="animate-pulse">|</span>
+            </h1>
+            <p
+              style={{ animationDelay: '0.6s' }}
+              className="animate-fade-in-up mt-4 font-headline text-xl font-medium tracking-tight sm:text-2xl md:text-3xl"
+            >
+              {name}
             </p>
           </div>
         </div>
