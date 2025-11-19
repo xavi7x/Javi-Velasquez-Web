@@ -58,7 +58,7 @@ function OwnerDashboard() {
 
         <nav className="flex flex-col gap-2">
           <Button
-            variant={activeView === 'projects' ? 'secondary' : 'ghost'}
+            variant={activeView === 'projects' ? 'default' : 'ghost'}
             className="justify-start gap-3"
             onClick={() => setActiveView('projects')}
           >
@@ -66,7 +66,7 @@ function OwnerDashboard() {
             <span>Proyectos</span>
           </Button>
           <Button
-            variant={activeView === 'messages' ? 'secondary' : 'ghost'}
+            variant={activeView === 'messages' ? 'default' : 'ghost'}
             className="justify-start gap-3"
             onClick={() => setActiveView('messages')}
           >
