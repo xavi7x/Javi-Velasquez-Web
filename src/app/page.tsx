@@ -7,9 +7,9 @@ import { Footer } from '@/components/shared/Footer';
 
 export default function Home() {
   return (
-    <>
+    <div className="bg-slate-950 text-foreground">
       <Header />
-      <main className="overflow-x-hidden">
+      <main>
         <div className="h-screen">
           <Hero />
         </div>
@@ -18,6 +18,6 @@ export default function Home() {
         <ContactCTA />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

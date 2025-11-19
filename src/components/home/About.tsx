@@ -1,32 +1,32 @@
-import { Code, LayoutTemplate, PenTool, Share2 } from 'lucide-react';
+import { Code, LayoutTemplate, Smartphone, Server } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
 const services = [
   {
-    name: 'Diseño Estratégico',
+    name: 'Desarrollo Frontend',
     description:
-      'Creo interfaces intuitivas y atractivas centradas en el usuario.',
-    icon: PenTool,
-  },
-  {
-    name: 'Desarrollo a Medida',
-    description:
-      'Soluciones web y móviles robustas, escalables y de alto rendimiento.',
-    icon: Code,
-  },
-  {
-    name: 'Prototipos Funcionales',
-    description:
-      'Valido ideas rápidamente con prototipos interactivos y realistas.',
+      'Construyo interfaces de usuario interactivas, rápidas y responsive con las últimas tecnologías.',
     icon: LayoutTemplate,
   },
   {
-    name: 'Contenido para Redes',
+    name: 'Desarrollo Backend',
     description:
-      'Diseño visual atractivo y estratégico para potenciar tu marca en redes sociales.',
-    icon: Share2,
+      'Diseño y desarrollo APIs robustas, bases de datos eficientes y lógica de servidor escalable.',
+    icon: Server,
+  },
+  {
+    name: 'Aplicaciones Web',
+    description:
+      'Soluciones web completas, desde la idea hasta el despliegue, usando stacks modernos.',
+    icon: Code,
+  },
+  {
+    name: 'Desarrollo Móvil',
+    description:
+      'Creo experiencias móviles fluidas y nativas para iOS y Android con tecnologías híbridas.',
+    icon: Smartphone,
   },
 ];
 
@@ -39,10 +39,10 @@ export function About() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-            Uniendo Tecnología y Diseño
+            Especialista en Desarrollo Web
           </h2>
           <p className="mx-auto mt-4 max-w-[600px] text-muted-foreground md:text-xl/relaxed">
-            Combino creatividad y tecnología para construir soluciones digitales
+            Combino código limpio y diseño funcional para construir soluciones digitales
             que resuelven problemas reales y generan un impacto medible.
           </p>
         </div>

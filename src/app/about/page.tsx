@@ -4,13 +4,14 @@ import { Footer } from '@/components/shared/Footer';
 import { Badge } from '@/components/ui/badge';
 
 const tools = [
-  { name: 'Adobe Photoshop' },
-  { name: 'Adobe Illustrator' },
-  { name: 'Notion' },
-  { name: 'Firebase' },
   { name: 'Next.js' },
   { name: 'React' },
+  { name: 'TypeScript' },
+  { name: 'Node.js' },
+  { name: 'Firebase' },
   { name: 'Tailwind CSS' },
+  { name: 'Figma' },
+  { name: 'Git & GitHub' },
 ];
 
 export default function AboutPage() {
@@ -23,17 +24,17 @@ export default function AboutPage() {
             <div className="flex flex-col justify-center space-y-6">
               <header>
                 <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
-                  Uniendo Creatividad y Código
+                  Transformando Ideas en Código
                 </h1>
                 <p className="mt-4 max-w-xl text-lg text-muted-foreground md:text-xl">
-                  Soy Javier Velásquez, un tecnólogo creativo y diseñador de productos apasionado por construir experiencias digitales que sean intuitivas, impactantes y resuelvan problemas reales.
+                  Soy Javier Velásquez, un desarrollador de software apasionado por construir productos digitales que sean eficientes, escalables y resuelvan problemas reales.
                 </p>
               </header>
               <p className="leading-relaxed text-muted-foreground">
-                Mi enfoque combina una profunda comprensión del diseño centrado en el usuario con la habilidad técnica para llevar esas ideas a la realidad. Disfruto cada etapa del proceso, desde la conceptualización y el prototipado hasta el desarrollo y lanzamiento final.
+                Mi enfoque combina una profunda comprensión de la arquitectura de software con la habilidad para escribir código limpio y mantenible. Disfruto cada etapa del ciclo de vida del desarrollo, desde el análisis de requerimientos y el diseño técnico hasta la implementación y el despliegue.
               </p>
               <p className="leading-relaxed text-muted-foreground">
-                Fuera del trabajo, me encontrarás explorando nuevas tecnologías, contribuyendo a proyectos de código abierto o buscando inspiración en el arte y la naturaleza.
+                Fuera del trabajo, me encontrarás explorando nuevas tecnologías, contribuyendo a proyectos de código abierto o buscando inspiración en la resolución de algoritmos complejos.
               </p>
             </div>
             <div className="relative group">
@@ -56,10 +57,10 @@ export default function AboutPage() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto max-w-5xl text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                Mis Herramientas
+                Mi Stack Tecnológico
               </h2>
               <p className="mt-4 max-w-[600px] mx-auto text-muted-foreground md:text-xl/relaxed">
-                Estas son algunas de las herramientas que utilizo para dar vida a mis proyectos.
+                Estas son algunas de las herramientas y tecnologías que utilizo para dar vida a mis proyectos.
               </p>
             </div>
             <div className="mt-16 flex flex-wrap justify-center gap-4">
