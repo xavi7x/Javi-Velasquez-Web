@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -40,22 +40,32 @@ import {
 } from "@/components/ui/alert-dialog"
 import { projects } from '@/lib/projects'; // Usando datos estáticos por ahora
 import type { Project } from '@/lib/types';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Upload } from 'lucide-react';
 
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
 
   const openAddModal = () => {
     setEditingProject(null);
+    setThumbnailFile(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (project: Project) => {
     setEditingProject(project);
+    setThumbnailFile(null);
     setIsModalOpen(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setThumbnailFile(e.target.files[0]);
+    }
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -67,6 +77,7 @@ export function ProjectsView() {
     }
     setIsModalOpen(false);
     setEditingProject(null);
+    setThumbnailFile(null);
   };
   
   const handleDeleteProject = () => {
@@ -156,12 +167,27 @@ export function ProjectsView() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="thumbnail">URL de Miniatura</Label>
-              <Input
-                id="thumbnail"
-                defaultValue={editingProject?.thumbnail}
-                placeholder="https://picsum.photos/seed/..."
+              <Label htmlFor="thumbnail-upload">Miniatura del Proyecto</Label>
+               <input 
+                type="file" 
+                id="thumbnail-upload"
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="hidden" 
+                accept="image/*"
               />
+              <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="mr-2 h-4 w-4" />
+                Subir Miniatura
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Recomendado: 1200x800 píxeles.
+              </p>
+              {thumbnailFile ? (
+                <p className="text-sm text-foreground">Archivo seleccionado: {thumbnailFile.name}</p>
+              ) : editingProject?.thumbnail ? (
+                 <p className="text-sm text-foreground">Miniatura actual: {editingProject.thumbnail.split('/').pop()}</p>
+              ) : null}
             </div>
              <div className="space-y-2">
               <Label htmlFor="challenge">El Desafío</Label>
