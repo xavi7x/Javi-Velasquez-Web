@@ -14,6 +14,7 @@ const navLinks = [
 
 export function Header() {
   const pathname = usePathname();
+  const logoUrl = 'https://picsum.photos/seed/logo/32/32'; // <-- REEMPLAZA ESTA URL POR LA DE TU LOGO EN FIREBASE STORAGE
 
   const NavLinks = () => {
     return (
@@ -55,11 +56,11 @@ export function Header() {
         <Link href="/" className="group flex items-center gap-2" prefetch={false}>
             <div className="relative h-8 w-8">
             <Image
-              src="/logo-javier.svg"
+              src={logoUrl}
               alt="Logo Javier Velasquez"
               width={32}
               height={32}
-              className="h-full w-full text-foreground transition-transform duration-500 group-hover:rotate-12"
+              className="h-full w-full rounded-full object-cover transition-transform duration-500 group-hover:rotate-12"
             />
           </div>
           <span className="font-headline text-lg font-bold">Javier Velasquez</span>

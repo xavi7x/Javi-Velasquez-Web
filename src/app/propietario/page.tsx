@@ -31,6 +31,7 @@ function OwnerDashboard() {
   const { user } = useUser();
   const auth = useAuth();
   const router = useRouter();
+  const logoUrl = 'https://picsum.photos/seed/logo/24/24'; // <-- REEMPLAZA ESTA URL POR LA DE TU LOGO EN FIREBASE STORAGE
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -54,8 +55,8 @@ function OwnerDashboard() {
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white p-1.5">
-                <Image src="/logo-javier.svg" alt="Logo" width={24} height={24} />
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-1">
+                <Image src={logoUrl} alt="Logo" width={24} height={24} className="rounded-full" />
               </div>
               <span className="text-lg font-semibold">Panel</span>
             </div>
