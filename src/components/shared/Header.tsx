@@ -77,21 +77,17 @@ export function Header() {
               className="h-8 w-8 object-contain transition-transform duration-500 group-hover:rotate-12"
             />
           <div 
-            className={cn(
-              "font-headline text-lg font-bold flex overflow-hidden transition-all duration-300",
-              isScrolled ? 'w-0' : 'w-auto'
-            )}
+            className="font-headline text-lg font-bold flex overflow-hidden"
             aria-hidden={isScrolled}
           >
              {name.split('').map((letter, index) => (
               <span
                 key={index}
-                className="inline-block transition-all duration-300"
+                className="inline-block transition-all duration-500"
                 style={{
-                  transitionDelay: isScrolled ? `${index * 20}ms` : `${(name.length - index) * 20}ms`,
-                  transform: isScrolled ? 'translateX(-20px)' : 'translateX(0)',
+                  transitionDelay: `${index * 30}ms`,
+                  transform: isScrolled ? 'translateX(-100%)' : 'translateX(0)',
                   opacity: isScrolled ? 0 : 1,
-                  // Prevent line breaks for single words
                   whiteSpace: letter === ' ' ? 'pre' : 'normal',
                 }}
               >
