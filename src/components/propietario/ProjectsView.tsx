@@ -28,19 +28,61 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { projects } from '@/lib/projects'; // Usando datos estáticos por ahora
+import type { Project } from '@/lib/types';
 import { PlusCircle } from 'lucide-react';
 
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
-  // Lógica para manejar el envío del formulario (a implementar)
-  const handleAddProject = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Aquí iría la lógica para guardar en Firestore
-    console.log('Proyecto guardado (simulado)');
-    setIsModalOpen(false); // Cierra el modal después de guardar
+
+  const openAddModal = () => {
+    setEditingProject(null);
+    setIsModalOpen(true);
   };
+
+  const openEditModal = (project: Project) => {
+    setEditingProject(project);
+    setIsModalOpen(true);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingProject) {
+      console.log('Proyecto actualizado (simulado):', editingProject.title);
+    } else {
+      console.log('Nuevo proyecto guardado (simulado)');
+    }
+    setIsModalOpen(false);
+    setEditingProject(null);
+  };
+  
+  const handleDeleteProject = () => {
+    if (projectToDelete) {
+      console.log('Proyecto eliminado (simulado):', projectToDelete.title);
+      // Lógica de borrado aquí
+      setProjectToDelete(null);
+    }
+  };
+
+
+  const modalTitle = editingProject ? 'Editar Proyecto' : 'Añadir Nuevo Proyecto';
+  const modalDescription = editingProject
+    ? `Realiza cambios en el proyecto "${editingProject.title}".`
+    : 'Completa el formulario para añadir un nuevo proyecto a tu portafolio.';
+
 
   return (
     <div className="space-y-8">
@@ -49,7 +91,7 @@ export function ProjectsView() {
           <div className="space-y-1.5">
             <CardTitle>Proyectos Actuales</CardTitle>
           </div>
-          <Button onClick={() => setIsModalOpen(true)}>
+          <Button onClick={openAddModal}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Añadir Proyecto
           </Button>
@@ -71,13 +113,14 @@ export function ProjectsView() {
                     {project.tagline}
                   </TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="outline" size="sm" className="rounded-full">
+                    <Button variant="outline" size="sm" className="rounded-full" onClick={() => openEditModal(project)}>
                       Editar
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
                       className="rounded-full"
+                      onClick={() => setProjectToDelete(project)}
                     >
                       Eliminar
                     </Button>
@@ -92,21 +135,22 @@ export function ProjectsView() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Añadir Nuevo Proyecto</DialogTitle>
+            <DialogTitle>{modalTitle}</DialogTitle>
             <DialogDescription>
-              Completa el formulario para añadir un nuevo proyecto a tu portafolio.
+              {modalDescription}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddProject} className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-6">
+          <form onSubmit={handleFormSubmit} className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Título del Proyecto</Label>
-                <Input id="title" placeholder="Ej: Renovación de Marca" />
+                <Input id="title" defaultValue={editingProject?.title} placeholder="Ej: Renovación de Marca" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tagline">Tagline</Label>
                 <Input
                   id="tagline"
+                  defaultValue={editingProject?.tagline}
                   placeholder="Una descripción corta y llamativa"
                 />
               </div>
@@ -115,6 +159,7 @@ export function ProjectsView() {
               <Label htmlFor="thumbnail">URL de Miniatura</Label>
               <Input
                 id="thumbnail"
+                defaultValue={editingProject?.thumbnail}
                 placeholder="https://picsum.photos/seed/..."
               />
             </div>
@@ -122,6 +167,7 @@ export function ProjectsView() {
               <Label htmlFor="challenge">El Desafío</Label>
               <Textarea
                 id="challenge"
+                defaultValue={editingProject?.description.challenge}
                 placeholder="Describe el problema o desafío."
                 className="min-h-[100px]"
               />
@@ -130,6 +176,7 @@ export function ProjectsView() {
               <Label htmlFor="solution">La Solución</Label>
               <Textarea
                 id="solution"
+                defaultValue={editingProject?.description.solution}
                 placeholder="Explica la solución que implementaste."
                 className="min-h-[100px]"
               />
@@ -138,13 +185,14 @@ export function ProjectsView() {
               <Label htmlFor="results">Los Resultados</Label>
               <Textarea
                 id="results"
+                defaultValue={editingProject?.description.results}
                 placeholder="Menciona los resultados obtenidos."
                 className="min-h-[100px]"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="skills">Habilidades (separadas por coma)</Label>
-              <Input id="skills" placeholder="Ej: React, Figma, Branding" />
+              <Input id="skills" defaultValue={editingProject?.skills.join(', ')} placeholder="Ej: React, Figma, Branding" />
             </div>
           </form>
           <DialogFooter>
@@ -153,10 +201,29 @@ export function ProjectsView() {
                 Cancelar
               </Button>
             </DialogClose>
-            <Button type="submit" onClick={handleAddProject}>Guardar Proyecto</Button>
+            <Button type="submit" onClick={handleFormSubmit}>Guardar Proyecto</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <AlertDialog open={!!projectToDelete} onOpenChange={(isOpen) => !isOpen && setProjectToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente el proyecto
+              "{projectToDelete?.title}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteProject}>
+              Sí, eliminar proyecto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
