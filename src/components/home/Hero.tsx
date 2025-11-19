@@ -272,7 +272,7 @@ export function Hero() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-700 dark:border-white/10 dark:bg-white/5 dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white/80"
+                          className="h-8 w-8 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-700"
                           disabled={isSubmitting}
                         >
                           <Plus className="h-4 w-4" />
@@ -306,7 +306,7 @@ export function Hero() {
                         'h-8 w-8 rounded-full transition-colors',
                         (message || file || url)
                           ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:brightness-110'
-                          : 'bg-neutral-200 text-neutral-400 dark:bg-white/20 dark:text-white/60'
+                          : 'bg-neutral-200 text-neutral-400'
                       )}
                       disabled={isSubmitting || (!message && !file && !url)}
                     >
