@@ -10,11 +10,14 @@ const tools = [
   { name: 'Node.js' },
   { name: 'Firebase' },
   { name: 'Tailwind CSS' },
-  { name: 'Figma' },
+  { name: 'WordPress' },
+  { name: 'Google Cloud' },
   { name: 'Git & GitHub' },
 ];
 
 export default function AboutPage() {
+  const extendedTools = [...tools, ...tools]; // Duplicate for seamless loop
+
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
       <Header />
@@ -63,16 +66,20 @@ export default function AboutPage() {
                 Estas son algunas de las herramientas y tecnologías que utilizo para dar vida a mis proyectos.
               </p>
             </div>
-            <div className="mt-16 flex flex-wrap justify-center gap-4">
-              {tools.map((tool) => (
-                <Badge
-                  key={tool.name}
-                  variant="secondary"
-                  className="rounded-full text-lg py-2 px-4 border border-white/10"
-                >
-                  {tool.name}
-                </Badge>
-              ))}
+            <div className="mt-16 relative overflow-hidden">
+               <div className="scrolling-wrapper">
+                <div className="scrolling-content">
+                  {extendedTools.map((tool, index) => (
+                    <Badge
+                      key={`${tool.name}-${index}`}
+                      variant="outline"
+                      className="whitespace-nowrap rounded-full text-lg py-2 px-6 bg-white/10 dark:bg-white/5 border-neutral-200/50 dark:border-white/10 backdrop-blur-sm"
+                    >
+                      {tool.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
