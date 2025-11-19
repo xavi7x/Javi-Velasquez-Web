@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useAvailability } from '@/hooks/use-availability';
 
@@ -9,6 +10,7 @@ export function AvailabilityStatus() {
   const [isHovered, setIsHovered] = useState(false);
   const email = 'hey@javivelasquez.com';
   const { isAvailable, isLoaded } = useAvailability();
+  const pathname = usePathname();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(email);
@@ -18,7 +20,7 @@ export function AvailabilityStatus() {
     });
   };
 
-  if (!isLoaded || !isAvailable) {
+  if (!isLoaded || !isAvailable || pathname === '/propietario') {
     return null;
   }
 
