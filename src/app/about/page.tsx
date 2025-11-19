@@ -66,19 +66,19 @@ export default function AboutPage() {
                 Estas son algunas de las herramientas y tecnologías que utilizo para dar vida a mis proyectos.
               </p>
             </div>
-            <div className="mt-16 relative overflow-hidden">
-               <div className="scrolling-wrapper">
-                <div className="scrolling-content">
-                  {extendedTools.map((tool, index) => (
-                    <Badge
-                      key={`${tool.name}-${index}`}
-                      variant="outline"
-                      className="whitespace-nowrap rounded-full text-lg py-2 px-6 bg-white/10 dark:bg-white/5 border-neutral-200/50 dark:border-white/10 backdrop-blur-sm"
-                    >
-                      {tool.name}
-                    </Badge>
-                  ))}
-                </div>
+          </div>
+          <div className="mt-16 relative w-full overflow-hidden">
+             <div className="scrolling-wrapper">
+              <div className="scrolling-content">
+                {extendedTools.map((tool, index) => (
+                  <Badge
+                    key={`${tool.name}-${index}`}
+                    variant="outline"
+                    className="whitespace-nowrap rounded-full text-lg py-2 px-6 bg-white/10 dark:bg-white/5 border-neutral-200/50 dark:border-white/10 backdrop-blur-sm"
+                  >
+                    {tool.name}
+                  </Badge>
+                ))}
               </div>
             </div>
           </div>
