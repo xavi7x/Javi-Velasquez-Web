@@ -1,11 +1,27 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useInView } from 'react-intersection-observer';
 import { projects } from '@/lib/projects';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 export function PortfolioGrid() {
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
   return (
-    <section id="portfolio" className="w-full py-16 md:py-32">
+    <section
+      id="portfolio"
+      ref={ref}
+      className={cn(
+        'w-full py-16 md:py-32 opacity-0 transition-opacity duration-1000',
+        inView && 'animate-fade-in-up opacity-100'
+      )}
+    >
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-5xl text-center">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -16,14 +32,14 @@ export function PortfolioGrid() {
           </p>
         </div>
         <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.slice(0, 6).map((project) => (
+          {projects.slice(0, 6).map((project, index) => (
             <Link
               key={project.slug}
               href={`/portfolio/${project.slug}`}
               className="group block"
             >
               <div className="relative">
-                <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-500 to-pink-500 opacity-0 blur-lg transition-all duration-300 group-hover:opacity-25"></div>
+                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500 to-pink-500 opacity-0 blur-lg transition-all duration-300 group-hover:opacity-25"></div>
                 <Card className="relative overflow-hidden rounded-2xl transition-all duration-300">
                   <Image
                     src={project.thumbnail}
