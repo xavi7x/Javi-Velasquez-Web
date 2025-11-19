@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -12,8 +12,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '../ui/button';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { collection, doc, updateDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Skeleton } from '../ui/skeleton';
@@ -21,7 +21,7 @@ import { AlertCircle, FileText, Inbox, Link as LinkIcon, Phone, User, Calendar }
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
-interface Message {
+export interface Message {
   id: string;
   name: string;
   phone: string;
@@ -32,16 +32,25 @@ interface Message {
   url?: string;
 }
 
-export function MessagesView() {
+interface MessagesViewProps {
+  messages: Message[] | null;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export function MessagesView({ messages, isLoading, error }: MessagesViewProps) {
   const firestore = useFirestore();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
 
-  const messagesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'contactFormSubmissions'), orderBy('submissionDate', 'desc'));
-  }, [firestore]);
-
-  const { data: messages, isLoading, error } = useCollection<Message>(messagesQuery);
+  const handleOpenMessage = (message: Message) => {
+    setSelectedMessage(message);
+    if (message.status === 'new' && firestore) {
+      const messageRef = doc(firestore, 'contactFormSubmissions', message.id);
+      updateDoc(messageRef, { status: 'read' }).catch(err => {
+        console.error("Error updating message status: ", err);
+      });
+    }
+  };
 
   const renderContent = () => {
     if (isLoading) {
@@ -96,7 +105,7 @@ export function MessagesView() {
     return (
       <TableBody>
         {messages.map((msg) => (
-          <TableRow key={msg.id}>
+          <TableRow key={msg.id} className={msg.status === 'new' ? 'font-bold' : ''}>
             <TableCell className="font-medium">{msg.name}</TableCell>
             <TableCell className="text-muted-foreground">{msg.phone}</TableCell>
             <TableCell className="max-w-[300px] truncate text-muted-foreground">
@@ -135,7 +144,7 @@ export function MessagesView() {
                   </Link>
                 </Button>
               )}
-              <Button variant="outline" size="sm" className="rounded-full" onClick={() => setSelectedMessage(msg)}>Ver</Button>
+              <Button variant="outline" size="sm" className="rounded-full" onClick={() => handleOpenMessage(msg)}>Ver</Button>
             </TableCell>
           </TableRow>
         ))}
@@ -173,7 +182,7 @@ export function MessagesView() {
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle>Detalle del Mensaje</DialogTitle>
-                    <div className="!mt-2">
+                     <div className="!mt-2">
                         <Badge
                             variant={
                                 selectedMessage.status === 'new' ? 'default' : selectedMessage.status === 'read' ? 'secondary' : 'outline'

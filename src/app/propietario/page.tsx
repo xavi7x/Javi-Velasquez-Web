@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Sidebar,
   SidebarProvider,
@@ -12,25 +12,44 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarMenuBadge,
 } from '@/components/ui/sidebar';
 import { Briefcase, MessageSquare, User, LogOut } from 'lucide-react';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
-import { MessagesView } from '@/components/propietario/MessagesView';
+import { MessagesView, type Message } from '@/components/propietario/MessagesView';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import Image from 'next/image';
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher';
+import { collection, query, orderBy } from 'firebase/firestore';
 
 function OwnerDashboard() {
   const [activeView, setActiveView] = useState('projects');
+  const [newMessagesCount, setNewMessagesCount] = useState(0);
   const { user } = useUser();
   const auth = useAuth();
   const router = useRouter();
+  const firestore = useFirestore();
   const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/velsquez-digital.firebasestorage.app/o/Private%2Flogo-javier.svg?alt=media&token=7d179ca6-55ad-4a5f-9cf6-e6050f004630';
+  
+  const messagesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'contactFormSubmissions'), orderBy('submissionDate', 'desc'));
+  }, [firestore]);
+
+  const { data: messages, isLoading, error } = useCollection<Message>(messagesQuery);
+
+  useEffect(() => {
+    if (messages) {
+      const newCount = messages.filter(msg => msg.status === 'new').length;
+      setNewMessagesCount(newCount);
+    }
+  }, [messages]);
+
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -67,6 +86,9 @@ function OwnerDashboard() {
                 >
                   <MessageSquare />
                   <span className="group-data-[collapsible=icon]:hidden">Mensajes</span>
+                   {newMessagesCount > 0 && (
+                    <SidebarMenuBadge>{newMessagesCount}</SidebarMenuBadge>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -110,7 +132,7 @@ function OwnerDashboard() {
               </p>
             </div>
            </header>
-          {activeView === 'projects' ? <ProjectsView /> : <MessagesView />}
+          {activeView === 'projects' ? <ProjectsView /> : <MessagesView messages={messages} isLoading={isLoading} error={error} />}
         </SidebarInset>
       </div>
     </SidebarProvider>
