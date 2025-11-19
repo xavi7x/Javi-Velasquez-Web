@@ -10,6 +10,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useFirestore } from '@/firebase';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -266,37 +272,46 @@ export function Hero() {
                     disabled={isSubmitting}
                   />
                   <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-700"
-                          disabled={isSubmitting}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto rounded-xl bg-white p-2 border border-black/10 text-neutral-900">
-                        <div className="flex flex-col gap-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            className="justify-start px-3 text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <Paperclip className="mr-2 h-4 w-4" />
-                            Adjuntar archivo
-                          </Button>
-                          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-                          <Button variant="ghost" onClick={handleAddUrlClick} className="justify-start px-3 text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900">
-                            <LinkIcon className="mr-2 h-4 w-4" />
-                            Añadir URL
-                          </Button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-700"
+                                disabled={isSubmitting}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto rounded-xl bg-white p-2 border border-black/10 text-neutral-900">
+                              <div className="flex flex-col gap-1">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  className="justify-start px-3 text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900"
+                                  onClick={() => fileInputRef.current?.click()}
+                                >
+                                  <Paperclip className="mr-2 h-4 w-4" />
+                                  Adjuntar archivo
+                                </Button>
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                                <Button variant="ghost" onClick={handleAddUrlClick} className="justify-start px-3 text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900">
+                                  <LinkIcon className="mr-2 h-4 w-4" />
+                                  Añadir URL
+                                </Button>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Adjunta documentos o referencias</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
                     <Button
                       type="submit"
