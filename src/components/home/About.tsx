@@ -1,32 +1,32 @@
-import { Code, LayoutTemplate, Smartphone, Server } from 'lucide-react';
+import { Sparkles, ShoppingCart, TabletSmartphone, Rocket } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
 const services = [
   {
-    name: 'Desarrollo Frontend',
+    name: 'Páginas Web que Enamoran',
     description:
-      'Construyo interfaces de usuario interactivas, rápidas y responsive con las últimas tecnologías.',
-    icon: LayoutTemplate,
+      'Creo sitios web con un diseño atractivo y moderno que capturará la atención de tus visitantes desde el primer segundo.',
+    icon: Sparkles,
   },
   {
-    name: 'Desarrollo Backend',
+    name: 'Experiencia Fluida en Móviles',
     description:
-      'Diseño y desarrollo APIs robustas, bases de datos eficientes y lógica de servidor escalable.',
-    icon: Server,
+      'Tu web se verá y funcionará perfectamente en cualquier dispositivo, garantizando que nadie se quede afuera.',
+    icon: TabletSmartphone,
   },
   {
-    name: 'Aplicaciones Web',
+    name: 'Tiendas Online que Venden',
     description:
-      'Soluciones web completas, desde la idea hasta el despliegue, usando stacks modernos.',
-    icon: Code,
+      'Desarrollo tiendas online seguras y fáciles de gestionar para que puedas vender tus productos sin complicaciones.',
+    icon: ShoppingCart,
   },
   {
-    name: 'Desarrollo Móvil',
+    name: 'Rendimiento de Alta Velocidad',
     description:
-      'Creo experiencias móviles fluidas y nativas para iOS y Android con tecnologías híbridas.',
-    icon: Smartphone,
+      'Optimizo cada detalle para que tu página cargue a toda velocidad, mejorando la experiencia y tu posicionamiento.',
+    icon: Rocket,
   },
 ];
 
