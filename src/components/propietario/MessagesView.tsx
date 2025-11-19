@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -16,8 +17,9 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Skeleton } from '../ui/skeleton';
-import { AlertCircle, FileText, Inbox, Link as LinkIcon } from 'lucide-react';
+import { AlertCircle, FileText, Inbox, Link as LinkIcon, Phone, User, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
 interface Message {
   id: string;
@@ -32,6 +34,8 @@ interface Message {
 
 export function MessagesView() {
   const firestore = useFirestore();
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'contactFormSubmissions'), orderBy('submissionDate', 'desc'));
@@ -131,7 +135,7 @@ export function MessagesView() {
                   </Link>
                 </Button>
               )}
-              <Button variant="outline" size="sm" className="rounded-full">Ver</Button>
+              <Button variant="outline" size="sm" className="rounded-full" onClick={() => setSelectedMessage(msg)}>Ver</Button>
             </TableCell>
           </TableRow>
         ))}
@@ -140,6 +144,7 @@ export function MessagesView() {
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>Bandeja de Entrada</CardTitle>
@@ -162,5 +167,82 @@ export function MessagesView() {
         </div>
       </CardContent>
     </Card>
+
+    {selectedMessage && (
+        <Dialog open={!!selectedMessage} onOpenChange={(isOpen) => !isOpen && setSelectedMessage(null)}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Detalle del Mensaje</DialogTitle>
+                    <DialogDescription>
+                        <Badge
+                            variant={
+                                selectedMessage.status === 'new' ? 'default' : selectedMessage.status === 'read' ? 'secondary' : 'outline'
+                            }
+                        >
+                            {selectedMessage.status === 'new' ? 'Nuevo' : selectedMessage.status === 'read' ? 'Leído' : 'Archivado'}
+                        </Badge>
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-4">
+                    <div className="flex items-center gap-4">
+                        <User className="h-5 w-5 text-muted-foreground" />
+                        <div className='text-sm'>
+                            <p className="font-medium text-muted-foreground">Nombre</p>
+                            <p>{selectedMessage.name}</p>
+                        </div>
+                    </div>
+                     <div className="flex items-center gap-4">
+                        <Phone className="h-5 w-5 text-muted-foreground" />
+                        <div className='text-sm'>
+                            <p className="font-medium text-muted-foreground">Teléfono</p>
+                            <p>{selectedMessage.phone}</p>
+                        </div>
+                    </div>
+                     <div className="flex items-center gap-4">
+                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                        <div className='text-sm'>
+                            <p className="font-medium text-muted-foreground">Fecha</p>
+                            <p>{format(new Date(selectedMessage.submissionDate), "PPP p", { locale: es })}</p>
+                        </div>
+                    </div>
+                    {selectedMessage.message && (
+                        <div className='space-y-2'>
+                            <p className="font-medium text-sm text-muted-foreground">Mensaje</p>
+                            <p className="text-sm p-4 bg-muted/50 rounded-lg whitespace-pre-wrap">{selectedMessage.message}</p>
+                        </div>
+                    )}
+                    {(selectedMessage.attachmentUrl || selectedMessage.url) && (
+                        <div className='space-y-3'>
+                            <p className="font-medium text-sm text-muted-foreground">Recursos Adicionales</p>
+                            <div className="flex flex-wrap gap-2">
+                                {selectedMessage.attachmentUrl && (
+                                    <Button asChild variant="outline" size="sm" className='rounded-full'>
+                                        <Link href={selectedMessage.attachmentUrl} target="_blank" rel="noopener noreferrer">
+                                            <FileText className="mr-2 h-4 w-4" /> Ver Archivo Adjunto
+                                        </Link>
+                                    </Button>
+                                )}
+                                {selectedMessage.url && (
+                                    <Button asChild variant="outline" size="sm" className='rounded-full'>
+                                        <Link href={selectedMessage.url} target="_blank" rel="noopener noreferrer">
+                                            <LinkIcon className="mr-2 h-4 w-4" /> Visitar URL
+                                        </Link>
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">
+                            Cerrar
+                        </Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )}
+    </>
   );
 }
