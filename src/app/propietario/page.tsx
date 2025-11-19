@@ -14,7 +14,7 @@ import {
   SidebarFooter,
   SidebarMenuBadge,
 } from '@/components/ui/sidebar';
-import { Briefcase, MessageSquare, User, LogOut } from 'lucide-react';
+import { Briefcase, MessageSquare, LogOut } from 'lucide-react';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { MessagesView, type Message } from '@/components/propietario/MessagesView';
 import { Button } from '@/components/ui/button';
@@ -59,7 +59,7 @@ function OwnerDashboard() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-muted/30 text-foreground">
-        <Sidebar>
+        <Sidebar variant="floating">
           <SidebarHeader>
             <div className="flex items-center gap-3 p-2">
                <Image src={logoUrl} alt="Logo" width={28} height={28} className="h-7 w-7 object-contain" />
@@ -118,21 +118,23 @@ function OwnerDashboard() {
             </div>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="p-4 md:p-8 lg:p-12">
-           <header className="flex items-center gap-4 mb-8">
-            <SidebarTrigger className="md:hidden" />
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                {activeView === 'projects' ? 'Gestión de Proyectos' : 'Mensajes Recibidos'}
-              </h1>
-              <p className="text-muted-foreground">
-                {activeView === 'projects'
-                  ? 'Añade, edita y elimina los proyectos de tu portafolio.'
-                  : 'Aquí puedes ver los mensajes enviados desde el formulario de contacto.'}
-              </p>
-            </div>
-           </header>
-          {activeView === 'projects' ? <ProjectsView /> : <MessagesView messages={messages} isLoading={isLoading} error={error} />}
+        <SidebarInset className="py-4 md:py-8 lg:py-12">
+           <div className="container mx-auto">
+            <header className="flex items-center gap-4 mb-8">
+              <SidebarTrigger className="md:hidden" />
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                  {activeView === 'projects' ? 'Gestión de Proyectos' : 'Mensajes Recibidos'}
+                </h1>
+                <p className="text-muted-foreground">
+                  {activeView === 'projects'
+                    ? 'Añade, edita y elimina los proyectos de tu portafolio.'
+                    : 'Aquí puedes ver los mensajes enviados desde el formulario de contacto.'}
+                </p>
+              </div>
+            </header>
+            {activeView === 'projects' ? <ProjectsView /> : <MessagesView messages={messages} isLoading={isLoading} error={error} />}
+          </div>
         </SidebarInset>
       </div>
     </SidebarProvider>
