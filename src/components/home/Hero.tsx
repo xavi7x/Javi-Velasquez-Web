@@ -252,7 +252,7 @@ export function Hero() {
               className="animate-fade-in-up w-full max-w-xl flex flex-col items-center"
             >
               <div className="w-full transition-all duration-300">
-                <div className="group/input relative rounded-full border border-black/10 bg-white p-2 pl-4 transition-all duration-300 hover:border-black/20">
+                <div className="group/input relative rounded-full border border-black/10 dark:border-white/10 bg-white/80 dark:bg-black/20 p-2 pl-4 transition-all duration-300 hover:border-black/20 dark:hover:border-white/20">
                   <label htmlFor="hero-input" className="sr-only">
                     Escríbeme sobre tu...
                   </label>
@@ -262,7 +262,7 @@ export function Hero() {
                     value={message}
                     onChange={handleInputChange}
                     placeholder={`Escríbeme sobre tu ${placeholder}`}
-                    className="w-full bg-transparent text-neutral-900 placeholder:text-neutral-500 focus:outline-none text-base pr-24"
+                    className="w-full bg-transparent text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none text-base pr-24"
                     disabled={isSubmitting}
                   />
                   <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -272,7 +272,7 @@ export function Hero() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full border border-black/10 bg-black/5 text-black/50 hover:bg-black/10 hover:text-black/80"
+                          className="h-8 w-8 rounded-full border border-black/10 bg-black/5 text-black/50 hover:bg-black/10 hover:text-black/80 dark:border-white/10 dark:bg-white/5 dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white/80"
                           disabled={isSubmitting}
                         >
                           <Plus className="h-4 w-4" />
@@ -306,7 +306,7 @@ export function Hero() {
                         'h-8 w-8 rounded-full transition-colors',
                         (message || file || url)
                           ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:brightness-110'
-                          : 'bg-black/10 text-black/40 hover:bg-black/20 hover:text-black/60'
+                          : 'bg-black/20 text-black/50 hover:bg-black/30 hover:text-black/70 dark:bg-white/20 dark:text-white/60 dark:hover:bg-white/30 dark:hover:text-white'
                       )}
                       disabled={isSubmitting || (!message && !file && !url)}
                     >
@@ -315,7 +315,7 @@ export function Hero() {
                   </div>
                 </div>
                  {file && (
-                    <div className="mt-2 text-left w-full bg-white/80 border border-black/10 rounded-full px-4 py-2 flex items-center justify-between text-sm text-neutral-700">
+                    <div className="mt-2 text-left w-full bg-white/80 dark:bg-black/30 border border-black/10 dark:border-white/10 rounded-full px-4 py-2 flex items-center justify-between text-sm text-neutral-700 dark:text-neutral-300">
                         <div className="flex items-center gap-2 overflow-hidden">
                             <Paperclip className="h-4 w-4 flex-shrink-0" />
                             <span className="truncate">{file.name}</span>
@@ -327,16 +327,16 @@ export function Hero() {
                 )}
                  {showUrlInput && (
                     <div className="mt-2 relative w-full">
-                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500 dark:text-neutral-400" />
                         <Input 
                             type="url" 
                             placeholder="Envíame tu web actual o referencia" 
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
-                            className="bg-white text-neutral-900 placeholder:text-neutral-500 pl-9 pr-9"
+                            className="bg-white text-neutral-900 placeholder:text-neutral-500 dark:bg-black/30 dark:text-neutral-100 dark:placeholder:text-neutral-400 pl-9 pr-9"
                             disabled={isSubmitting}
                         />
-                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-neutral-500 hover:text-neutral-900" onClick={removeUrlInput} disabled={isSubmitting}>
+                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100" onClick={removeUrlInput} disabled={isSubmitting}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
@@ -355,7 +355,7 @@ export function Hero() {
                       placeholder="Tu nombre"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="bg-white text-neutral-900 placeholder:text-neutral-500"
+                      className="bg-white text-neutral-900 placeholder:text-neutral-500 dark:bg-black/30 dark:text-neutral-100 dark:placeholder:text-neutral-400"
                       disabled={isSubmitting}
                       required
                     />
@@ -364,7 +364,7 @@ export function Hero() {
                       placeholder="Tu número de teléfono"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="bg-white text-neutral-900 placeholder:text-neutral-500"
+                      className="bg-white text-neutral-900 placeholder:text-neutral-500 dark:bg-black/30 dark:text-neutral-100 dark:placeholder:text-neutral-400"
                       disabled={isSubmitting}
                       required
                     />
@@ -378,5 +378,3 @@ export function Hero() {
     </section>
   );
 }
-
-    
