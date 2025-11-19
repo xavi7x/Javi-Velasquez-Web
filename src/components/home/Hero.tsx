@@ -252,7 +252,7 @@ export function Hero() {
               className="animate-fade-in-up w-full max-w-xl flex flex-col items-center"
             >
               <div className="w-full transition-all duration-300">
-                <div className="group/input relative rounded-full border border-black/10 dark:border-white/10 bg-white/80 dark:bg-black/20 p-2 pl-4 transition-all duration-300 hover:border-black/20 dark:hover:border-white/20">
+                <div className="group/input relative rounded-full border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 p-2 pl-4 transition-all duration-300 hover:border-black/20 dark:hover:border-white/20">
                   <label htmlFor="hero-input" className="sr-only">
                     Escríbeme sobre tu...
                   </label>
