@@ -46,7 +46,7 @@ function OwnerDashboard() {
   };
   
   return (
-      <div className="flex min-h-dvh bg-background text-foreground">
+      <div className="flex h-dvh overflow-hidden bg-background text-foreground">
         <aside className="w-64 flex-shrink-0 border-r border-border p-4 flex flex-col gap-8">
             <div className="flex items-center gap-3 p-2">
                <Image src={logoUrl} alt="Logo" width={28} height={28} className="h-7 w-7 object-contain" />
@@ -70,7 +70,7 @@ function OwnerDashboard() {
                     <MessageSquare className="h-4 w-4" />
                     <span className="flex-1 text-left">Mensajes</span>
                      {newMessagesCount > 0 && (
-                        <Badge className="h-6 w-6 justify-center p-0 bg-primary text-primary-foreground">{newMessagesCount}</Badge>
+                        <Badge className="h-6 w-6 justify-center p-0 rounded-full bg-primary text-primary-foreground">{newMessagesCount}</Badge>
                     )}
                 </Button>
             </nav>
@@ -99,7 +99,7 @@ function OwnerDashboard() {
             </div>
         </aside>
         
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 overflow-y-auto">
             <header className="mb-8">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
