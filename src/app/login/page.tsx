@@ -19,6 +19,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -101,7 +102,7 @@ export default function LoginPage() {
                   className="bg-white text-neutral-900 placeholder:text-neutral-500"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className={cn("w-full", "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:brightness-110")} disabled={isLoading}>
                 {isLoading ? 'Iniciando...' : 'Iniciar Sesión'}
               </Button>
             </form>
