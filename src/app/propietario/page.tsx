@@ -49,8 +49,8 @@ function OwnerDashboard() {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-background text-foreground">
-      <aside className="w-64 flex-shrink-0 border-r border-border p-4 flex flex-col gap-8">
+    <div className="flex h-dvh overflow-hidden bg-muted text-foreground">
+      <aside className="w-64 flex-shrink-0 bg-background rounded-2xl m-2 border border-border p-4 flex flex-col gap-8">
         <div className="flex items-center gap-3 p-2">
           <Image src={logoUrl} alt="Logo" width={28} height={28} className="h-7 w-7 object-contain" />
           <span className="text-lg font-semibold">Panel</span>
@@ -112,7 +112,7 @@ function OwnerDashboard() {
         </div>
       </aside>
 
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto bg-background rounded-2xl m-2 ml-0 border border-border">
         <header className="mb-8">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
