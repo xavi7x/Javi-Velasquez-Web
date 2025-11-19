@@ -177,10 +177,10 @@ export function Hero() {
                       variant="ghost"
                       size="icon"
                       className={cn(
-                        'h-8 w-8 rounded-full text-white transition-colors',
+                        'h-8 w-8 rounded-full transition-colors',
                         inputValue
-                          ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'
-                          : 'bg-black/10'
+                          ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:brightness-110'
+                          : 'bg-black/10 text-black/40 hover:bg-black/20 hover:text-black/60'
                       )}
                     >
                       <ArrowRight className="h-4 w-4" />
