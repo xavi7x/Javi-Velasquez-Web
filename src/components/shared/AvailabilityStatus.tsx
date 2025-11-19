@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useAvailability } from '@/hooks/use-availability';
 
 export function AvailabilityStatus() {
   const { toast } = useToast();
   const [isHovered, setIsHovered] = useState(false);
   const email = 'hey@javivelasquez.com';
+  const { isAvailable } = useAvailability();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(email);
@@ -15,6 +17,10 @@ export function AvailabilityStatus() {
       description: 'El correo ha sido copiado a tu portapapeles.',
     });
   };
+
+  if (!isAvailable) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
