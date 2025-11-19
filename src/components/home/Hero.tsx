@@ -262,7 +262,7 @@ export function Hero() {
                     value={message}
                     onChange={handleInputChange}
                     placeholder={`Escríbeme sobre tu ${placeholder}`}
-                    className="w-full bg-transparent text-neutral-900 placeholder:text-neutral-500 focus:outline-none text-base pr-24"
+                    className="w-full bg-white text-neutral-900 placeholder:text-neutral-500 focus:outline-none text-base pr-24"
                     disabled={isSubmitting}
                   />
                   <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -272,7 +272,7 @@ export function Hero() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full border border-black/10 bg-black/5 text-black/50 hover:bg-black/10 hover:text-black/80 dark:border-white/10 dark:bg-white/5 dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white/80"
+                          className="h-8 w-8 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-700 dark:border-white/10 dark:bg-white/5 dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white/80"
                           disabled={isSubmitting}
                         >
                           <Plus className="h-4 w-4" />
@@ -306,7 +306,7 @@ export function Hero() {
                         'h-8 w-8 rounded-full transition-colors',
                         (message || file || url)
                           ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:brightness-110'
-                          : 'bg-black/20 text-white/60 hover:bg-black/30 dark:bg-white/20 dark:text-white/60 dark:hover:bg-white/30 dark:hover:text-white'
+                          : 'bg-neutral-200 text-neutral-400 dark:bg-white/20 dark:text-white/60'
                       )}
                       disabled={isSubmitting || (!message && !file && !url)}
                     >
