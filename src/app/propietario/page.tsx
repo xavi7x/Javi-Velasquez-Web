@@ -118,8 +118,7 @@ function OwnerDashboard() {
             </div>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="py-4 md:py-8 lg:py-12">
-           <div className="w-full px-4 md:px-6">
+        <SidebarInset className="w-full px-4 py-4 md:px-6 md:py-8 lg:py-12">
             <header className="flex items-center gap-4 mb-8">
               <SidebarTrigger className="md:hidden" />
               <div>
@@ -134,7 +133,6 @@ function OwnerDashboard() {
               </div>
             </header>
             {activeView === 'projects' ? <ProjectsView /> : <MessagesView messages={messages} isLoading={isLoading} error={error} />}
-          </div>
         </SidebarInset>
       </div>
     </SidebarProvider>

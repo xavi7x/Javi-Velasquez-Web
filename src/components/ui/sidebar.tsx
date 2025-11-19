@@ -141,7 +141,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar has-[[data-variant=floating]]:bg-muted/30",
+              "group/sidebar-wrapper flex min-h-svh has-[[data-variant=inset]]:bg-sidebar has-[[data-variant=floating]]:bg-muted/30",
               className
             )}
             ref={ref}
@@ -632,7 +632,7 @@ const SidebarMenuBadge = React.forwardRef<
     ref={ref}
     data-sidebar="menu-badge"
     className={cn(
-      "absolute right-2 flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium",
+      "absolute right-2 flex size-5 items-center justify-center rounded-full text-xs font-medium",
       "peer-data-[size=sm]/menu-button:top-1",
       "peer-data-[size=default]/menu-button:top-1.5",
       "peer-data-[size=lg]/menu-button:top-2.5",
