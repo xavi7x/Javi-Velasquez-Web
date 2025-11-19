@@ -22,21 +22,23 @@ export function PortfolioGrid() {
                   className="group block relative"
                 >
                   <div className="relative overflow-hidden rounded-2xl border border-border bg-card-foreground/5 transition-all duration-300 group-hover:border-primary">
-                    <Image
-                      src={project.thumbnail}
-                      width={600}
-                      height={400}
-                      alt={project.title}
-                      className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-
-                    <div className="p-4">
-                      <h3 className="text-md font-semibold text-foreground transition-colors group-hover:text-primary">
-                        {project.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {project.tagline}
-                      </p>
+                    <div className="absolute -inset-px z-0 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-20"></div>
+                    <div className="relative">
+                      <Image
+                        src={project.thumbnail}
+                        width={600}
+                        height={400}
+                        alt={project.title}
+                        className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="p-4">
+                        <h3 className="text-md font-semibold text-foreground transition-colors group-hover:text-primary">
+                          {project.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {project.tagline}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </Link>
