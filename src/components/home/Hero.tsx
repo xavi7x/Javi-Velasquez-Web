@@ -306,7 +306,7 @@ export function Hero() {
                         'h-8 w-8 rounded-full transition-colors',
                         (message || file || url)
                           ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:brightness-110'
-                          : 'bg-black/20 text-black/50 hover:bg-black/30 hover:text-black/70 dark:bg-white/20 dark:text-white/60 dark:hover:bg-white/30 dark:hover:text-white'
+                          : 'bg-black/20 text-white/60 hover:bg-black/30 dark:bg-white/20 dark:text-white/60 dark:hover:bg-white/30 dark:hover:text-white'
                       )}
                       disabled={isSubmitting || (!message && !file && !url)}
                     >
