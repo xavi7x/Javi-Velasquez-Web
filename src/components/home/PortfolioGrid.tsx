@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useInView } from 'react-intersection-observer';
 import { projects } from '@/lib/projects';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 export function PortfolioGrid() {
@@ -32,7 +32,7 @@ export function PortfolioGrid() {
           </p>
         </div>
         <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.slice(0, 6).map((project, index) => (
+          {projects.slice(0, 6).map((project) => (
             <Link
               key={project.slug}
               href={`/portfolio/${project.slug}`}
