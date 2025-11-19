@@ -158,13 +158,13 @@ export function Hero() {
                           <Plus className="h-4 w-4" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-2">
+                      <PopoverContent className="w-auto rounded-xl bg-white p-2 border border-black/10 text-neutral-900">
                         <div className="flex flex-col gap-1">
-                          <Button variant="ghost" className="justify-start px-3">
+                          <Button variant="ghost" className="justify-start px-3 text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900">
                             <Paperclip className="mr-2 h-4 w-4" />
                             Adjuntar archivo
                           </Button>
-                          <Button variant="ghost" className="justify-start px-3">
+                          <Button variant="ghost" className="justify-start px-3 text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900">
                             <LinkIcon className="mr-2 h-4 w-4" />
                             Añadir URL
                           </Button>
