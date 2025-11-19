@@ -49,7 +49,7 @@ export function Hero() {
               className="animate-fade-in-up bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text font-headline text-4xl font-bold tracking-tighter text-transparent sm:text-5xl md:text-6xl lg:text-7xl"
             >
               Desarrollo
-              <br />
+              {' '}
               {text}
               <span className="animate-pulse">|</span>
             </h1>
