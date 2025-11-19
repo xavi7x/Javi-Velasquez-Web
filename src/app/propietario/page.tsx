@@ -79,7 +79,7 @@ function OwnerDashboard() {
         </nav>
 
         <div className="mt-auto space-y-4">
-           <div className="flex items-center space-x-2 rounded-lg border p-3">
+           <div className="flex items-center space-x-2 rounded-lg p-3">
               <Switch id="availability-mode" checked={isAvailable} onCheckedChange={setIsAvailable} />
               <Label htmlFor="availability-mode" className="flex flex-col">
                 <span>Disponibilidad</span>
