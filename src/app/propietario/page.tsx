@@ -55,9 +55,7 @@ function OwnerDashboard() {
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-1">
-                <Image src={logoUrl} alt="Logo" width={24} height={24} className="rounded-full" />
-              </div>
+               <Image src={logoUrl} alt="Logo" width={24} height={24} className="h-8 w-8 object-contain" />
               <span className="text-lg font-semibold">Panel</span>
             </div>
           </SidebarHeader>

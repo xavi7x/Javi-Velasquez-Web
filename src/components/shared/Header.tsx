@@ -54,15 +54,13 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full">
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
         <Link href="/" className="group flex items-center gap-2" prefetch={false}>
-            <div className="relative h-8 w-8">
             <Image
               src={logoUrl}
               alt="Logo Javier Velasquez"
               width={32}
               height={32}
-              className="h-full w-full rounded-full object-cover transition-transform duration-500 group-hover:rotate-12"
+              className="h-8 w-8 object-contain transition-transform duration-500 group-hover:rotate-12"
             />
-          </div>
           <span className="font-headline text-lg font-bold">Javier Velasquez</span>
         </Link>
         <div className="flex items-center gap-4">
