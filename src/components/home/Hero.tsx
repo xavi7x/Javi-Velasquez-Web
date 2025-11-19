@@ -336,7 +336,7 @@ export function Hero() {
                             className="bg-white text-neutral-900 placeholder:text-neutral-500 pl-9 pr-9"
                             disabled={isSubmitting}
                         />
-                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={removeUrlInput} disabled={isSubmitting}>
+                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-neutral-500 hover:text-neutral-900" onClick={removeUrlInput} disabled={isSubmitting}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
@@ -378,3 +378,5 @@ export function Hero() {
     </section>
   );
 }
+
+    
