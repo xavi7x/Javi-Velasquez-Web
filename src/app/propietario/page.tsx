@@ -36,9 +36,14 @@ function OwnerDashboard() {
     router.push('/login');
   };
   
-  const getInitials = (name: string | null | undefined) => {
-    if (!name) return 'A';
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const getInitials = (name: string | null | undefined, email: string | null | undefined) => {
+    if (name) {
+      return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    }
+    if (email) {
+      return email.substring(0, 2).toUpperCase();
+    }
+    return 'A';
   };
 
 
@@ -82,10 +87,10 @@ function OwnerDashboard() {
              {user && (
               <div className="flex items-center gap-3">
                 <Avatar className="h-9 w-9">
-                   <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                   <AvatarFallback>{getInitials(user.displayName, user.email)}</AvatarFallback>
                 </Avatar>
                 <div className="text-sm">
-                  <p className="font-semibold">{user.displayName || 'Admin'}</p>
+                  <p className="font-semibold">{user.displayName || user.email || 'Admin'}</p>
                   <p className="text-muted-foreground">{user.email}</p>
                 </div>
               </div>
