@@ -49,7 +49,7 @@ export function Hero() {
   const [placeholder, setPlaceholder] = useState('');
   const [isDeletingPlaceholder, setIsDeletingPlaceholder] = useState(false);
   const [loopNumPlaceholder, setLoopNumPlaceholder] = useState(0);
-  const placeholderWords = ['próxima web', 'tienda online', 'tu idea de app'];
+  const placeholderWords = ['próxima web', 'tienda online', 'idea de app'];
 
   useEffect(() => {
     let typingSpeedPlaceholder = isDeletingPlaceholder ? 80 : 150;
