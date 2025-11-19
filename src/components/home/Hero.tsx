@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function Hero() {
   const [text, setText] = useState('');
@@ -35,43 +36,50 @@ export function Hero() {
 
     const timer = setTimeout(handleTyping, typingSpeed);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text, isDeleting, loopNum]);
+  }, [text, isDeleting, loopNum, typingSpeed, words]);
 
-  const [text2, setText2] = useState('');
-  const [isDeleting2, setIsDeleting2] = useState(false);
-  const [loopNum2, setLoopNum2] = useState(0);
 
-  const words2 = ['próxima web', 'tienda online', 'tu idea de app'];
+  const router = useRouter();
+  const [inputValue, setInputValue] = useState('');
+  const [placeholder, setPlaceholder] = useState('');
+  const [isDeletingPlaceholder, setIsDeletingPlaceholder] = useState(false);
+  const [loopNumPlaceholder, setLoopNumPlaceholder] = useState(0);
+  const placeholderWords = ['próxima web', 'tienda online', 'tu idea de app'];
 
   useEffect(() => {
-    const handleTyping2 = () => {
-      const i = loopNum2 % words2.length;
-      const fullText = words2[i];
-
-      setText2(
-        isDeleting2
-          ? fullText.substring(0, text2.length - 1)
-          : fullText.substring(0, text2.length + 1)
+    let typingSpeedPlaceholder = isDeletingPlaceholder ? 80 : 150;
+  
+    const handlePlaceholderTyping = () => {
+      const i = loopNumPlaceholder % placeholderWords.length;
+      const fullText = placeholderWords[i];
+  
+      setPlaceholder(
+        isDeletingPlaceholder
+          ? fullText.substring(0, placeholder.length - 1)
+          : fullText.substring(0, placeholder.length + 1)
       );
+  
+      if (!isDeletingPlaceholder && placeholder === fullText) {
+        // Pause at end of word
+        typingSpeedPlaceholder = 1500;
+        setTimeout(() => setIsDeletingPlaceholder(true), 1500);
 
-      const typingSpeed2 = isDeleting2 ? 80 : 150;
-
-      if (!isDeleting2 && text2 === fullText) {
-        setTimeout(() => setIsDeleting2(true), 1500);
-      } else if (isDeleting2 && text2 === '') {
-        setIsDeleting2(false);
-        setLoopNum2(loopNum2 + 1);
+      } else if (isDeletingPlaceholder && placeholder === '') {
+        setIsDeletingPlaceholder(false);
+        setLoopNumPlaceholder((prev) => prev + 1);
       }
-      
-      const timer = setTimeout(handleTyping2, typingSpeed2);
-      return () => clearTimeout(timer);
     };
-
-    const timer = setTimeout(handleTyping2, 150); // Initial delay
+  
+    const timer = setTimeout(handlePlaceholderTyping, typingSpeedPlaceholder);
+  
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text2, isDeleting2, loopNum2]);
+  }, [placeholder, isDeletingPlaceholder, loopNumPlaceholder, placeholderWords]);
+
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push('/contact');
+  };
 
   return (
     <section className="relative flex h-full w-full items-center justify-center overflow-hidden">
@@ -85,11 +93,9 @@ export function Hero() {
             <div className="space-y-4">
               <h1
                 style={{ animationDelay: '0.2s' }}
-                className="animate-fade-in-up bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text font-headline text-4xl font-bold tracking-tighter text-transparent sm:text-5xl md:text-6xl lg:text-7xl"
+                className="animate-fade-in-up bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text font-headline text-4xl font-bold leading-tight tracking-tighter text-transparent sm:text-5xl md:text-6xl lg:text-7xl"
               >
-                Desarrollo
-                {' '}
-                {text}
+                Desarrollo de <span className="whitespace-nowrap">{text}</span>
                 <span className="animate-pulse">|</span>
               </h1>
               <p
@@ -100,20 +106,24 @@ export function Hero() {
               </p>
             </div>
 
-            <Link href="/contact" style={{ animationDelay: '1s' }} className="animate-fade-in-up w-full max-w-2xl">
-              <div className="group relative rounded-2xl border border-white/10 bg-white/5 p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/10">
-                <p className="text-muted-foreground text-lg">
-                  Escríbeme sobre tu{' '}
-                  <span className="text-foreground">
-                    {text2}
-                    <span className="animate-pulse">|</span>
-                  </span>
-                </p>
-                 <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/10 text-foreground group-hover:bg-white/20">
+            <form onSubmit={handleFormSubmit} style={{ animationDelay: '1s' }} className="animate-fade-in-up w-full max-w-2xl">
+               <div className="group/input relative rounded-2xl border border-white/10 bg-white/5 p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/10">
+                  <label htmlFor="hero-input" className="sr-only">
+                    Escríbeme sobre tu...
+                  </label>
+                  <input
+                    id="hero-input"
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder={`Escríbeme sobre tu ${placeholder}`}
+                    className="w-full bg-transparent text-muted-foreground placeholder:text-muted-foreground focus:outline-none text-lg"
+                  />
+                 <Button type="submit" variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/10 text-foreground group-hover/input:bg-white/20">
                   <ArrowRight />
                 </Button>
               </div>
-            </Link>
+            </form>
           </div>
         </div>
       </div>
