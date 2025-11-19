@@ -59,7 +59,7 @@ function OwnerDashboard() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-muted/30 text-foreground">
-        <Sidebar variant="floating" collapsible="icon">
+        <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-3 p-2">
                <Image src={logoUrl} alt="Logo" width={28} height={28} className="h-7 w-7 object-contain" />
@@ -87,7 +87,7 @@ function OwnerDashboard() {
                   <MessageSquare />
                   <span className="group-data-[collapsible=icon]:hidden">Mensajes</span>
                    {newMessagesCount > 0 && (
-                    <SidebarMenuBadge>{newMessagesCount}</SidebarMenuBadge>
+                    <SidebarMenuBadge className="bg-primary text-primary-foreground">{newMessagesCount}</SidebarMenuBadge>
                   )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
