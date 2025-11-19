@@ -117,7 +117,7 @@ export function Hero() {
                 style={{ animationDelay: '0.2s' }}
                 className="animate-fade-in-up bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text font-headline text-4xl font-bold tracking-tighter text-transparent sm:text-5xl md:text-6xl lg:text-7xl whitespace-nowrap py-2"
               >
-                Desarrollo de <span className="whitespace-nowrap">{text}</span>
+                Desarrollo <span className="whitespace-nowrap">{text}</span>
                 <span className="animate-pulse">|</span>
               </h1>
               <p

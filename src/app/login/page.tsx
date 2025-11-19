@@ -53,7 +53,7 @@ export default function LoginPage() {
     <div className="flex min-h-dvh flex-col bg-background">
       <Header />
       <main className="flex flex-1 items-center justify-center p-4">
-        <Card className="mx-auto w-full max-w-sm">
+        <Card className="mx-auto w-full max-w-sm bg-white/50 dark:bg-white/5 border border-neutral-200/50 dark:border-white/10 backdrop-blur-xl">
           <CardHeader>
             <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
             <CardDescription>
@@ -79,6 +79,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
+                  className="bg-white text-neutral-900 placeholder:text-neutral-500"
                 />
               </div>
               <div className="grid gap-2">
@@ -92,6 +93,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
+                  className="bg-white text-neutral-900 placeholder:text-neutral-500"
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>

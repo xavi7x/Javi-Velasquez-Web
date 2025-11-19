@@ -29,7 +29,7 @@ export function PortfolioGrid() {
             Proyectos Destacados
           </h2>
           <p className="mx-auto mt-4 max-w-[600px] text-muted-foreground md:text-xl/relaxed">
-            Aquí hay una selección de mis trabajos más recientes en desarrollo web.
+            Aquí hay una selección de mis trabajos más recientes.
           </p>
         </div>
         <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
