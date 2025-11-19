@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useInView } from 'react-intersection-observer';
 import { projects } from '@/lib/projects';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 export function PortfolioGrid() {
@@ -40,7 +40,7 @@ export function PortfolioGrid() {
             >
               <div className="relative">
                 <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500 to-pink-500 opacity-0 blur-lg transition-all duration-300 group-hover:opacity-25"></div>
-                <Card className="relative overflow-hidden rounded-2xl transition-all duration-300">
+                <Card className="relative overflow-hidden rounded-2xl transition-all duration-300 p-0">
                   <Image
                     src={project.thumbnail}
                     width={600}
