@@ -108,7 +108,7 @@ export function Hero() {
   };
 
   return (
-    <section className="relative flex h-full w-full items-center justify-center overflow-hidden">
+    <section className="relative flex min-h-[calc(100vh-160px)] w-full items-center justify-center overflow-hidden">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="mx-auto max-w-4xl text-center">
           <div className="group flex flex-col items-center space-y-8">
