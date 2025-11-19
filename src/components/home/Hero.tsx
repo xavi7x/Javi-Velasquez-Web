@@ -311,22 +311,29 @@ export function Hero() {
                           <p>Adjunta documentos o referencias</p>
                         </TooltipContent>
                       </Tooltip>
-                    </TooltipProvider>
 
-                    <Button
-                      type="submit"
-                      variant="ghost"
-                      size="icon"
-                      className={cn(
-                        'h-8 w-8 rounded-full transition-colors',
-                        (message || file || url)
-                          ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:brightness-110'
-                          : 'bg-neutral-200 text-neutral-400'
-                      )}
-                      disabled={isSubmitting || (!message && !file && !url)}
-                    >
-                      {isSubmitting ? <div className="h-4 w-4 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                    </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="submit"
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                              'h-8 w-8 rounded-full transition-colors',
+                              (message || file || url)
+                                ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:brightness-110'
+                                : 'bg-neutral-200 text-neutral-400'
+                            )}
+                            disabled={isSubmitting || (!message && !file && !url)}
+                          >
+                            {isSubmitting ? <div className="h-4 w-4 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Enviar mensaje</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
                  {file && (
