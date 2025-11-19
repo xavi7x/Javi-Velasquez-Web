@@ -74,26 +74,15 @@ export function Header() {
               alt="Logo Javier Velasquez"
               width={32}
               height={32}
-              className="h-8 w-8 object-contain transition-transform duration-500 group-hover:rotate-12"
+              className="object-contain transition-transform duration-500 group-hover:rotate-12"
             />
           <div 
-            className="font-headline text-lg font-bold flex overflow-hidden"
-            aria-hidden={isScrolled}
+            className={cn(
+              "font-headline text-lg font-bold transition-opacity duration-500",
+              isScrolled ? "opacity-0" : "opacity-100"
+            )}
           >
-             {name.split('').map((letter, index) => (
-              <span
-                key={index}
-                className="inline-block transition-all duration-500"
-                style={{
-                  transitionDelay: `${index * 30}ms`,
-                  transform: isScrolled ? 'translateX(-100%)' : 'translateX(0)',
-                  opacity: isScrolled ? 0 : 1,
-                  whiteSpace: letter === ' ' ? 'pre' : 'normal',
-                }}
-              >
-                {letter}
-              </span>
-            ))}
+             {name}
           </div>
         </Link>
         <div className="flex items-center gap-4">
