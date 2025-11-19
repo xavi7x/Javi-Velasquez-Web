@@ -42,8 +42,7 @@ export function About() {
             Especialista en Desarrollo Web
           </h2>
           <p className="mx-auto mt-4 max-w-[600px] text-muted-foreground md:text-xl/relaxed">
-            Combino código limpio y diseño funcional para construir soluciones digitales
-            que resuelven problemas reales y generan un impacto medible.
+            Soy desarrollador web integral, listo para llevar tu visión al siguiente nivel. Combino creatividad y tecnología para construir soluciones digitales que resuelven problemas reales y generan un impacto medible.
           </p>
         </div>
         <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
