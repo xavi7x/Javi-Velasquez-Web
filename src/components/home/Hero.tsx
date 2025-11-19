@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export function Hero() {
   const [text, setText] = useState('');
@@ -38,9 +40,12 @@ export function Hero() {
     return () => clearTimeout(timer);
   }, [text, isDeleting, loopNum, typingSpeed, words]);
 
-
   const router = useRouter();
   const [inputValue, setInputValue] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const [placeholder, setPlaceholder] = useState('');
   const [isDeletingPlaceholder, setIsDeletingPlaceholder] = useState(false);
   const [loopNumPlaceholder, setLoopNumPlaceholder] = useState(0);
@@ -48,35 +53,47 @@ export function Hero() {
 
   useEffect(() => {
     let typingSpeedPlaceholder = isDeletingPlaceholder ? 80 : 150;
-  
+
     const handlePlaceholderTyping = () => {
       const i = loopNumPlaceholder % placeholderWords.length;
       const fullText = placeholderWords[i];
-  
+
       setPlaceholder(
         isDeletingPlaceholder
           ? fullText.substring(0, placeholder.length - 1)
           : fullText.substring(0, placeholder.length + 1)
       );
-  
+
       if (!isDeletingPlaceholder && placeholder === fullText) {
         // Pause at end of word
         setTimeout(() => setIsDeletingPlaceholder(true), 1500);
-
       } else if (isDeletingPlaceholder && placeholder === '') {
         setIsDeletingPlaceholder(false);
-        setLoopNumPlaceholder((prev) => prev + 1);
+        setLoopNumPlaceholder(prev => prev + 1);
       }
     };
-  
-    const timer = setTimeout(handlePlaceholderTyping, typingSpeedPlaceholder);
-  
+
+    const timer = setTimeout(
+      handlePlaceholderTyping,
+      typingSpeedPlaceholder
+    );
+
     return () => clearTimeout(timer);
   }, [placeholder, isDeletingPlaceholder, loopNumPlaceholder, placeholderWords]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+    if (value.length > 0 && !isExpanded) {
+      setIsExpanded(true);
+    } else if (value.length === 0 && isExpanded) {
+      setIsExpanded(false);
+    }
+  };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Aquí se manejaría el envío del formulario. Por ahora, redirige.
     router.push('/contact');
   };
 
@@ -105,8 +122,13 @@ export function Hero() {
               </p>
             </div>
 
-            <form onSubmit={handleFormSubmit} style={{ animationDelay: '1s' }} className="animate-fade-in-up w-full max-w-xl">
-               <div className="group/input relative rounded-full border border-black/10 bg-white p-2 pl-4 transition-all duration-300 hover:border-black/20">
+            <form
+              onSubmit={handleFormSubmit}
+              style={{ animationDelay: '1s' }}
+              className="animate-fade-in-up w-full max-w-xl flex flex-col items-center"
+            >
+              <div className="w-full transition-all duration-300">
+                <div className="group/input relative rounded-full border border-black/10 bg-white p-2 pl-4 transition-all duration-300 hover:border-black/20">
                   <label htmlFor="hero-input" className="sr-only">
                     Escríbeme sobre tu...
                   </label>
@@ -114,13 +136,49 @@ export function Hero() {
                     id="hero-input"
                     type="text"
                     value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
+                    onChange={handleInputChange}
                     placeholder={`Escríbeme sobre tu ${placeholder}`}
                     className="w-full bg-transparent text-neutral-900 placeholder:text-neutral-500 focus:outline-none text-base"
                   />
-                 <Button type="submit" variant="ghost" size="icon" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/10 text-white group-hover/input:bg-black/20">
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      'absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-white transition-colors',
+                      inputValue
+                        ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'
+                        : 'bg-black/10'
+                    )}
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div
+                  className={cn(
+                    'transition-all duration-500 ease-in-out overflow-hidden space-y-2 mt-2',
+                    isExpanded
+                      ? 'max-h-48 opacity-100'
+                      : 'max-h-0 opacity-0'
+                  )}
+                >
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      className="bg-white text-neutral-900 placeholder:text-neutral-500"
+                    />
+                    <Input
+                      type="tel"
+                      placeholder="Tu número de teléfono"
+                      value={phone}
+                      onChange={e => setPhone(e.target.value)}
+                      className="bg-white text-neutral-900 placeholder:text-neutral-500"
+                    />
+                  </div>
+                </div>
               </div>
             </form>
           </div>
