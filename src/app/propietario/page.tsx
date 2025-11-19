@@ -31,7 +31,7 @@ function OwnerDashboard() {
   const { user } = useUser();
   const auth = useAuth();
   const router = useRouter();
-  const logoUrl = 'https://picsum.photos/seed/logo/24/24'; // <-- REEMPLAZA ESTA URL POR LA DE TU LOGO EN FIREBASE STORAGE
+  const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/velsquez-digital.firebasestorage.app/o/Private%2Flogo-javier.svg?alt=media&token=7d179ca6-55ad-4a5f-9cf6-e6050f004630';
 
   const handleLogout = async () => {
     await signOut(auth);
