@@ -252,7 +252,7 @@ export function Hero() {
               className="animate-fade-in-up w-full max-w-xl flex flex-col items-center"
             >
               <div className="w-full transition-all duration-300">
-                <div className="group/input relative rounded-full border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 p-2 pl-4 transition-all duration-300 hover:border-black/20 dark:hover:border-white/20">
+                <div className="group/input relative rounded-full border border-black/10 dark:border-white/10 bg-white p-2 pl-4 transition-all duration-300 hover:border-black/20 dark:hover:border-white/20">
                   <label htmlFor="hero-input" className="sr-only">
                     Escríbeme sobre tu...
                   </label>
@@ -262,7 +262,7 @@ export function Hero() {
                     value={message}
                     onChange={handleInputChange}
                     placeholder={`Escríbeme sobre tu ${placeholder}`}
-                    className="w-full bg-white text-neutral-900 placeholder:text-neutral-500 focus:outline-none text-base pr-24"
+                    className="w-full bg-transparent text-neutral-900 placeholder:text-neutral-500 focus:outline-none text-base pr-24"
                     disabled={isSubmitting}
                   />
                   <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
