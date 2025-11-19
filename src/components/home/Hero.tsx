@@ -54,9 +54,9 @@ export function Hero() {
             </h1>
             <p
               style={{ animationDelay: '0.6s' }}
-              className="animate-fade-in-up mt-4 font-headline text-xl font-medium tracking-tight sm:text-2xl md:text-3xl"
+              className="animate-fade-in-up mt-4 font-headline text-xl font-medium tracking-tight text-muted-foreground sm:text-2xl md:text-3xl"
             >
-              {name}
+              Convierto tus ideas en experiencias digitales memorables.
             </p>
           </div>
         </div>
