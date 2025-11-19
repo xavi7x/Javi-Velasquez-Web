@@ -119,7 +119,7 @@ function OwnerDashboard() {
           </SidebarFooter>
         </Sidebar>
         <SidebarInset className="py-4 md:py-8 lg:py-12">
-           <div className="container mx-auto">
+           <div className="w-full px-4 md:px-6">
             <header className="flex items-center gap-4 mb-8">
               <SidebarTrigger className="md:hidden" />
               <div>
