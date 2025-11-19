@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -28,6 +28,7 @@ export default function LoginPage() {
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/velsquez-digital.firebasestorage.app/o/Private%2Flogo-javier.svg?alt=media&token=7d179ca6-55ad-4a5f-9cf6-e6050f004630';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,11 +55,15 @@ export default function LoginPage() {
       <Header />
       <main className="flex flex-1 items-center justify-center p-4">
         <Card className="mx-auto w-full max-w-sm bg-white/50 dark:bg-white/5 border border-neutral-200/50 dark:border-white/10 backdrop-blur-xl">
-          <CardHeader>
+          <CardHeader className="items-center text-center">
+            <Image
+              src={logoUrl}
+              alt="Logo Javier Velasquez"
+              width={40}
+              height={40}
+              className="h-10 w-10 object-contain mb-4"
+            />
             <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-            <CardDescription>
-              Ingresa tus credenciales para acceder al panel de administración.
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="grid gap-4">
