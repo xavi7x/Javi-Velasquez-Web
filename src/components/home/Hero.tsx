@@ -61,7 +61,6 @@ export function Hero() {
   
       if (!isDeletingPlaceholder && placeholder === fullText) {
         // Pause at end of word
-        typingSpeedPlaceholder = 1500;
         setTimeout(() => setIsDeletingPlaceholder(true), 1500);
 
       } else if (isDeletingPlaceholder && placeholder === '') {
@@ -88,8 +87,8 @@ export function Hero() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]"></div>
       </div>
       <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="mx-auto max-w-4xl text-left">
-          <div className="group flex flex-col items-start space-y-8">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="group flex flex-col items-center space-y-8">
             <div className="space-y-4">
               <h1
                 style={{ animationDelay: '0.2s' }}
@@ -106,8 +105,8 @@ export function Hero() {
               </p>
             </div>
 
-            <form onSubmit={handleFormSubmit} style={{ animationDelay: '1s' }} className="animate-fade-in-up w-full max-w-2xl">
-               <div className="group/input relative rounded-2xl border border-white/10 bg-white/5 p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/10">
+            <form onSubmit={handleFormSubmit} style={{ animationDelay: '1s' }} className="animate-fade-in-up w-full max-w-xl">
+               <div className="group/input relative rounded-full border border-black/10 bg-white dark:bg-black/10 dark:border-white/10 p-2 pl-4 transition-all duration-300 hover:border-black/20 dark:hover:border-white/20">
                   <label htmlFor="hero-input" className="sr-only">
                     Escríbeme sobre tu...
                   </label>
@@ -117,10 +116,10 @@ export function Hero() {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder={`Escríbeme sobre tu ${placeholder}`}
-                    className="w-full bg-transparent text-muted-foreground placeholder:text-muted-foreground focus:outline-none text-lg"
+                    className="w-full bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-base"
                   />
-                 <Button type="submit" variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/10 text-foreground group-hover/input:bg-white/20">
-                  <ArrowRight />
+                 <Button type="submit" variant="ghost" size="icon" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/10 text-white dark:bg-white/10 dark:text-foreground group-hover/input:bg-black/20 dark:group-hover/input:bg-white/20">
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
             </form>
