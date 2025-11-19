@@ -156,10 +156,10 @@ export function Hero() {
                 </div>
                 <div
                   className={cn(
-                    'transition-all duration-500 ease-in-out overflow-hidden pt-2 px-1',
+                    'transition-all duration-500 ease-in-out',
                     isExpanded
-                      ? 'max-h-48 opacity-100'
-                      : 'max-h-0 opacity-0'
+                      ? 'max-h-48 opacity-100 pt-2 pb-1 px-1'
+                      : 'max-h-0 opacity-0 p-0'
                   )}
                 >
                   <div className="flex gap-2">
