@@ -43,9 +43,7 @@ export default function Home() {
       <div className="relative z-10">
         <Header />
         <main>
-          <div className="h-screen">
-            <Hero />
-          </div>
+          <Hero />
           <div className="container mx-auto px-4 md:px-6">
             <PortfolioGrid />
           </div>
