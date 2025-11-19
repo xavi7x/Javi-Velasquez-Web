@@ -5,24 +5,44 @@ import { useState, useEffect, useCallback } from 'react';
 const AVAILABILITY_KEY = 'portfolio-availability-status';
 
 export function useAvailability() {
-  const [isAvailable, setIsAvailableState] = useState<boolean>(() => {
-    if (typeof window === 'undefined') {
-      return true; // Default to available on the server
+  // 1. Initialize state to a default (e.g., false) that is consistent on server and client.
+  const [isAvailable, setIsAvailableState] = useState<boolean>(true);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // 2. Use useEffect to read from localStorage only on the client-side after mount.
+  useEffect(() => {
+    try {
+      const storedValue = localStorage.getItem(AVAILABILITY_KEY);
+      if (storedValue !== null) {
+        setIsAvailableState(JSON.parse(storedValue));
+      }
+    } catch (error) {
+      console.error("Failed to read availability from localStorage", error);
     }
-    const storedValue = localStorage.getItem(AVAILABILITY_KEY);
-    return storedValue !== null ? JSON.parse(storedValue) : true; // Default to true if nothing is stored
-  });
+    setIsLoaded(true);
+  }, []);
 
   // Effect to update localStorage when state changes
   useEffect(() => {
-    localStorage.setItem(AVAILABILITY_KEY, JSON.stringify(isAvailable));
-  }, [isAvailable]);
+    // Only write to localStorage if the state has been loaded from it first.
+    if (isLoaded) {
+      try {
+        localStorage.setItem(AVAILABILITY_KEY, JSON.stringify(isAvailable));
+      } catch (error) {
+        console.error("Failed to write availability to localStorage", error);
+      }
+    }
+  }, [isAvailable, isLoaded]);
   
   // Effect to listen for storage changes from other tabs
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === AVAILABILITY_KEY) {
-        setIsAvailableState(event.newValue !== null ? JSON.parse(event.newValue) : true);
+        try {
+          setIsAvailableState(event.newValue !== null ? JSON.parse(event.newValue) : true);
+        } catch (error) {
+           console.error("Failed to parse availability from storage event", error);
+        }
       }
     };
 
@@ -36,5 +56,5 @@ export function useAvailability() {
     setIsAvailableState(value);
   }, []);
 
-  return { isAvailable, setIsAvailable };
+  return { isAvailable, setIsAvailable, isLoaded };
 }

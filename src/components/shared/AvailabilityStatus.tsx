@@ -8,7 +8,7 @@ export function AvailabilityStatus() {
   const { toast } = useToast();
   const [isHovered, setIsHovered] = useState(false);
   const email = 'hey@javivelasquez.com';
-  const { isAvailable } = useAvailability();
+  const { isAvailable, isLoaded } = useAvailability();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(email);
@@ -18,7 +18,8 @@ export function AvailabilityStatus() {
     });
   };
 
-  if (!isAvailable) {
+  // Do not render on the server or until the value has been loaded from localStorage
+  if (!isLoaded || !isAvailable) {
     return null;
   }
 
