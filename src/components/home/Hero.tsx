@@ -106,7 +106,7 @@ export function Hero() {
             </div>
 
             <form onSubmit={handleFormSubmit} style={{ animationDelay: '1s' }} className="animate-fade-in-up w-full max-w-xl">
-               <div className="group/input relative rounded-full border border-black/10 bg-white dark:bg-black/10 dark:border-white/10 p-2 pl-4 transition-all duration-300 hover:border-black/20 dark:hover:border-white/20">
+               <div className="group/input relative rounded-full border border-black/10 bg-white p-2 pl-4 transition-all duration-300 hover:border-black/20">
                   <label htmlFor="hero-input" className="sr-only">
                     Escríbeme sobre tu...
                   </label>
@@ -116,9 +116,9 @@ export function Hero() {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder={`Escríbeme sobre tu ${placeholder}`}
-                    className="w-full bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-base"
+                    className="w-full bg-transparent text-neutral-900 placeholder:text-neutral-500 focus:outline-none text-base"
                   />
-                 <Button type="submit" variant="ghost" size="icon" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/10 text-white dark:bg-white/10 dark:text-foreground group-hover/input:bg-black/20 dark:group-hover/input:bg-white/20">
+                 <Button type="submit" variant="ghost" size="icon" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/10 text-white group-hover/input:bg-black/20">
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
