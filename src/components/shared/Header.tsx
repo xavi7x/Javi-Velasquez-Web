@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Lock } from 'lucide-react';
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher';
-import { Logo } from '@/components/icons/Logo';
+import Image from 'next/image';
 
 const navLinks = [
   { href: '/', label: 'Proyectos' },
@@ -54,7 +54,11 @@ export function Header() {
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
         <Link href="/" className="group flex items-center gap-2" prefetch={false}>
             <div className="relative h-8 w-8">
-            <Logo
+            <Image
+              src="/logo-javier.svg"
+              alt="Logo Javier Velasquez"
+              width={32}
+              height={32}
               className="h-full w-full text-foreground transition-transform duration-500 group-hover:rotate-12"
             />
           </div>

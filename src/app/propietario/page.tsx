@@ -23,7 +23,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Logo } from '@/components/icons/Logo';
+import Image from 'next/image';
 
 
 function OwnerDashboard() {
@@ -55,7 +55,7 @@ function OwnerDashboard() {
           <SidebarHeader>
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white p-1.5">
-                <Logo />
+                <Image src="/logo-javier.svg" alt="Logo" width={24} height={24} />
               </div>
               <span className="text-lg font-semibold">Panel</span>
             </div>
