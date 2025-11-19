@@ -17,7 +17,7 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Skeleton } from '../ui/skeleton';
-import { AlertCircle, FileText, Inbox } from 'lucide-react';
+import { AlertCircle, FileText, Inbox, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 
 interface Message {
@@ -28,6 +28,7 @@ interface Message {
   submissionDate: string; // ISO string
   status: 'new' | 'read' | 'archived';
   attachmentUrl?: string;
+  url?: string;
 }
 
 export function MessagesView() {
@@ -120,6 +121,14 @@ export function MessagesView() {
                   <Link href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer">
                     <FileText className="mr-2 h-4 w-4"/>
                     Adjunto
+                  </Link>
+                </Button>
+              )}
+               {msg.url && (
+                <Button asChild variant="outline" size="sm" className="rounded-full">
+                  <Link href={msg.url} target="_blank" rel="noopener noreferrer">
+                    <LinkIcon className="mr-2 h-4 w-4"/>
+                    URL
                   </Link>
                 </Button>
               )}

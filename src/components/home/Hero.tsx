@@ -53,8 +53,10 @@ export function Hero() {
   const [message, setMessage] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [url, setUrl] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -102,7 +104,7 @@ export function Hero() {
     setMessage(value);
     if (value.length > 0 && !isExpanded) {
       setIsExpanded(true);
-    } else if (value.length === 0 && isExpanded && !file) {
+    } else if (value.length === 0 && isExpanded && !file && !showUrlInput) {
       setIsExpanded(false);
     }
   };
@@ -119,17 +121,36 @@ export function Hero() {
         return;
       }
       setFile(selectedFile);
+      setShowUrlInput(false);
+      setUrl('');
       if (!isExpanded) setIsExpanded(true);
     }
   };
+  
+  const handleAddUrlClick = () => {
+    setShowUrlInput(true);
+    setFile(null);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+    }
+    if (!isExpanded) setIsExpanded(true);
+  }
 
   const removeFile = () => {
     setFile(null);
     if (fileInputRef.current) {
         fileInputRef.current.value = "";
     }
-    if (message.length === 0) {
+    if (message.length === 0 && !showUrlInput) {
         setIsExpanded(false);
+    }
+  }
+
+  const removeUrlInput = () => {
+    setShowUrlInput(false);
+    setUrl('');
+    if (message.length === 0 && !file) {
+      setIsExpanded(false);
     }
   }
 
@@ -137,11 +158,11 @@ export function Hero() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message && !file) {
+    if (!message && !file && !url) {
         toast({
             variant: 'destructive',
             title: 'Formulario vacío',
-            description: 'Por favor, escribe un mensaje o adjunta un archivo.',
+            description: 'Por favor, completa alguno de los campos.',
         });
         return;
     }
@@ -172,6 +193,7 @@ export function Hero() {
         email: 'N/A', // Email is not collected in this form
         message,
         attachmentUrl,
+        url,
         submissionDate: new Date().toISOString(),
         status: 'new',
       });
@@ -185,8 +207,10 @@ export function Hero() {
       setMessage('');
       setName('');
       setPhone('');
+      setUrl('');
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      setShowUrlInput(false);
       setIsExpanded(false);
 
     } catch (error) {
@@ -266,7 +290,7 @@ export function Hero() {
                             Adjuntar archivo
                           </Button>
                           <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-                          <Button variant="ghost" className="justify-start px-3 text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900">
+                          <Button variant="ghost" onClick={handleAddUrlClick} className="justify-start px-3 text-neutral-900 hover:bg-neutral-100 hover:text-neutral-900">
                             <LinkIcon className="mr-2 h-4 w-4" />
                             Añadir URL
                           </Button>
@@ -280,11 +304,11 @@ export function Hero() {
                       size="icon"
                       className={cn(
                         'h-8 w-8 rounded-full transition-colors',
-                        (message || file)
+                        (message || file || url)
                           ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:brightness-110'
                           : 'bg-black/10 text-black/40 hover:bg-black/20 hover:text-black/60'
                       )}
-                      disabled={isSubmitting || (!message && !file)}
+                      disabled={isSubmitting || (!message && !file && !url)}
                     >
                       {isSubmitting ? <div className="h-4 w-4 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                     </Button>
@@ -297,6 +321,22 @@ export function Hero() {
                             <span className="truncate">{file.name}</span>
                         </div>
                         <Button type="button" variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={removeFile} disabled={isSubmitting}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
+                 {showUrlInput && (
+                    <div className="mt-2 relative w-full">
+                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                        <Input 
+                            type="url" 
+                            placeholder="Envíame tu web actual o referencia" 
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            className="bg-white text-neutral-900 placeholder:text-neutral-500 pl-9 pr-9"
+                            disabled={isSubmitting}
+                        />
+                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={removeUrlInput} disabled={isSubmitting}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
