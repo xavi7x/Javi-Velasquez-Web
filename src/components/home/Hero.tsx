@@ -252,7 +252,7 @@ export function Hero() {
               className="animate-fade-in-up w-full max-w-xl flex flex-col items-center"
             >
               <div className="w-full transition-all duration-300">
-                <div className="group/input relative rounded-full border border-black/10 dark:border-white/10 bg-white p-2 pl-4 transition-all duration-300 hover:border-black/20 dark:hover:border-white/20">
+                <div className="group/input relative rounded-full border border-black/10 bg-white p-2 pl-4 transition-all duration-300 hover:border-black/20">
                   <label htmlFor="hero-input" className="sr-only">
                     Escríbeme sobre tu...
                   </label>
@@ -333,10 +333,10 @@ export function Hero() {
                             placeholder="Envíame tu web actual o referencia" 
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
-                            className="bg-white text-neutral-900 placeholder:text-neutral-500 dark:bg-black/30 dark:text-neutral-100 dark:placeholder:text-neutral-400 pl-9 pr-9"
+                            className="bg-white text-neutral-900 placeholder:text-neutral-500 pl-9 pr-9"
                             disabled={isSubmitting}
                         />
-                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100" onClick={removeUrlInput} disabled={isSubmitting}>
+                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-neutral-500 hover:text-neutral-900" onClick={removeUrlInput} disabled={isSubmitting}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
@@ -355,7 +355,7 @@ export function Hero() {
                       placeholder="Tu nombre"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="bg-white text-neutral-900 placeholder:text-neutral-500 dark:bg-black/30 dark:text-neutral-100 dark:placeholder:text-neutral-400"
+                      className="bg-white text-neutral-900 placeholder:text-neutral-500"
                       disabled={isSubmitting}
                       required
                     />
@@ -364,7 +364,7 @@ export function Hero() {
                       placeholder="Tu número de teléfono"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="bg-white text-neutral-900 placeholder:text-neutral-500 dark:bg-black/30 dark:text-neutral-100 dark:placeholder:text-neutral-400"
+                      className="bg-white text-neutral-900 placeholder:text-neutral-500"
                       disabled={isSubmitting}
                       required
                     />
