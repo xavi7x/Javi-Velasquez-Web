@@ -14,47 +14,16 @@ export function PortfolioGrid() {
     threshold: 0.1,
   });
 
-  const containerRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      containerRef.current.style.setProperty('--x', `${x}px`);
-      containerRef.current.style.setProperty('--y', `${y}px`);
-    };
-
-    const currentRef = containerRef.current;
-    if (currentRef) {
-      currentRef.addEventListener('mousemove', handleMouseMove);
-    }
-
-    return () => {
-      if (currentRef) {
-        currentRef.removeEventListener('mousemove', handleMouseMove);
-      }
-    };
-  }, []);
-
   return (
     <section
       id="portfolio"
       ref={inViewRef}
       className={cn(
-        'relative overflow-hidden w-full py-16 md:py-32 opacity-0 transition-opacity duration-1000',
+        'w-full py-16 md:py-32 opacity-0 transition-opacity duration-1000',
         inView && 'animate-fade-in-up opacity-100'
       )}
     >
-      <div
-        ref={containerRef}
-        className="absolute inset-0 z-0"
-      >
-        <div className="absolute inset-0 bg-background"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_500px_500px_at_var(--x,50%)_var(--y,50%),rgba(236,72,153,0.15),transparent)]"></div>
-      </div>
-
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
+      <Card className="p-8 md:p-12">
         <div className="mx-auto max-w-5xl text-center">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
             Proyectos Destacados
@@ -80,20 +49,20 @@ export function PortfolioGrid() {
                     alt={project.title}
                     className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  <div className="p-4">
+                  <CardContent className="p-4">
                     <h3 className="text-md font-semibold text-foreground">
                       {project.title}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       {project.tagline}
                     </p>
-                  </div>
+                  </CardContent>
                 </Card>
               </div>
             </Link>
           ))}
         </div>
-      </div>
+      </Card>
     </section>
   );
 }

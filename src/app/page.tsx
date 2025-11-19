@@ -13,7 +13,9 @@ export default function Home() {
         <div className="h-screen">
           <Hero />
         </div>
-        <PortfolioGrid />
+        <div className="container mx-auto px-4 md:px-6">
+          <PortfolioGrid />
+        </div>
         <About />
         <ContactCTA />
       </main>
