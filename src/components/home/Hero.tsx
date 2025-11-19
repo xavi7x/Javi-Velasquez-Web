@@ -8,7 +8,7 @@ export function Hero() {
   const [loopNum, setLoopNum] = useState(0);
   const [typingSpeed, setTypingSpeed] = useState(150);
 
-  const words = ['Web', 'Móvil', 'Full-Stack'];
+  const words = ['Páginas Web', 'Tiendas Online', 'Aplicaciones Web'];
 
   useEffect(() => {
     const handleTyping = () => {
@@ -55,7 +55,7 @@ export function Hero() {
               style={{ animationDelay: '0.6s' }}
               className="animate-fade-in-up mt-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text font-headline text-xl font-medium tracking-tight text-transparent sm:text-2xl md:text-3xl"
             >
-              Desarrollador {text}
+              Desarrollo {text}
               <span className="animate-pulse">|</span>
             </p>
           </div>
