@@ -17,12 +17,6 @@ const services = [
     icon: TabletSmartphone,
   },
   {
-    name: 'Tiendas Online que Venden',
-    description:
-      'Desarrollo tiendas online seguras y fáciles de gestionar para que puedas vender tus productos sin complicaciones.',
-    icon: ShoppingCart,
-  },
-  {
     name: 'Rendimiento de Alta Velocidad',
     description:
       'Optimizo cada detalle para que tu página cargue a toda velocidad, mejorando la experiencia y tu posicionamiento.',
@@ -45,7 +39,7 @@ export function About() {
             Soy desarrollador web integral, listo para llevar tu visión al siguiente nivel. Combino creatividad y tecnología para construir soluciones digitales que resuelven problemas reales y generan un impacto medible.
           </p>
         </div>
-        <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-16 grid gap-8 sm:grid-cols-1 lg:grid-cols-3">
           {services.map((service) => (
             <div
               key={service.name}
