@@ -1,0 +1,205 @@
+{
+  "entities": {
+    "Project": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Project",
+      "type": "object",
+      "description": "Represents a project in the portfolio.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Project entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the project."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the project."
+        },
+        "challenge": {
+          "type": "string",
+          "description": "Description of the challenge faced during the project."
+        },
+        "solution": {
+          "type": "string",
+          "description": "Description of the solution implemented in the project."
+        },
+        "results": {
+          "type": "string",
+          "description": "Description of the results achieved by the project."
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "description": "URL of the thumbnail image for the project.",
+          "format": "uri"
+        },
+        "galleryUrls": {
+          "type": "array",
+          "description": "URLs of the images in the project gallery.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "challenge",
+        "solution",
+        "results",
+        "thumbnailUrl",
+        "galleryUrls"
+      ]
+    },
+    "Owner": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Owner",
+      "type": "object",
+      "description": "Represents the owner/administrator of the website.  Authentication details are assumed to be handled externally.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Owner entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the website owner."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the website owner.",
+          "format": "email"
+        },
+        "title": {
+          "type": "string",
+          "description": "The owner's title/role (e.g., CEO, Founder)."
+        },
+        "biography": {
+          "type": "string",
+          "description": "A short biography of the website owner."
+        },
+        "profilePictureUrl": {
+          "type": "string",
+          "description": "URL of the profile picture of the website owner.",
+          "format": "uri"
+        },
+        "linkedinUrl": {
+          "type": "string",
+          "description": "URL of the LinkedIn profile of the website owner.",
+          "format": "uri"
+        },
+        "behanceUrl": {
+          "type": "string",
+          "description": "URL of the Behance profile of the website owner.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "title",
+        "biography"
+      ]
+    },
+    "ContactFormSubmission": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContactFormSubmission",
+      "type": "object",
+      "description": "Represents a contact form submission from a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ContactFormSubmission entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the user submitting the form."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user submitting the form.",
+          "format": "email"
+        },
+        "message": {
+          "type": "string",
+          "description": "The message submitted by the user."
+        },
+        "submissionDate": {
+          "type": "string",
+          "description": "The date and time when the form was submitted.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "message",
+        "submissionDate"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/owners/{ownerId}",
+        "definition": {
+          "entityName": "Owner",
+          "schema": {
+            "$ref": "#/backend/entities/Owner"
+          },
+          "description": "Stores owner information. The ownerId corresponds to the Firebase Auth UID. Authentication and authorization are based on the existence of this document.",
+          "params": [
+            {
+              "name": "ownerId",
+              "description": "The Firebase Auth UID of the owner."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/projects/{projectId}",
+        "definition": {
+          "entityName": "Project",
+          "schema": {
+            "$ref": "#/backend/entities/Project"
+          },
+          "description": "Stores project data. Only the website owner should have write access.",
+          "params": [
+            {
+              "name": "projectId",
+              "description": "Unique identifier for the project."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/contactFormSubmissions/{submissionId}",
+        "definition": {
+          "entityName": "ContactFormSubmission",
+          "schema": {
+            "$ref": "#/backend/entities/ContactFormSubmission"
+          },
+          "description": "Stores contact form submission data.  Anyone can create, but only the owner can read.",
+          "params": [
+            {
+              "name": "submissionId",
+              "description": "Unique identifier for the contact form submission."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. The `owners` collection stores owner information, enabling authentication and authorization based on their `uid`. The `projects` collection stores project data. The `contactFormSubmissions` collection stores user-submitted contact form data. This structure facilitates secure `list` operations by segregating data with different access requirements into distinct collections. The segregation also simplifies security rule creation, reducing complexity. The structure leverages path-based ownership for owner data and maintains data clarity through explicit state modeling and predictable schema. Because all collections are root-level, there is no reliance on `get()` calls to authorize based on parent documents, thus achieving Authorization Independence. Authentication will be managed using Firebase Authentication."
+  }
+}

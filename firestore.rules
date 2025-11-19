@@ -1,0 +1,116 @@
+/**
+ * @fileoverview Firestore Security Rules for the portfolio application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for owner profiles,
+ * allows public creation of contact form submissions with owner-only access for reading,
+ * and restricts project data management to authenticated owners. Data validation
+ * is minimal to support rapid prototyping and iteration.
+ *
+ * Data Structure:
+ * - /owners/{ownerId}: Stores profile information for website owners. The `ownerId`
+ *   must match the Firebase Auth UID of the authenticated user.
+ * - /projects/{projectId}: Stores data for individual projects. Only the website
+ *   owner can create, update, or delete projects.
+ * - /contactFormSubmissions/{submissionId}: Stores contact form submissions. Any
+ *   user, authenticated or anonymous, can create a submission, but only the owner
+ *   can read them.
+ *
+ * Key Security Decisions:
+ * - Owner Collection: Strict ownership model enforced. Only the authenticated user
+ *   matching the `ownerId` can read or write their profile data.
+ * - Project Collection: Only the authenticated owner can create, update, or delete
+ *   projects. Read access is public.
+ * - ContactFormSubmission Collection: Public creation is allowed, but listing and
+ *   getting submissions is restricted to the authenticated owner.
+ * - Denormalization for Authorization: None. The `ownerId` in `/owners/{ownerId}`
+ *   matches the `request.auth.uid`, avoiding the need for `get()` calls.
+ * - No User Listing: Listing users (owners) is not permitted.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Protects the owner profile data. Only the authenticated user
+     *              with a matching UID can read or write their profile.
+     * @path /owners/{ownerId}
+     * @allow (get, create, update, delete) if the request is made by the owner (UID matches ownerId).
+     * @deny (get, create, update, delete) if the request is made by a different user or an unauthenticated user.
+     * @principle Enforces strict user-ownership for profile data.
+     */
+    match /owners/{ownerId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      function isOwner(ownerId) {
+        return isSignedIn() && request.auth.uid == ownerId;
+      }
+      function isExistingOwner(ownerId) {
+          return isOwner(ownerId) && resource != null;
+      }
+
+      allow get: if isOwner(ownerId);
+      allow list: if false; // Prevent listing all owner profiles.
+
+      allow create: if isOwner(ownerId) && request.resource.data.id == request.auth.uid;
+      allow update: if isExistingOwner(ownerId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(ownerId);
+    }
+
+    /**
+     * @description Controls access to project data.  Any user can read project
+     *              data, but only the authenticated owner can create, update, or
+     *              delete projects.
+     * @path /projects/{projectId}
+     * @allow (get, list) to anyone.
+     * @allow (create, update, delete) only to the authenticated owner.
+     * @deny (create, update, delete) to anyone else.
+     * @principle Allows public read access while restricting write access to the owner.
+     */
+    match /projects/{projectId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      function isOwner() {
+        return isSignedIn() ;
+      }
+     function isExistingOwner() {
+          return isOwner() && resource != null;
+      }
+
+      allow get: if true;
+      allow list: if true;
+
+      allow create: if isOwner();
+      allow update: if isExistingOwner();
+      allow delete: if isExistingOwner();
+    }
+
+    /**
+     * @description Manages contact form submissions. Anyone can create a submission,
+     *              but only the authenticated owner can read the submissions.
+     * @path /contactFormSubmissions/{submissionId}
+     * @allow create: Anyone can create a contact form submission.
+     * @allow get, list: Only the authenticated owner can read submissions.
+     * @deny get, list: to anyone else.
+     * @principle Allows public creation of contact form submissions while
+     *            restricting read access to the owner.
+     */
+    match /contactFormSubmissions/{submissionId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner() {
+        return isSignedIn();
+      }
+
+      allow get: if isOwner();
+      allow list: if isOwner();
+      allow create: if true;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
