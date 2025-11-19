@@ -3,9 +3,14 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Plus, Paperclip, Link as LinkIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 export function Hero() {
   const [text, setText] = useState('');
@@ -69,7 +74,7 @@ export function Hero() {
         setTimeout(() => setIsDeletingPlaceholder(true), 1500);
       } else if (isDeletingPlaceholder && placeholder === '') {
         setIsDeletingPlaceholder(false);
-        setLoopNumPlaceholder(prev => prev + 1);
+        setLoopNumPlaceholder((prev) => prev + 1);
       }
     };
 
@@ -79,7 +84,12 @@ export function Hero() {
     );
 
     return () => clearTimeout(timer);
-  }, [placeholder, isDeletingPlaceholder, loopNumPlaceholder, placeholderWords]);
+  }, [
+    placeholder,
+    isDeletingPlaceholder,
+    loopNumPlaceholder,
+    placeholderWords,
+  ]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -98,9 +108,7 @@ export function Hero() {
   };
 
   return (
-    <section
-      className="relative flex h-full w-full items-center justify-center overflow-hidden"
-    >
+    <section className="relative flex h-full w-full items-center justify-center overflow-hidden">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="mx-auto max-w-4xl text-center">
           <div className="group flex flex-col items-center space-y-8">
@@ -136,21 +144,48 @@ export function Hero() {
                     value={inputValue}
                     onChange={handleInputChange}
                     placeholder={`Escríbeme sobre tu ${placeholder}`}
-                    className="w-full bg-transparent text-neutral-900 placeholder:text-neutral-500 focus:outline-none text-base"
+                    className="w-full bg-transparent text-neutral-900 placeholder:text-neutral-500 focus:outline-none text-base pr-24"
                   />
-                  <Button
-                    type="submit"
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      'absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-white transition-colors',
-                      inputValue
-                        ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'
-                        : 'bg-black/10'
-                    )}
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full bg-black/5 text-black/50 hover:bg-black/10 hover:text-black/80"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-2">
+                        <div className="flex flex-col gap-1">
+                          <Button variant="ghost" className="justify-start px-3">
+                            <Paperclip className="mr-2 h-4 w-4" />
+                            Adjuntar archivo
+                          </Button>
+                          <Button variant="ghost" className="justify-start px-3">
+                            <LinkIcon className="mr-2 h-4 w-4" />
+                            Añadir URL
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    <Button
+                      type="submit"
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        'h-8 w-8 rounded-full text-white transition-colors',
+                        inputValue
+                          ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'
+                          : 'bg-black/10'
+                      )}
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <div
                   className={cn(
@@ -165,14 +200,14 @@ export function Hero() {
                       type="text"
                       placeholder="Tu nombre"
                       value={name}
-                      onChange={e => setName(e.target.value)}
+                      onChange={(e) => setName(e.target.value)}
                       className="bg-white text-neutral-900 placeholder:text-neutral-500"
                     />
                     <Input
                       type="tel"
                       placeholder="Tu número de teléfono"
                       value={phone}
-                      onChange={e => setPhone(e.target.value)}
+                      onChange={(e) => setPhone(e.target.value)}
                       className="bg-white text-neutral-900 placeholder:text-neutral-500"
                     />
                   </div>
