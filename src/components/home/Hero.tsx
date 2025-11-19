@@ -38,7 +38,7 @@ export function Hero() {
 
     const timer = setTimeout(handleTyping, typingSpeed);
     return () => clearTimeout(timer);
-  }, [text, isDeleting, loopNum, typingSpeed, words]);
+  }, [text, isDeleting, loopNum, words]);
 
   const router = useRouter();
   const [inputValue, setInputValue] = useState('');
@@ -156,7 +156,7 @@ export function Hero() {
                 </div>
                 <div
                   className={cn(
-                    'transition-all duration-500 ease-in-out overflow-hidden space-y-2 mt-2',
+                    'transition-all duration-500 ease-in-out overflow-hidden pt-2 px-1',
                     isExpanded
                       ? 'max-h-48 opacity-100'
                       : 'max-h-0 opacity-0'
