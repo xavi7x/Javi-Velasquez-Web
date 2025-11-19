@@ -262,7 +262,7 @@ export function Hero() {
                     value={message}
                     onChange={handleInputChange}
                     placeholder={`Escríbeme sobre tu ${placeholder}`}
-                    className="w-full bg-transparent text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none text-base pr-24"
+                    className="w-full bg-white text-neutral-900 placeholder:text-neutral-500 focus:outline-none text-base pr-24"
                     disabled={isSubmitting}
                   />
                   <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
