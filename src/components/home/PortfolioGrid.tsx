@@ -7,7 +7,7 @@ export function PortfolioGrid() {
   return (
     <section id="portfolio" className="w-full py-16 md:py-32">
       <div className="container mx-auto px-4 md:px-6">
-        <Card className="border-white/10 bg-slate-900">
+        <Card className="border-border bg-card">
           <CardHeader>
             <CardTitle className="text-3xl font-bold tracking-tighter sm:text-4xl">
               Proyectos Destacados
@@ -21,7 +21,7 @@ export function PortfolioGrid() {
                   href={`/portfolio/${project.slug}`}
                   className="group block relative"
                 >
-                  <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950 transition-all duration-300 group-hover:border-white/20">
+                  <div className="relative overflow-hidden rounded-2xl border border-border bg-card-foreground/5 transition-all duration-300 group-hover:border-primary">
                     <Image
                       src={project.thumbnail}
                       width={600}
@@ -31,7 +31,7 @@ export function PortfolioGrid() {
                     />
 
                     <div className="p-4">
-                      <h3 className="text-md font-semibold transition-colors group-hover:text-white">
+                      <h3 className="text-md font-semibold text-foreground transition-colors group-hover:text-primary">
                         {project.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">

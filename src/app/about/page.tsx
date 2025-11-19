@@ -16,7 +16,7 @@ const tools = [
 
 export default function AboutPage() {
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-950 text-foreground">
+    <div className="flex min-h-dvh flex-col bg-background text-foreground">
       <Header />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-16 md:px-6 md:py-24">

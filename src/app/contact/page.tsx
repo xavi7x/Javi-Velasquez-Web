@@ -18,7 +18,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-950">
+    <div className="flex min-h-dvh flex-col bg-background">
       <Header />
       <main className="flex-1">
         <div className="container mx-auto flex h-full min-h-[calc(100vh-160px)] flex-col items-center justify-center px-4 text-center md:px-6">

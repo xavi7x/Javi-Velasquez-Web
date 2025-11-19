@@ -26,7 +26,7 @@ import { projects } from '@/lib/projects'; // Usando datos estáticos por ahora
 
 export default function OwnerPage() {
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-950">
+    <div className="flex min-h-dvh flex-col bg-background">
       <Header />
       <main className="flex-1 p-4 md:p-8 lg:p-12">
         <div className="container mx-auto grid gap-12">

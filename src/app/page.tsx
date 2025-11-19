@@ -7,7 +7,7 @@ import { Footer } from '@/components/shared/Footer';
 
 export default function Home() {
   return (
-    <div className="bg-slate-950 text-foreground">
+    <div className="bg-background text-foreground">
       <Header />
       <main>
         <div className="h-screen">
