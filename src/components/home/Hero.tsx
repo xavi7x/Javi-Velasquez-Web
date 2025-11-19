@@ -153,7 +153,7 @@ export function Hero() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full bg-black/5 text-black/50 hover:bg-black/10 hover:text-black/80"
+                          className="h-8 w-8 rounded-full border border-black/10 bg-black/5 text-black/50 hover:bg-black/10 hover:text-black/80"
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
