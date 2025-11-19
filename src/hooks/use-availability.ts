@@ -5,26 +5,22 @@ import { useState, useEffect, useCallback } from 'react';
 const AVAILABILITY_KEY = 'portfolio-availability-status';
 
 export function useAvailability() {
-  // 1. Initialize state to a default (e.g., false) that is consistent on server and client.
-  const [isAvailable, setIsAvailableState] = useState<boolean>(true);
+  const [isAvailable, setIsAvailableState] = useState<boolean>(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // 2. Use useEffect to read from localStorage only on the client-side after mount.
   useEffect(() => {
     try {
       const storedValue = localStorage.getItem(AVAILABILITY_KEY);
-      if (storedValue !== null) {
-        setIsAvailableState(JSON.parse(storedValue));
-      }
+      // Default to true if nothing is stored, for the first-time user experience.
+      setIsAvailableState(storedValue === null ? true : JSON.parse(storedValue));
     } catch (error) {
       console.error("Failed to read availability from localStorage", error);
+      setIsAvailableState(true); // Fallback to a default if parsing fails
     }
     setIsLoaded(true);
   }, []);
 
-  // Effect to update localStorage when state changes
   useEffect(() => {
-    // Only write to localStorage if the state has been loaded from it first.
     if (isLoaded) {
       try {
         localStorage.setItem(AVAILABILITY_KEY, JSON.stringify(isAvailable));
@@ -34,12 +30,13 @@ export function useAvailability() {
     }
   }, [isAvailable, isLoaded]);
   
-  // Effect to listen for storage changes from other tabs
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === AVAILABILITY_KEY) {
         try {
-          setIsAvailableState(event.newValue !== null ? JSON.parse(event.newValue) : true);
+          if (event.newValue !== null) {
+            setIsAvailableState(JSON.parse(event.newValue));
+          }
         } catch (error) {
            console.error("Failed to parse availability from storage event", error);
         }
