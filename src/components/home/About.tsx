@@ -1,4 +1,4 @@
-import { Sparkles, ShoppingCart, TabletSmartphone, Rocket } from 'lucide-react';
+import { Sparkles, TabletSmartphone, Rocket } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
