@@ -97,38 +97,10 @@ export function Hero() {
     router.push('/contact');
   };
 
-  const containerRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      containerRef.current.style.setProperty('--x', `${x}px`);
-      containerRef.current.style.setProperty('--y', `${y}px`);
-    };
-
-    const currentRef = containerRef.current;
-    if (currentRef) {
-      currentRef.addEventListener('mousemove', handleMouseMove);
-    }
-
-    return () => {
-      if (currentRef) {
-        currentRef.removeEventListener('mousemove', handleMouseMove);
-      }
-    };
-  }, []);
-
   return (
     <section
-      ref={containerRef}
       className="relative flex h-full w-full items-center justify-center overflow-hidden"
     >
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-background"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_400px_400px_at_var(--x,50%)_var(--y,50%),rgba(120,119,198,0.3),transparent)]"></div>
-      </div>
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="mx-auto max-w-4xl text-center">
           <div className="group flex flex-col items-center space-y-8">
@@ -182,9 +154,9 @@ export function Hero() {
                 </div>
                 <div
                   className={cn(
-                    'transition-all duration-500 ease-in-out overflow-hidden',
+                    'transition-all duration-500 ease-in-out overflow-hidden pb-1 px-1',
                     isExpanded
-                      ? 'max-h-48 opacity-100 pt-2 pb-1 px-1'
+                      ? 'max-h-48 opacity-100 pt-2'
                       : 'max-h-0 opacity-0'
                   )}
                 >
@@ -213,5 +185,3 @@ export function Hero() {
     </section>
   );
 }
-
-    
