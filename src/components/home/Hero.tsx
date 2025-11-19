@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export function Hero() {
   const [text, setText] = useState('');
@@ -32,7 +33,41 @@ export function Hero() {
 
     const timer = setTimeout(handleTyping, typingSpeed);
     return () => clearTimeout(timer);
-  }, [text, isDeleting, loopNum, typingSpeed, words]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, isDeleting, loopNum, typingSpeed]);
+
+  const [text2, setText2] = useState('');
+  const [isDeleting2, setIsDeleting2] = useState(false);
+  const [loopNum2, setLoopNum2] = useState(0);
+  const [typingSpeed2, setTypingSpeed2] = useState(150);
+
+  const words2 = ['próxima web', 'tienda online', 'tu idea de app'];
+
+   useEffect(() => {
+    const handleTyping2 = () => {
+      const i = loopNum2 % words2.length;
+      const fullText = words2[i];
+
+      setText2(
+        isDeleting2
+          ? fullText.substring(0, text2.length - 1)
+          : fullText.substring(0, text2.length + 1)
+      );
+
+      setTypingSpeed2(isDeleting2 ? 80 : 150);
+
+      if (!isDeleting2 && text2 === fullText) {
+        setTimeout(() => setIsDeleting2(true), 1500);
+      } else if (isDeleting2 && text2 === '') {
+        setIsDeleting2(false);
+        setLoopNum2(loopNum2 + 1);
+      }
+    };
+
+    const timer = setTimeout(handleTyping2, typingSpeed2);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text2, isDeleting2, loopNum2, typingSpeed2]);
 
 
   return (
@@ -59,6 +94,16 @@ export function Hero() {
             >
               Transformo tus ideas en experiencias digitales memorables.
             </p>
+            <Link href="/contact">
+              <p style={{ animationDelay: '1s' }}
+              className="animate-fade-in-up mt-8 font-headline text-lg font-medium tracking-tight text-foreground sm:text-xl md:text-2xl hover:brightness-125 transition-all">
+                Escríbeme sobre tu {' '}
+                <span className="underline decoration-indigo-500 underline-offset-4">
+                  {text2}
+                  <span className="animate-pulse">|</span>
+                </span>
+              </p>
+            </Link>
           </div>
         </div>
       </div>
