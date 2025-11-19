@@ -18,7 +18,6 @@ export function AvailabilityStatus() {
     });
   };
 
-  // Do not render on the server or until the value has been loaded from localStorage
   if (!isLoaded || !isAvailable) {
     return null;
   }
