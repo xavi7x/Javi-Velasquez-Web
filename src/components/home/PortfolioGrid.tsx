@@ -23,7 +23,7 @@ export function PortfolioGrid() {
         inView && 'animate-fade-in-up opacity-100'
       )}
     >
-      <Card className="p-8 md:p-12">
+      <Card className="p-8 md:p-12 bg-white/5 border-white/10 backdrop-blur-xl">
         <div className="mx-auto max-w-5xl text-center">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
             Proyectos Destacados
