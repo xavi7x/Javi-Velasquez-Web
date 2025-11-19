@@ -13,14 +13,34 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { Briefcase, MessageSquare, User } from 'lucide-react';
+import { Briefcase, MessageSquare, User, LogOut } from 'lucide-react';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { MessagesView } from '@/components/propietario/MessagesView';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { AuthGuard } from '@/components/auth/AuthGuard';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
-export default function OwnerPage() {
+
+function OwnerDashboard() {
   const [activeView, setActiveView] = useState('projects');
+  const { user } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
+  
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'A';
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
+
 
   return (
     <SidebarProvider>
@@ -59,18 +79,26 @@ export default function OwnerPage() {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
-            <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
-                 <User size={20} />
+             {user && (
+              <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9">
+                   <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                </Avatar>
+                <div className="text-sm">
+                  <p className="font-semibold">{user.displayName || 'Admin'}</p>
+                  <p className="text-muted-foreground">{user.email}</p>
+                </div>
               </div>
-              <div className="text-sm">
-                <p className="font-semibold">Javier</p>
-                <p className="text-muted-foreground">Admin</p>
-              </div>
+            )}
+            <div className="flex flex-col gap-2 mt-4">
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/">Volver al Inicio</Link>
+              </Button>
+               <Button variant="ghost" className="w-full" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Cerrar Sesión
+              </Button>
             </div>
-             <Button asChild variant="outline" className="mt-4 w-full">
-              <Link href="/">Volver al Inicio</Link>
-            </Button>
           </SidebarFooter>
         </Sidebar>
         <SidebarInset className="p-4 md:p-8 lg:p-12">
@@ -91,5 +119,14 @@ export default function OwnerPage() {
         </SidebarInset>
       </div>
     </SidebarProvider>
+  );
+}
+
+
+export default function OwnerPage() {
+  return (
+    <AuthGuard>
+      <OwnerDashboard />
+    </AuthGuard>
   );
 }

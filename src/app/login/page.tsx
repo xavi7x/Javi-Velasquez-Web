@@ -1,6 +1,7 @@
-
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,13 +14,46 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
+import { useAuth } from '@/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const auth = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: '¡Bienvenido!',
+        description: 'Has iniciado sesión correctamente.',
+      });
+      router.push('/propietario');
+    } catch (error: any) {
+      setError(
+        'Credenciales incorrectas. Por favor, verifica tu correo y contraseña.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <Header />
-      <main className="flex flex-1 items-center justify-center">
-        <Card className="mx-auto max-w-sm">
+      <main className="flex flex-1 items-center justify-center p-4">
+        <Card className="mx-auto w-full max-w-sm">
           <CardHeader>
             <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
             <CardDescription>
@@ -27,7 +61,14 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
+            <form onSubmit={handleLogin} className="grid gap-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error de autenticación</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="email">Correo Electrónico</Label>
                 <Input
@@ -35,18 +76,28 @@ export default function LoginPage() {
                   type="email"
                   placeholder="tu@email.com"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Contraseña</Label>
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
-              <Button type="submit" className="w-full">
-                Iniciar Sesión
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Iniciando...' : 'Iniciar Sesión'}
               </Button>
-            </div>
+            </form>
           </CardContent>
         </Card>
       </main>

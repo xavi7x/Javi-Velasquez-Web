@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/shared/ThemeProvider';
 import './globals.css';
 import { AvailabilityStatus } from '@/components/shared/AvailabilityStatus';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'Velásquez Digital',
@@ -26,9 +27,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <ThemeProvider defaultTheme="dark" enableSystem={false} attribute="class">
-          {children}
-          <AvailabilityStatus />
-          <Toaster />
+          <FirebaseClientProvider>
+            {children}
+            <AvailabilityStatus />
+            <Toaster />
+          </FirebaseClientProvider>
         </ThemeProvider>
       </body>
     </html>
