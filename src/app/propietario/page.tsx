@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Briefcase, MessageSquare, LogOut } from 'lucide-react';
+import { Briefcase, MessageSquare, LogOut, AreaChart } from 'lucide-react';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { MessagesView, type Message } from '@/components/propietario/MessagesView';
+import { AnalyticsView } from '@/components/propietario/AnalyticsView';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useAuth, useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -48,6 +49,19 @@ function OwnerDashboard() {
     router.push('/login');
   };
 
+  const renderView = () => {
+    switch (activeView) {
+      case 'projects':
+        return <ProjectsView />;
+      case 'messages':
+        return <MessagesView messages={messages} isLoading={isLoading} error={error} />;
+      case 'traffic':
+        return <AnalyticsView />;
+      default:
+        return <ProjectsView />;
+    }
+  }
+
   return (
     <div className="flex h-dvh overflow-hidden bg-muted text-foreground">
       <aside className="w-64 flex-shrink-0 bg-background rounded-2xl m-2 border border-border p-4 flex flex-col gap-8">
@@ -75,6 +89,14 @@ function OwnerDashboard() {
             {newMessagesCount > 0 && (
               <Badge className="h-6 w-6 justify-center p-0 rounded-full bg-primary text-primary-foreground">{newMessagesCount}</Badge>
             )}
+          </Button>
+           <Button
+            variant={activeView === 'traffic' ? 'default' : 'ghost'}
+            className="justify-start gap-3"
+            onClick={() => setActiveView('traffic')}
+          >
+            <AreaChart className="h-4 w-4" />
+            <span>Tráfico</span>
           </Button>
         </nav>
 
@@ -113,19 +135,21 @@ function OwnerDashboard() {
       </aside>
 
       <main className="flex-1 p-8 overflow-y-auto bg-background rounded-2xl m-2 ml-0 border border-border">
-        <header className="mb-8">
+         <header className="mb-8">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-              {activeView === 'projects' ? 'Gestión de Proyectos' : 'Mensajes Recibidos'}
+              {activeView === 'projects' && 'Gestión de Proyectos'}
+              {activeView === 'messages' && 'Mensajes Recibidos'}
+              {activeView === 'traffic' && 'Análisis de Tráfico'}
             </h1>
             <p className="text-muted-foreground">
-              {activeView === 'projects'
-                ? 'Añade, edita y elimina los proyectos de tu portafolio.'
-                : 'Aquí puedes ver los mensajes enviados desde el formulario de contacto.'}
+              {activeView === 'projects' && 'Añade, edita y elimina los proyectos de tu portafolio.'}
+              {activeView === 'messages' && 'Aquí puedes ver los mensajes enviados desde el formulario de contacto.'}
+              {activeView === 'traffic' && 'Visualiza las métricas de visitas y rendimiento de tu sitio web.'}
             </p>
           </div>
         </header>
-        {activeView === 'projects' ? <ProjectsView /> : <MessagesView messages={messages} isLoading={isLoading} error={error} />}
+        {renderView()}
       </main>
     </div>
   );
