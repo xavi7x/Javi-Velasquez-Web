@@ -173,7 +173,7 @@ export function MessagesView() {
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle>Detalle del Mensaje</DialogTitle>
-                    <DialogDescription>
+                    <div className="!mt-2">
                         <Badge
                             variant={
                                 selectedMessage.status === 'new' ? 'default' : selectedMessage.status === 'read' ? 'secondary' : 'outline'
@@ -181,7 +181,7 @@ export function MessagesView() {
                         >
                             {selectedMessage.status === 'new' ? 'Nuevo' : selectedMessage.status === 'read' ? 'Leído' : 'Archivado'}
                         </Badge>
-                    </DialogDescription>
+                    </div>
                 </DialogHeader>
                 <div className="grid gap-6 py-4">
                     <div className="flex items-center gap-4">
