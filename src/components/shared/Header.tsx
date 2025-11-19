@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Lock } from 'lucide-react';
+import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher';
 
 const navLinks = [
   { href: '/', label: 'Proyectos' },
@@ -53,7 +54,10 @@ export function Header() {
         <Link href="/" className="flex items-center gap-2" prefetch={false}>
           <span className="font-headline text-lg font-bold">Javier Velasquez</span>
         </Link>
-        <NavLinks />
+        <div className="flex items-center gap-4">
+          <NavLinks />
+          <ThemeSwitcher />
+        </div>
       </div>
     </header>
   );
