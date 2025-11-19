@@ -1,19 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Sidebar,
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarInset,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarMenuBadge,
-} from '@/components/ui/sidebar';
 import { Briefcase, MessageSquare, LogOut } from 'lucide-react';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { MessagesView, type Message } from '@/components/propietario/MessagesView';
@@ -26,6 +13,8 @@ import { AuthGuard } from '@/components/auth/AuthGuard';
 import Image from 'next/image';
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher';
 import { collection, query, orderBy } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 function OwnerDashboard() {
   const [activeView, setActiveView] = useState('projects');
@@ -57,70 +46,61 @@ function OwnerDashboard() {
   };
   
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen bg-muted/30 text-foreground">
-        <Sidebar variant="floating">
-          <SidebarHeader>
+      <div className="flex min-h-dvh bg-background text-foreground">
+        <aside className="w-64 flex-shrink-0 border-r border-border p-4 flex flex-col gap-8">
             <div className="flex items-center gap-3 p-2">
                <Image src={logoUrl} alt="Logo" width={28} height={28} className="h-7 w-7 object-contain" />
-              <span className="text-lg font-semibold group-data-[collapsible=icon]:hidden">Panel</span>
+              <span className="text-lg font-semibold">Panel</span>
             </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setActiveView('projects')}
-                  isActive={activeView === 'projects'}
-                  tooltip="Gestionar proyectos del portafolio"
+
+            <nav className="flex flex-col gap-2">
+                 <Button
+                    variant={activeView === 'projects' ? 'secondary' : 'ghost'}
+                    className="justify-start gap-3"
+                    onClick={() => setActiveView('projects')}
                 >
-                  <Briefcase />
-                  <span className="group-data-[collapsible=icon]:hidden">Proyectos</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setActiveView('messages')}
-                  isActive={activeView === 'messages'}
-                  tooltip="Ver mensajes de contacto"
+                    <Briefcase className="h-4 w-4" />
+                    <span>Proyectos</span>
+                </Button>
+                 <Button
+                    variant={activeView === 'messages' ? 'secondary' : 'ghost'}
+                    className="justify-start gap-3"
+                    onClick={() => setActiveView('messages')}
                 >
-                  <MessageSquare />
-                  <span className="group-data-[collapsible=icon]:hidden">Mensajes</span>
-                   {newMessagesCount > 0 && (
-                    <SidebarMenuBadge className="bg-primary text-primary-foreground">{newMessagesCount}</SidebarMenuBadge>
-                  )}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter className="p-2">
-             <div className="flex items-center justify-between">
-              {user && (
-                <div className="flex items-center gap-3">
-                  <div className="text-sm group-data-[collapsible=icon]:hidden">
-                    <p className="font-semibold truncate">{user.displayName || user.email || 'Admin'}</p>
-                  </div>
+                    <MessageSquare className="h-4 w-4" />
+                    <span className="flex-1 text-left">Mensajes</span>
+                     {newMessagesCount > 0 && (
+                        <Badge className="h-6 w-6 justify-center p-0 bg-primary text-primary-foreground">{newMessagesCount}</Badge>
+                    )}
+                </Button>
+            </nav>
+
+            <div className="mt-auto space-y-4">
+                <div className="flex items-center justify-between">
+                    {user && (
+                        <div className="text-sm">
+                            <p className="font-semibold truncate">{user.displayName || user.email || 'Admin'}</p>
+                        </div>
+                    )}
+                    <ThemeSwitcher />
                 </div>
-              )}
-               <ThemeSwitcher />
+                 <div className="flex flex-col gap-2">
+                    <Button asChild variant="outline" className="w-full justify-center">
+                        <Link href="/">
+                        <LogOut className="mr-2 h-4 w-4 -scale-x-100" />
+                        <span>Volver al Inicio</span>
+                        </Link>
+                    </Button>
+                    <Button variant="ghost" className="w-full justify-center" onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Cerrar Sesión</span>
+                    </Button>
+                </div>
             </div>
-            <div className="flex flex-col gap-2 mt-4 group-data-[collapsible=icon]:gap-0">
-              <Button asChild variant="outline" className="w-full justify-center group-data-[collapsible=icon]:aspect-square group-data-[collapsible=icon]:p-0">
-                <Link href="/" title="Volver al Inicio">
-                  <span className="group-data-[collapsible=icon]:hidden">Volver al Inicio</span>
-                  <LogOut className="h-4 w-4 hidden group-data-[collapsible=icon]:block" />
-                </Link>
-              </Button>
-               <Button variant="ghost" className="w-full justify-center group-data-[collapsible=icon]:aspect-square group-data-[collapsible=icon]:p-0" onClick={handleLogout} title="Cerrar Sesión">
-                <LogOut className="h-4 w-4" />
-                <span className="ml-2 group-data-[collapsible=icon]:hidden">Cerrar Sesión</span>
-              </Button>
-            </div>
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset className="w-full px-4 py-4 md:px-6 md:py-8 lg:py-12">
-            <header className="flex items-center gap-4 mb-8">
-              <SidebarTrigger className="md:hidden" />
+        </aside>
+        
+        <main className="flex-1 p-8">
+            <header className="mb-8">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
                   {activeView === 'projects' ? 'Gestión de Proyectos' : 'Mensajes Recibidos'}
@@ -133,9 +113,8 @@ function OwnerDashboard() {
               </div>
             </header>
             {activeView === 'projects' ? <ProjectsView /> : <MessagesView messages={messages} isLoading={isLoading} error={error} />}
-        </SidebarInset>
+        </main>
       </div>
-    </SidebarProvider>
   );
 }
 
