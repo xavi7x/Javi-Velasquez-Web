@@ -39,8 +39,8 @@ function OwnerDashboard() {
   
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-background text-foreground">
-        <Sidebar>
+      <div className="flex min-h-screen bg-muted/30 text-foreground">
+        <Sidebar variant="floating" collapsible="icon">
           <SidebarHeader>
             <div className="flex items-center gap-3 p-2">
                <Image src={logoUrl} alt="Logo" width={28} height={28} className="h-7 w-7 object-contain" />
