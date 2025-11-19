@@ -22,9 +22,10 @@ export function PortfolioGrid() {
             <Link
               key={project.slug}
               href={`/portfolio/${project.slug}`}
-              className="group block"
+              className="group block relative"
             >
-              <div className="overflow-hidden rounded-3xl">
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-950">
                 <Image
                   src={project.thumbnail}
                   width={600}
@@ -32,14 +33,15 @@ export function PortfolioGrid() {
                   alt={project.title}
                   className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-              </div>
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold transition-colors group-hover:text-primary">
-                  {project.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {project.tagline}
-                </p>
+              
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold transition-colors group-hover:text-white">
+                    {project.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {project.tagline}
+                  </p>
+                </div>
               </div>
             </Link>
           ))}

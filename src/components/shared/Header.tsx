@@ -23,8 +23,8 @@ export function Header() {
               key={link.href}
               href={link.href}
               className={cn(
-                "transition-colors hover:text-primary",
-                isActive ? "text-primary font-semibold" : "text-muted-foreground"
+                "transition-colors hover:text-white",
+                isActive ? "text-white font-semibold" : "text-muted-foreground"
               )}
               prefetch={false}
             >
@@ -35,8 +35,8 @@ export function Header() {
          <Link
           href="/propietario"
           className={cn(
-            "transition-colors hover:text-primary",
-            pathname === '/propietario' ? "text-primary font-semibold" : "text-muted-foreground"
+            "transition-colors hover:text-white",
+            pathname === '/propietario' ? "text-white" : "text-muted-foreground"
           )}
           prefetch={false}
           aria-label="Admin"
@@ -48,7 +48,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 bg-slate-950/30 backdrop-blur-xl border-b border-white/10">
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2" prefetch={false}>
           <span className="font-headline text-lg font-bold">Javier Velasquez</span>

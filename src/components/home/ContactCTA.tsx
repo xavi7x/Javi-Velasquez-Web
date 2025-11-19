@@ -5,7 +5,7 @@ export function ContactCTA() {
   return (
     <section
       id="contact-cta"
-      className="w-full bg-secondary/50 py-16 md:py-32"
+      className="w-full py-16 md:py-32"
     >
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-3xl text-center">
@@ -17,7 +17,7 @@ export function ContactCTA() {
             algo increíble juntos.
           </p>
           <div className="mt-8">
-            <Button asChild size="lg" className="rounded-full">
+            <Button asChild size="lg">
               <Link href="/contact">¡Contáctame!</Link>
             </Button>
           </div>

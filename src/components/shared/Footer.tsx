@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Linkedin, Dribbble, Mail } from 'lucide-react';
+import { Linkedin, Dribbble } from 'lucide-react';
 import { BehanceIcon } from '@/components/icons/BehanceIcon';
 
 export function Footer() {
@@ -13,7 +13,7 @@ export function Footer() {
   }, []);
 
   return (
-    <footer className="w-full">
+    <footer className="w-full border-t border-white/10">
       <div className="container mx-auto px-4 md:px-6 py-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm">
           <p className="text-muted-foreground">
@@ -23,21 +23,21 @@ export function Footer() {
             <Link
               href="#"
               aria-label="LinkedIn"
-              className="text-muted-foreground transition-colors hover:text-primary"
+              className="text-muted-foreground transition-colors hover:text-white"
             >
               <Linkedin className="h-5 w-5" />
             </Link>
             <Link
               href="#"
               aria-label="Behance"
-              className="text-muted-foreground transition-colors hover:text-primary"
+              className="text-muted-foreground transition-colors hover:text-white"
             >
               <BehanceIcon className="h-5 w-5" />
             </Link>
             <Link
               href="#"
               aria-label="Dribbble"
-              className="text-muted-foreground transition-colors hover:text-primary"
+              className="text-muted-foreground transition-colors hover:text-white"
             >
               <Dribbble className="h-5 w-5" />
             </Link>

@@ -15,14 +15,14 @@ const tools = [
 
 export default function AboutPage() {
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-slate-950 text-foreground">
       <Header />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-16 md:px-6 md:py-24">
           <div className="grid gap-12 md:grid-cols-2 lg:gap-24">
             <div className="flex flex-col justify-center space-y-6">
               <header>
-                <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
+                <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
                   Uniendo Creatividad y Código
                 </h1>
                 <p className="mt-4 max-w-xl text-lg text-muted-foreground md:text-xl">
@@ -36,13 +36,14 @@ export default function AboutPage() {
                 Fuera del trabajo, me encontrarás explorando nuevas tecnologías, contribuyendo a proyectos de código abierto o buscando inspiración en el arte y la naturaleza.
               </p>
             </div>
-            <div className="relative">
+            <div className="relative group">
+               <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
               <Image
                 src="https://picsum.photos/seed/101/600/800"
                 alt="Javier Velásquez"
                 width={600}
                 height={800}
-                className="h-full w-full rounded-3xl object-cover"
+                className="relative h-full w-full rounded-3xl object-cover"
                 data-ai-hint="portrait person"
               />
             </div>
@@ -50,7 +51,7 @@ export default function AboutPage() {
         </div>
         <section
           id="tools"
-          className="w-full bg-secondary/30 py-16 md:py-24"
+          className="w-full py-16 md:py-24"
         >
           <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto max-w-5xl text-center">
@@ -65,8 +66,8 @@ export default function AboutPage() {
               {tools.map((tool) => (
                 <Badge
                   key={tool.name}
-                  variant="default"
-                  className="rounded-full text-lg py-2 px-4"
+                  variant="secondary"
+                  className="rounded-full text-lg py-2 px-4 border border-white/10"
                 >
                   {tool.name}
                 </Badge>

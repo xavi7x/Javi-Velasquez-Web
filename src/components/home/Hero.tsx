@@ -38,28 +38,22 @@ export function Hero() {
 
   return (
     <section className="relative flex h-full w-full items-center justify-center overflow-hidden">
-      <div className="container mx-auto px-4 md:px-6">
+        <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-slate-950"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]"></div>
+        </div>
+      <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="mx-auto max-w-4xl text-center">
           <div className="group flex flex-col items-center">
             <h1
               style={{ animationDelay: '0.2s' }}
               className="animate-fade-in-up font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl"
             >
-              <div className="flex">
-                {name.split('').map((char, index) => (
-                  <span
-                    key={index}
-                    className="transition-all duration-300 group-hover:-translate-y-1.5"
-                    style={{ transitionDelay: `${index * 30}ms` }}
-                  >
-                    {char === ' ' ? ' ' : char}
-                  </span>
-                ))}
-              </div>
+              {name}
             </h1>
             <p
               style={{ animationDelay: '0.6s' }}
-              className="animate-fade-in-up mt-4 bg-gradient-to-br from-foreground to-primary bg-clip-text font-headline text-xl font-medium tracking-tight text-transparent sm:text-2xl md:text-3xl"
+              className="animate-fade-in-up mt-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text font-headline text-xl font-medium tracking-tight text-transparent sm:text-2xl md:text-3xl"
             >
               Hago Diseño {text}
               <span className="animate-pulse">|</span>

@@ -50,16 +50,21 @@ export function About() {
           {services.map((service) => (
             <div
               key={service.name}
-              className="flex flex-col items-center p-4 text-center"
+              className="relative flex flex-col items-center p-8 text-center rounded-3xl border border-white/10 bg-white/5 overflow-hidden"
             >
-              <service.icon className="mb-4 h-12 w-12 text-primary" />
-              <h3 className="mb-2 text-xl font-bold">{service.name}</h3>
-              <p className="text-muted-foreground">{service.description}</p>
+              <div className="absolute top-0 left-0 -inset-full h-full w-full bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="mb-4 inline-block rounded-full bg-white/10 p-4">
+                   <service.icon className="h-8 w-8 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text" />
+                </div>
+                <h3 className="mb-2 text-xl font-bold">{service.name}</h3>
+                <p className="text-muted-foreground">{service.description}</p>
+              </div>
             </div>
           ))}
         </div>
          <div className="mt-16 text-center">
-            <Button asChild variant="link" size="lg" className="group">
+            <Button asChild variant="link" size="lg" className="group text-foreground">
               <Link href="/about">
                 Conoce más sobre mí
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

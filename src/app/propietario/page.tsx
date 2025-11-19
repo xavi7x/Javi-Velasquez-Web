@@ -26,7 +26,7 @@ import { projects } from '@/lib/projects'; // Usando datos estáticos por ahora
 
 export default function OwnerPage() {
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-slate-950">
       <Header />
       <main className="flex-1 p-4 md:p-8 lg:p-12">
         <div className="container mx-auto grid gap-12">
@@ -99,8 +99,8 @@ export default function OwnerPage() {
                           <TableCell className="font-medium">{project.title}</TableCell>
                           <TableCell className="text-muted-foreground">{project.tagline}</TableCell>
                           <TableCell className="text-right space-x-2">
-                            <Button variant="outline" size="sm">Editar</Button>
-                            <Button variant="destructive" size="sm">Eliminar</Button>
+                            <Button variant="outline" size="sm" className="rounded-full">Editar</Button>
+                            <Button variant="destructive" size="sm" className="rounded-full">Eliminar</Button>
                           </TableCell>
                         </TableRow>
                       ))}
