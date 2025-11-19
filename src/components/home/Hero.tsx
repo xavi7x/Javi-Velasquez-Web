@@ -38,7 +38,7 @@ export function Hero() {
   return (
     <section className="relative flex h-full w-full items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-slate-950"></div>
+            <div className="absolute inset-0 bg-background"></div>
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]"></div>
         </div>
       <div className="container mx-auto px-4 md:px-6 relative z-10">
