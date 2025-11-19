@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Briefcase, MessageSquare, LogOut, AreaChart } from 'lucide-react';
+import { Briefcase, MessageSquare, LogOut, AreaChart, ExternalLink } from 'lucide-react';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { MessagesView, type Message } from '@/components/propietario/MessagesView';
 import { AnalyticsView } from '@/components/propietario/AnalyticsView';
@@ -135,7 +135,7 @@ function OwnerDashboard() {
       </aside>
 
       <main className="flex-1 p-8 overflow-y-auto bg-background rounded-2xl m-2 ml-0 border border-border">
-         <header className="mb-8">
+         <header className="mb-8 flex items-start justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
               {activeView === 'projects' && 'Gestión de Proyectos'}
@@ -148,6 +148,14 @@ function OwnerDashboard() {
               {activeView === 'traffic' && 'Visualiza las métricas de visitas y rendimiento de tu sitio web.'}
             </p>
           </div>
+          {activeView === 'traffic' && (
+            <Button asChild variant="outline">
+              <Link href="https://analytics.google.com/" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="mr-2 h-4 w-4"/>
+                Ir a Analytics
+              </Link>
+            </Button>
+          )}
         </header>
         {renderView()}
       </main>
