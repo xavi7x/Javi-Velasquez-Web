@@ -41,7 +41,7 @@ import {
 import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 
@@ -57,6 +57,15 @@ const emptyProject: Partial<Project> = {
     results: '',
   },
   skills: [],
+};
+
+const createSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // remove non-alphanumeric characters except spaces and hyphens
+      .trim()
+      .replace(/\s+/g, '-') // replace spaces with hyphens
+      .replace(/-+/g, '-'); // replace multiple hyphens with a single one
 };
 
 
@@ -116,60 +125,59 @@ export function ProjectsView() {
 
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!firestore || !editingProject || isSubmitting) return;
+    if (!firestore || !editingProject?.title || isSubmitting) return;
 
     setIsSubmitting(true);
     
     try {
-        const isEditing = editingProject && 'id' in editingProject && editingProject.id;
-        let projectData = { ...editingProject };
-        let docRef;
+        const isEditing = editingProject.id;
+        // Generate a URL-friendly slug from the title. This will be the document ID.
+        const slug = createSlug(editingProject.title);
 
-        if (isEditing) {
-            docRef = doc(firestore, 'projects', editingProject.id!);
-        } else {
-            // For new projects, create the document first to get an ID.
-            const dataToSave = { ...projectData, id: '' }; // id will be populated later
-            delete dataToSave.id;
-            docRef = await addDoc(collection(firestore, 'projects'), dataToSave);
-            projectData.id = docRef.id;
-        }
+        const projectRef = doc(firestore, 'projects', slug);
 
-        const slug = projectData.title?.toLowerCase().replace(/\s+/g, '-') || docRef.id;
-        let updateData: Partial<Project> = { slug };
-
-        // 1. Upload Thumbnail
+        let thumbnailUrl = editingProject.thumbnail || '';
         if (thumbnailFile) {
             const storage = getStorage();
-            const fileRef = storageRef(storage, `project-thumbnails/${docRef.id}-${thumbnailFile.name}`);
+            const fileRef = storageRef(storage, `project-thumbnails/${slug}-${thumbnailFile.name}`);
             const snapshot = await uploadBytes(fileRef, thumbnailFile);
-            updateData.thumbnail = await getDownloadURL(snapshot.ref);
+            thumbnailUrl = await getDownloadURL(snapshot.ref);
         }
-
-        // 2. Upload Gallery Images
+        
+        let newImageUrls: string[] = [];
         if (galleryFiles.length > 0) {
             const storage = getStorage();
-            const galleryUrls = await Promise.all(
+            newImageUrls = await Promise.all(
                 galleryFiles.map(async (file) => {
-                    const fileRef = storageRef(storage, `project-gallery/${docRef.id}-${file.name}`);
+                    const fileRef = storageRef(storage, `project-gallery/${slug}-${file.name}`);
                     const snapshot = await uploadBytes(fileRef, file);
                     return getDownloadURL(snapshot.ref);
                 })
             );
-            updateData.images = [...(projectData.images || []), ...galleryUrls];
         }
+
+        const finalProjectData: Project = {
+            id: slug, // The ID is the slug
+            slug: slug,
+            title: editingProject.title,
+            tagline: editingProject.tagline || '',
+            thumbnail: thumbnailUrl,
+            images: [...(editingProject.images || []), ...newImageUrls],
+            description: {
+              challenge: editingProject.description?.challenge || '',
+              solution: editingProject.description?.solution || '',
+              results: editingProject.description?.results || '',
+            },
+            skills: editingProject.skills || [],
+        };
         
-        // Merge text data with uploaded image URLs
-        const finalData = { ...projectData, ...updateData, id: docRef.id };
+        await setDoc(projectRef, finalProjectData, { merge: true });
 
-        if (isEditing) {
-            await updateDoc(docRef, finalData);
-            toast({ title: "Proyecto actualizado", description: `"${finalData.title}" ha sido actualizado.` });
-        } else {
-            await updateDoc(docRef, finalData); // Update new doc with ID, slug, and image URLs
-            toast({ title: "Proyecto añadido", description: `"${finalData.title}" ha sido creado.` });
-        }
-
+        toast({ 
+            title: isEditing ? "Proyecto actualizado" : "Proyecto añadido",
+            description: `"${finalProjectData.title}" ha sido guardado.` 
+        });
+        
         setIsModalOpen(false);
         setEditingProject(null);
         setThumbnailFile(null);
@@ -181,8 +189,7 @@ export function ProjectsView() {
     } finally {
         setIsSubmitting(false);
     }
-};
-
+  };
   
   const handleDeleteProject = async () => {
     if (!projectToDelete || !firestore) return;
@@ -199,8 +206,8 @@ export function ProjectsView() {
   };
 
 
-  const modalTitle = editingProject && 'id' in editingProject ? 'Editar Proyecto' : 'Añadir Nuevo Proyecto';
-  const modalDescription = editingProject && 'id' in editingProject
+  const modalTitle = editingProject && 'id' in editingProject && editingProject.id ? 'Editar Proyecto' : 'Añadir Nuevo Proyecto';
+  const modalDescription = editingProject && 'id' in editingProject && editingProject.id
     ? `Realiza cambios en el proyecto "${editingProject.title}".`
     : 'Completa el formulario para añadir un nuevo proyecto a tu portafolio.';
 
