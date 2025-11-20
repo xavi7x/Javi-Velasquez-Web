@@ -28,6 +28,8 @@
  * - Denormalization for Authorization: None. The `ownerId` in `/owners/{ownerId}`
  *   matches the `request.auth.uid`, avoiding the need for `get()` calls.
  * - No User Listing: Listing users (owners) is not permitted.
+ *
+ * Force rule re-sync.
  */
 rules_version = '2';
 service cloud.firestore {
