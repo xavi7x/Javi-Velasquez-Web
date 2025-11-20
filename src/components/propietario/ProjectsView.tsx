@@ -89,7 +89,7 @@ export function ProjectsView() {
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
+    return query(collection(firestore, 'projects'), orderBy('title'));
   }, [firestore]);
 
   const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
@@ -160,7 +160,7 @@ export function ProjectsView() {
             );
         }
 
-        const finalProjectData = {
+        const finalProjectData: Partial<Project> = {
           ...editingProject,
           id: slug,
           slug: slug,
