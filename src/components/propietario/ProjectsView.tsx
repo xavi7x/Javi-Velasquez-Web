@@ -47,6 +47,16 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+const createSlug = (title: string) => {
+  if (!title) return '';
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') 
+    .trim()
+    .replace(/\s+/g, '-') 
+    .replace(/-+/g, '-'); 
+};
+
 const emptyProject: Partial<Project> = {
   title: '',
   tagline: '',
@@ -59,17 +69,6 @@ const emptyProject: Partial<Project> = {
   },
   skills: [],
 };
-
-const createSlug = (title: string) => {
-  if (!title) return '';
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '') 
-    .trim()
-    .replace(/\s+/g, '-') 
-    .replace(/-+/g, '-'); 
-};
-
 
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -123,37 +122,47 @@ export function ProjectsView() {
   const removeGalleryFile = (index: number) => {
     setGalleryFiles(prev => prev.filter((_, i) => i !== index));
   };
-
+  
+  const handleTitleChange = (newTitle: string) => {
+    const isEditing = !!editingProject?.id;
+    if (isEditing) {
+      // If editing, only update the title, not the ID/slug.
+      setEditingProject({ ...editingProject, title: newTitle });
+    } else {
+      // If creating a new project, update title and generate slug as ID.
+      const slug = createSlug(newTitle);
+      setEditingProject({ ...editingProject, title: newTitle, id: slug, slug: slug });
+    }
+  };
 
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!firestore || !editingProject?.title || isSubmitting) return;
+    if (!firestore || !editingProject?.title || !editingProject.id) {
+        toast({ variant: 'destructive', title: "Error", description: "El título del proyecto es obligatorio." });
+        return;
+    }
 
     setIsSubmitting(true);
     
     try {
-        const isEditing = !!editingProject.id;
-        const slug = isEditing ? editingProject.id! : createSlug(editingProject.title);
-        if (!slug) {
-          throw new Error("El título no puede estar vacío para crear un slug.");
-        }
-
-        const projectRef = doc(firestore, 'projects', slug);
+        const projectId = editingProject.id;
+        const projectRef = doc(firestore, 'projects', projectId);
 
         let thumbnailUrl = editingProject.thumbnail || '';
         if (thumbnailFile) {
             const storage = getStorage();
-            const fileRef = storageRef(storage, `project-thumbnails/${slug}-${thumbnailFile.name}`);
+            const fileRef = storageRef(storage, `project-thumbnails/${projectId}-${thumbnailFile.name}`);
             const snapshot = await uploadBytes(fileRef, thumbnailFile);
             thumbnailUrl = await getDownloadURL(snapshot.ref);
         }
         
+        const existingImages = editingProject.images || [];
         let newImageUrls: string[] = [];
         if (galleryFiles.length > 0) {
             const storage = getStorage();
             newImageUrls = await Promise.all(
                 galleryFiles.map(async (file) => {
-                    const fileRef = storageRef(storage, `project-gallery/${slug}-${file.name}`);
+                    const fileRef = storageRef(storage, `project-gallery/${projectId}-${file.name}`);
                     const snapshot = await uploadBytes(fileRef, file);
                     return getDownloadURL(snapshot.ref);
                 })
@@ -162,21 +171,19 @@ export function ProjectsView() {
 
         const finalProjectData: Partial<Project> = {
           ...editingProject,
-          id: slug,
-          slug: slug,
           thumbnail: thumbnailUrl,
-          images: [...(editingProject.images || []), ...newImageUrls],
+          images: [...existingImages, ...newImageUrls],
           updatedAt: serverTimestamp(),
         };
 
-        if (!isEditing) {
+        if (!editingProject.createdAt) {
           finalProjectData.createdAt = serverTimestamp();
         }
         
         await setDoc(projectRef, finalProjectData, { merge: true });
 
         toast({ 
-            title: isEditing ? "Proyecto actualizado" : "Proyecto añadido",
+            title: editingProject.createdAt ? "Proyecto actualizado" : "Proyecto añadido",
             description: `"${editingProject.title}" ha sido guardado.` 
         });
         
@@ -208,8 +215,8 @@ export function ProjectsView() {
   };
 
 
-  const modalTitle = editingProject && 'id' in editingProject && editingProject.id ? 'Editar Proyecto' : 'Añadir Nuevo Proyecto';
-  const modalDescription = editingProject && 'id' in editingProject && editingProject.id
+  const modalTitle = editingProject && editingProject.id ? 'Editar Proyecto' : 'Añadir Nuevo Proyecto';
+  const modalDescription = editingProject && editingProject.id
     ? `Realiza cambios en el proyecto "${editingProject.title}".`
     : 'Completa el formulario para añadir un nuevo proyecto a tu portafolio.';
 
@@ -288,7 +295,7 @@ export function ProjectsView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Título del Proyecto</Label>
-                  <Input id="title" value={editingProject.title || ''} onChange={e => setEditingProject({...editingProject, title: e.target.value})} placeholder="Ej: Renovación de Marca" disabled={isSubmitting || !!editingProject.id} />
+                  <Input id="title" value={editingProject.title || ''} onChange={e => handleTitleChange(e.target.value)} placeholder="Ej: Renovación de Marca" disabled={isSubmitting} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tagline">Tagline</Label>
@@ -396,7 +403,7 @@ export function ProjectsView() {
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit" onClick={handleFormSubmit} disabled={isSubmitting}>
+              <Button type="submit" onClick={handleFormSubmit} disabled={isSubmitting || !editingProject.title}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {isSubmitting ? 'Guardando...' : 'Guardar Proyecto'}
               </Button>
