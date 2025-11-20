@@ -85,21 +85,34 @@ export function ProjectsView() {
 
   const { data: projectsData, isLoading } = useCollection<Project>(projectsQuery);
   
-  useEffect(() => {
+ useEffect(() => {
     if (projectsData) {
-      // Ensure every project has a valid order number. Fallback to index if null/undefined.
-      const sanitizedProjects = projectsData.map((p, index) => ({
-        ...p,
-        order: p.order ?? index,
-      }));
-      setProjects(sanitizedProjects);
+      const needsReindexing = projectsData.some(p => typeof p.order !== 'number');
+      
+      if (needsReindexing && firestore) {
+        toast({ title: 'Reorganizando proyectos...', description: 'Se detectaron proyectos sin orden y se están reparando.' });
+        const batch = writeBatch(firestore);
+        projectsData.forEach((project, index) => {
+          const projectRef = doc(firestore, 'projects', project.id);
+          batch.update(projectRef, { order: index });
+        });
+        
+        batch.commit().then(() => {
+          toast({ title: '¡Proyectos organizados!', description: 'Todos los proyectos ahora tienen un orden definido.' });
+        }).catch(error => {
+          console.error("Error reindexing projects:", error);
+          toast({ variant: 'destructive', title: 'Error al organizar', description: 'No se pudo actualizar el orden de los proyectos.' });
+        });
+      }
+      
+      setProjects(projectsData.map((p, index) => ({ ...p, order: p.order ?? index })));
     }
-  }, [projectsData]);
+  }, [projectsData, firestore, toast]);
 
 
   const openAddModal = () => {
-    const maxOrder = projects.reduce((max, p) => Math.max(p.order ?? 0, max), 0);
-    setEditingProject({...emptyProject, order: projects.length > 0 ? maxOrder + 1 : 0 });
+    const maxOrder = projects.reduce((max, p) => Math.max(p.order ?? 0, max), -1);
+    setEditingProject({...emptyProject, order: maxOrder + 1 });
     setIsEditing(false);
     setIsModalOpen(true);
   };
@@ -175,9 +188,10 @@ export function ProjectsView() {
     const projectData = { ...editingProject };
     
     try {
-        if (projectData.order === undefined || projectData.order === null) {
-          const maxOrder = projects.reduce((max, p) => Math.max(p.order ?? 0, max), 0);
-          projectData.order = projects.length > 0 ? maxOrder + 1 : 0;
+        const isNewProject = !isEditing;
+        if (isNewProject) {
+            const maxOrder = projects.reduce((max, p) => Math.max(p.order ?? 0, max), -1);
+            projectData.order = maxOrder + 1;
         }
         
         const projectId = projectData.id || doc(collection(firestore, 'projects')).id;
@@ -187,22 +201,22 @@ export function ProjectsView() {
         
         const projectRef = doc(firestore, 'projects', projectId);
 
-        if (isEditing) {
-            await updateDoc(projectRef, projectData).catch(error => {
+        if (isNewProject) {
+            projectData.createdAt = serverTimestamp() as any;
+            await setDoc(projectRef, projectData).catch(error => {
                 const contextualError = new FirestorePermissionError({
                     path: projectRef.path,
-                    operation: 'update',
+                    operation: 'create',
                     requestResourceData: projectData,
                 });
                 errorEmitter.emit('permission-error', contextualError);
                 throw contextualError;
             });
         } else {
-            projectData.createdAt = serverTimestamp() as any;
-            await setDoc(projectRef, projectData).catch(error => {
+            await updateDoc(projectRef, projectData).catch(error => {
                 const contextualError = new FirestorePermissionError({
                     path: projectRef.path,
-                    operation: 'create',
+                    operation: 'update',
                     requestResourceData: projectData,
                 });
                 errorEmitter.emit('permission-error', contextualError);
@@ -229,7 +243,7 @@ export function ProjectsView() {
     try {
       const projectRef = doc(firestore, 'projects', projectToDelete.id);
       await deleteDoc(projectRef);
-      // After deletion, re-order remaining projects to fill any gaps
+      
       const remainingProjects = projects.filter(p => p.id !== projectToDelete.id);
       const batch = writeBatch(firestore);
       remainingProjects.forEach((p, index) => {
@@ -256,15 +270,12 @@ export function ProjectsView() {
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
     if (targetIndex < 0 || targetIndex >= projects.length) return;
 
-    // Create a new sorted array
     const reorderedProjects = Array.from(projects);
     const [movedItem] = reorderedProjects.splice(currentIndex, 1);
     reorderedProjects.splice(targetIndex, 0, movedItem);
 
-    // Update local state immediately for a responsive UI
     setProjects(reorderedProjects);
 
-    // Update the 'order' field for all projects in Firestore
     const batch = writeBatch(firestore);
     reorderedProjects.forEach((project, index) => {
       const projectRef = doc(firestore, 'projects', project.id);
@@ -284,7 +295,6 @@ export function ProjectsView() {
         title: 'Error al reordenar',
         description: 'No se pudo guardar el nuevo orden. La lista se recargará.',
       });
-      // Optionally, revert local state or refetch data here
     }
   };
 
