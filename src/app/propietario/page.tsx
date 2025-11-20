@@ -280,14 +280,14 @@ export default function OwnerDashboard() {
             </div>
           </div>
           {activeView === 'traffic' && (
-            <Button asChild variant="outline" className="hidden sm:inline-flex">
+            <Button asChild>
               <Link
                 href="https://analytics.google.com/"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
-                Ir a Analytics
+                Ver en Google Analytics
               </Link>
             </Button>
           )}
