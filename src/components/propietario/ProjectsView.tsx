@@ -79,23 +79,19 @@ export function ProjectsView() {
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
+    // Correctly order by the 'order' field
+    return query(collection(firestore, 'projects'), orderBy('order', 'asc'));
   }, [firestore]);
 
   const { data: projectsData, isLoading } = useCollection<Project>(projectsQuery);
-
+  
   const sortedProjects = useMemo(() => {
     if (!projectsData) return [];
-    return [...projectsData].sort((a, b) => {
-      const orderA = a.order ?? Infinity;
-      const orderB = b.order ?? Infinity;
-      if (orderA === orderB) {
-        const timeA = a.createdAt?.toMillis() ?? 0;
-        const timeB = b.createdAt?.toMillis() ?? 0;
-        return timeA - timeB;
-      }
-      return orderA - orderB;
-    });
+    // Data is already sorted by the query, we just need to ensure 'order' exists for local manipulation
+    return projectsData.map((p, i) => ({
+      ...p,
+      order: p.order ?? i, 
+    }));
   }, [projectsData]);
 
 
@@ -252,13 +248,8 @@ export function ProjectsView() {
       return; 
     }
     
-    const projectsWithOrder = sortedProjects.map((p, i) => ({
-      ...p,
-      order: p.order ?? i + 1,
-    }));
-    
-    const projectToMove = projectsWithOrder[currentIndex];
-    const otherProject = projectsWithOrder[targetIndex];
+    const projectToMove = sortedProjects[currentIndex];
+    const otherProject = sortedProjects[targetIndex];
 
     const batch = writeBatch(firestore);
 
