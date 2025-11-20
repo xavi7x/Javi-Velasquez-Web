@@ -121,58 +121,68 @@ export function ProjectsView() {
     setIsSubmitting(true);
     
     try {
-      let projectData = { ...editingProject };
+        const isEditing = editingProject && 'id' in editingProject && editingProject.id;
+        let projectData = { ...editingProject };
+        let docRef;
 
-      // 1. Upload Thumbnail
-      if (thumbnailFile) {
-        const storage = getStorage();
-        const fileRef = storageRef(storage, `project-thumbnails/${Date.now()}-${thumbnailFile.name}`);
-        const snapshot = await uploadBytes(fileRef, thumbnailFile);
-        projectData.thumbnail = await getDownloadURL(snapshot.ref);
-      }
+        if (isEditing) {
+            docRef = doc(firestore, 'projects', editingProject.id!);
+        } else {
+            // For new projects, create the document first to get an ID.
+            const dataToSave = { ...projectData, id: '' }; // id will be populated later
+            delete dataToSave.id;
+            docRef = await addDoc(collection(firestore, 'projects'), dataToSave);
+            projectData.id = docRef.id;
+        }
 
-      // 2. Upload Gallery Images
-      if (galleryFiles.length > 0) {
-        const storage = getStorage();
-        const galleryUrls = await Promise.all(
-          galleryFiles.map(async (file) => {
-            const fileRef = storageRef(storage, `project-gallery/${Date.now()}-${file.name}`);
-            const snapshot = await uploadBytes(fileRef, file);
-            return getDownloadURL(snapshot.ref);
-          })
-        );
-         projectData.images = [...(projectData.images || []), ...galleryUrls];
-      }
-      
-      const projectsCollection = collection(firestore, 'projects');
+        const slug = projectData.title?.toLowerCase().replace(/\s+/g, '-') || docRef.id;
+        let updateData: Partial<Project> = { slug };
 
-      if ('id' in projectData && projectData.id) {
-        // Update existing project
-        const projectRef = doc(firestore, 'projects', projectData.id);
-        await updateDoc(projectRef, projectData);
-        toast({ title: "Proyecto actualizado", description: `"${projectData.title}" ha sido actualizado.` });
-      } else {
-        // Add new project
-        const docRef = await addDoc(projectsCollection, {
-            ...projectData,
-            slug: projectData.title?.toLowerCase().replace(/\s+/g, '-') || ''
-        });
-        await updateDoc(docRef, { id: docRef.id }); // Add the id to the document itself
-        toast({ title: "Proyecto añadido", description: `"${projectData.title}" ha sido creado.` });
-      }
+        // 1. Upload Thumbnail
+        if (thumbnailFile) {
+            const storage = getStorage();
+            const fileRef = storageRef(storage, `project-thumbnails/${docRef.id}-${thumbnailFile.name}`);
+            const snapshot = await uploadBytes(fileRef, thumbnailFile);
+            updateData.thumbnail = await getDownloadURL(snapshot.ref);
+        }
 
-      setIsModalOpen(false);
-      setEditingProject(null);
-      setThumbnailFile(null);
-      setGalleryFiles([]);
+        // 2. Upload Gallery Images
+        if (galleryFiles.length > 0) {
+            const storage = getStorage();
+            const galleryUrls = await Promise.all(
+                galleryFiles.map(async (file) => {
+                    const fileRef = storageRef(storage, `project-gallery/${docRef.id}-${file.name}`);
+                    const snapshot = await uploadBytes(fileRef, file);
+                    return getDownloadURL(snapshot.ref);
+                })
+            );
+            updateData.images = [...(projectData.images || []), ...galleryUrls];
+        }
+        
+        // Merge text data with uploaded image URLs
+        const finalData = { ...projectData, ...updateData, id: docRef.id };
+
+        if (isEditing) {
+            await updateDoc(docRef, finalData);
+            toast({ title: "Proyecto actualizado", description: `"${finalData.title}" ha sido actualizado.` });
+        } else {
+            await updateDoc(docRef, finalData); // Update new doc with ID, slug, and image URLs
+            toast({ title: "Proyecto añadido", description: `"${finalData.title}" ha sido creado.` });
+        }
+
+        setIsModalOpen(false);
+        setEditingProject(null);
+        setThumbnailFile(null);
+        setGalleryFiles([]);
 
     } catch (error) {
-      console.error("Error saving project: ", error);
-      toast({ variant: 'destructive', title: "Error", description: "No se pudo guardar el proyecto." });
+        console.error("Error saving project: ", error);
+        toast({ variant: 'destructive', title: "Error", description: "No se pudo guardar el proyecto." });
     } finally {
-      setIsSubmitting(false);
+        setIsSubmitting(false);
     }
-  };
+};
+
   
   const handleDeleteProject = async () => {
     if (!projectToDelete || !firestore) return;
@@ -330,7 +340,7 @@ export function ProjectsView() {
                 <Textarea
                   id="challenge"
                   value={editingProject.description?.challenge || ''}
-                  onChange={e => setEditingProject({...editingProject, description: {...editingProject.description!, challenge: e.target.value}})}
+                  onChange={e => setEditingProject({...editingProject, description: {...(editingProject.description || {}), challenge: e.target.value}})}
                   placeholder="Describe el problema o desafío."
                   className="min-h-[100px]"
                 />
@@ -340,7 +350,7 @@ export function ProjectsView() {
                 <Textarea
                   id="solution"
                   value={editingProject.description?.solution || ''}
-                  onChange={e => setEditingProject({...editingProject, description: {...editingProject.description!, solution: e.target.value}})}
+                  onChange={e => setEditingProject({...editingProject, description: {...(editingProject.description || {}), solution: e.target.value}})}
                   placeholder="Explica la solución que implementaste."
                   className="min-h-[100px]"
                 />
@@ -350,7 +360,7 @@ export function ProjectsView() {
                 <Textarea
                   id="results"
                   value={editingProject.description?.results || ''}
-                  onChange={e => setEditingProject({...editingProject, description: {...editingProject.description!, results: e.target.value}})}
+                  onChange={e => setEditingProject({...editingProject, description: {...(editingProject.description || {}), results: e.target.value}})}
                   placeholder="Menciona los resultados obtenidos."
                   className="min-h-[100px]"
                 />
