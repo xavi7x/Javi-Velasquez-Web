@@ -64,14 +64,16 @@ export default function ProjectPage() {
             </header>
 
             <div className="space-y-4">
-              <Image
-                src={project.thumbnail}
-                width={1200}
-                height={800}
-                alt={`Imagen principal del proyecto ${project.title}`}
-                className="aspect-[3/2] w-full rounded-3xl object-cover"
-                data-ai-hint="project screenshot"
-              />
+              {project.thumbnail && (
+                <Image
+                  src={project.thumbnail}
+                  width={1200}
+                  height={800}
+                  alt={`Imagen principal del proyecto ${project.title}`}
+                  className="aspect-[3/2] w-full rounded-3xl object-cover"
+                  data-ai-hint="project screenshot"
+                />
+              )}
               {project.images?.map((img, index) => (
                 <Image
                   key={index}
