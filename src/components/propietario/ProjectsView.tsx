@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, type ChangeEvent, type FormEvent } from 'react';
 import {
   Table,
   TableBody,
@@ -38,20 +38,48 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { projects } from '@/lib/projects'; // Usando datos estáticos por ahora
-import type { Project } from '@/lib/types';
-import { PlusCircle, Upload } from 'lucide-react';
+import type { Project } from '@/lib/project-types';
+import { PlusCircle, Upload, Trash, Loader2 } from 'lucide-react';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, doc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useToast } from '@/hooks/use-toast';
+
+
+const emptyProject: Omit<Project, 'id'> = {
+  title: '',
+  tagline: '',
+  thumbnail: '',
+  images: [],
+  description: {
+    challenge: '',
+    solution: '',
+    results: '',
+  },
+  skills: [],
+};
+
 
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [editingProject, setEditingProject] = useState<Project | Partial<Project> | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const firestore = useFirestore();
+
+  const projectsCollection = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'projects');
+  }, [firestore]);
+
+  const { data: projects, isLoading } = useCollection<Project>(projectsCollection);
 
   const openAddModal = () => {
-    setEditingProject(null);
+    setEditingProject(emptyProject);
     setThumbnailFile(null);
     setIsModalOpen(true);
   };
@@ -68,29 +96,67 @@ export function ProjectsView() {
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (editingProject) {
-      console.log('Proyecto actualizado (simulado):', editingProject.title);
-    } else {
-      console.log('Nuevo proyecto guardado (simulado)');
+    if (!firestore || !editingProject || isSubmitting) return;
+
+    setIsSubmitting(true);
+    
+    try {
+      let thumbnail = editingProject.thumbnail || '';
+      if (thumbnailFile) {
+        const storage = getStorage();
+        const fileRef = storageRef(storage, `project-thumbnails/${Date.now()}-${thumbnailFile.name}`);
+        const snapshot = await uploadBytes(fileRef, thumbnailFile);
+        thumbnail = await getDownloadURL(snapshot.ref);
+      }
+
+      const projectData = {
+        ...editingProject,
+        thumbnail,
+      };
+      
+      if ('id' in editingProject && editingProject.id) {
+        // Update existing project
+        const projectRef = doc(firestore, 'projects', editingProject.id);
+        await updateDoc(projectRef, projectData);
+        toast({ title: "Proyecto actualizado", description: `"${projectData.title}" ha sido actualizado.` });
+      } else {
+        // Add new project
+        const projectsCollection = collection(firestore, 'projects');
+        await addDoc(projectsCollection, projectData);
+        toast({ title: "Proyecto añadido", description: `"${projectData.title}" ha sido creado.` });
+      }
+
+      setIsModalOpen(false);
+      setEditingProject(null);
+      setThumbnailFile(null);
+
+    } catch (error) {
+      console.error("Error saving project: ", error);
+      toast({ variant: 'destructive', title: "Error", description: "No se pudo guardar el proyecto." });
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsModalOpen(false);
-    setEditingProject(null);
-    setThumbnailFile(null);
   };
   
-  const handleDeleteProject = () => {
-    if (projectToDelete) {
-      console.log('Proyecto eliminado (simulado):', projectToDelete.title);
-      // Lógica de borrado aquí
+  const handleDeleteProject = async () => {
+    if (!projectToDelete || !firestore) return;
+    try {
+      const projectRef = doc(firestore, 'projects', projectToDelete.id);
+      await deleteDoc(projectRef);
+      toast({ title: "Proyecto eliminado", description: `"${projectToDelete.title}" ha sido eliminado.` });
+    } catch(error) {
+      console.error("Error deleting project:", error);
+      toast({ variant: 'destructive', title: "Error", description: "No se pudo eliminar el proyecto." });
+    } finally {
       setProjectToDelete(null);
     }
   };
 
 
-  const modalTitle = editingProject ? 'Editar Proyecto' : 'Añadir Nuevo Proyecto';
-  const modalDescription = editingProject
+  const modalTitle = editingProject && 'id' in editingProject ? 'Editar Proyecto' : 'Añadir Nuevo Proyecto';
+  const modalDescription = editingProject && 'id' in editingProject
     ? `Realiza cambios en el proyecto "${editingProject.title}".`
     : 'Completa el formulario para añadir un nuevo proyecto a tu portafolio.';
 
@@ -117,8 +183,14 @@ export function ProjectsView() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {projects.map((project) => (
-                <TableRow key={project.slug}>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center h-24">
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                  </TableCell>
+                </TableRow>
+              ) : projects?.map((project) => (
+                <TableRow key={project.id}>
                   <TableCell className="font-medium">{project.title}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {project.tagline}
@@ -133,7 +205,7 @@ export function ProjectsView() {
                       className="rounded-full"
                       onClick={() => setProjectToDelete(project)}
                     >
-                      Eliminar
+                      <Trash className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -143,94 +215,107 @@ export function ProjectsView() {
         </CardContent>
       </Card>
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{modalTitle}</DialogTitle>
-            <DialogDescription>
-              {modalDescription}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleFormSubmit} className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Título del Proyecto</Label>
-                <Input id="title" defaultValue={editingProject?.title} placeholder="Ej: Renovación de Marca" />
+      {editingProject && (
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{modalTitle}</DialogTitle>
+              <DialogDescription>
+                {modalDescription}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleFormSubmit} className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Título del Proyecto</Label>
+                  <Input id="title" value={editingProject.title} onChange={e => setEditingProject({...editingProject, title: e.target.value})} placeholder="Ej: Renovación de Marca" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tagline">Tagline</Label>
+                  <Input
+                    id="tagline"
+                    value={editingProject.tagline}
+                    onChange={e => setEditingProject({...editingProject, tagline: e.target.value})}
+                    placeholder="Una descripción corta y llamativa"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tagline">Tagline</Label>
-                <Input
-                  id="tagline"
-                  defaultValue={editingProject?.tagline}
-                  placeholder="Una descripción corta y llamativa"
+                <Label htmlFor="thumbnail-upload">Miniatura del Proyecto</Label>
+                <input 
+                  type="file" 
+                  id="thumbnail-upload"
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  className="hidden" 
+                  accept="image/*"
+                />
+                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Subir Miniatura
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Recomendado: 1200x800 píxeles.
+                </p>
+                {thumbnailFile ? (
+                  <p className="text-sm text-foreground">Archivo seleccionado: {thumbnailFile.name}</p>
+                ) : editingProject?.thumbnail ? (
+                  <p className="text-sm text-foreground">Miniatura actual: {editingProject.thumbnail.split('/').pop()}</p>
+                ) : null}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="challenge">El Desafío</Label>
+                <Textarea
+                  id="challenge"
+                  value={editingProject.description?.challenge}
+                  onChange={e => setEditingProject({...editingProject, description: {...editingProject.description!, challenge: e.target.value}})}
+                  placeholder="Describe el problema o desafío."
+                  className="min-h-[100px]"
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="thumbnail-upload">Miniatura del Proyecto</Label>
-               <input 
-                type="file" 
-                id="thumbnail-upload"
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                className="hidden" 
-                accept="image/*"
-              />
-              <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                <Upload className="mr-2 h-4 w-4" />
-                Subir Miniatura
+              <div className="space-y-2">
+                <Label htmlFor="solution">La Solución</Label>
+                <Textarea
+                  id="solution"
+                  value={editingProject.description?.solution}
+                  onChange={e => setEditingProject({...editingProject, description: {...editingProject.description!, solution: e.target.value}})}
+                  placeholder="Explica la solución que implementaste."
+                  className="min-h-[100px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="results">Los Resultados</Label>
+                <Textarea
+                  id="results"
+                  value={editingProject.description?.results}
+                  onChange={e => setEditingProject({...editingProject, description: {...editingProject.description!, results: e.target.value}})}
+                  placeholder="Menciona los resultados obtenidos."
+                  className="min-h-[100px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="skills">Habilidades (separadas por coma)</Label>
+                <Input 
+                  id="skills" 
+                  value={editingProject.skills?.join(', ')} 
+                  onChange={e => setEditingProject({...editingProject, skills: e.target.value.split(',').map(s => s.trim())})} 
+                  placeholder="Ej: React, Figma, Branding" />
+              </div>
+            </form>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="secondary" disabled={isSubmitting}>
+                  Cancelar
+                </Button>
+              </DialogClose>
+              <Button type="submit" onClick={handleFormSubmit} disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isSubmitting ? 'Guardando...' : 'Guardar Proyecto'}
               </Button>
-              <p className="text-xs text-muted-foreground">
-                Recomendado: 1200x800 píxeles.
-              </p>
-              {thumbnailFile ? (
-                <p className="text-sm text-foreground">Archivo seleccionado: {thumbnailFile.name}</p>
-              ) : editingProject?.thumbnail ? (
-                 <p className="text-sm text-foreground">Miniatura actual: {editingProject.thumbnail.split('/').pop()}</p>
-              ) : null}
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="challenge">El Desafío</Label>
-              <Textarea
-                id="challenge"
-                defaultValue={editingProject?.description.challenge}
-                placeholder="Describe el problema o desafío."
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="solution">La Solución</Label>
-              <Textarea
-                id="solution"
-                defaultValue={editingProject?.description.solution}
-                placeholder="Explica la solución que implementaste."
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="results">Los Resultados</Label>
-              <Textarea
-                id="results"
-                defaultValue={editingProject?.description.results}
-                placeholder="Menciona los resultados obtenidos."
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="skills">Habilidades (separadas por coma)</Label>
-              <Input id="skills" defaultValue={editingProject?.skills.join(', ')} placeholder="Ej: React, Figma, Branding" />
-            </div>
-          </form>
-          <DialogFooter>
-             <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Cancelar
-              </Button>
-            </DialogClose>
-            <Button type="submit" onClick={handleFormSubmit}>Guardar Proyecto</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
       
       <AlertDialog open={!!projectToDelete} onOpenChange={(isOpen) => !isOpen && setProjectToDelete(null)}>
         <AlertDialogContent>

@@ -1,18 +1,29 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useInView } from 'react-intersection-observer';
-import { projects } from '@/lib/projects';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
+import type { Project } from '@/lib/project-types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function PortfolioGrid() {
   const { ref: inViewRef, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
+
+  const firestore = useFirestore();
+
+  const projectsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'projects'), orderBy('title'), limit(6));
+  }, [firestore]);
+
+  const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
 
   return (
     <section
@@ -33,10 +44,21 @@ export function PortfolioGrid() {
           </p>
         </div>
         <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.slice(0, 6).map((project) => (
+          {isLoading &&
+            Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="overflow-hidden rounded-2xl">
+                <Skeleton className="aspect-video w-full" />
+                <CardContent className="p-4 space-y-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </CardContent>
+              </Card>
+            ))}
+          
+          {projects?.map((project) => (
             <Link
-              key={project.slug}
-              href={`/portfolio/${project.slug}`}
+              key={project.id}
+              href={`/portfolio/${project.id}`}
               className="group block"
             >
               <div className="relative">

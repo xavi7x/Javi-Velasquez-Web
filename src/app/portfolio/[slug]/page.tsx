@@ -1,31 +1,44 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { notFound, useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { projects } from '@/lib/projects';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { Project } from '@/lib/project-types';
 
-type ProjectPageProps = {
-  params: {
-    slug: string;
-  };
-};
+export default function ProjectPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const firestore = useFirestore();
 
-export async function generateStaticParams() {
-  return projects.map((project) => ({
-    slug: project.slug,
-  }));
-}
+  const projectRef = useMemoFirebase(() => {
+    if (!firestore || !slug) return null;
+    return doc(firestore, 'projects', slug);
+  }, [firestore, slug]);
 
-export default function ProjectPage({ params }: ProjectPageProps) {
-  const project = projects.find((p) => p.slug === params.slug);
+  const { data: project, isLoading } = useDoc<Project>(projectRef);
+
+  if (isLoading) {
+    return (
+      <CursorGradientWrapper>
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </main>
+        <Footer />
+      </CursorGradientWrapper>
+    );
+  }
 
   if (!project) {
-    notFound();
+    return notFound();
   }
 
   return (
@@ -51,7 +64,15 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             </header>
 
             <div className="space-y-4">
-              {project.images.map((img, index) => (
+              <Image
+                src={project.thumbnail}
+                width={1200}
+                height={800}
+                alt={`Imagen principal del proyecto ${project.title}`}
+                className="aspect-[3/2] w-full rounded-3xl object-cover"
+                data-ai-hint="project screenshot"
+              />
+              {project.images?.map((img, index) => (
                 <Image
                   key={index}
                   src={img}
