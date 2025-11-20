@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, type ChangeEvent, type FormEvent } from 'react';
+import { useState, useRef, type FormEvent } from 'react';
 import {
   Table,
   TableBody,
@@ -41,21 +41,11 @@ import {
 import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-
-const createSlug = (title: string) => {
-  if (!title) return '';
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '') 
-    .trim()
-    .replace(/\s+/g, '-') 
-    .replace(/-+/g, '-'); 
-};
 
 const emptyProject: Partial<Project> = {
   title: '',
@@ -126,34 +116,41 @@ export function ProjectsView() {
     setGalleryFiles(prev => prev.filter((_, i) => i !== index));
   };
   
-  const handleTitleChange = (newTitle: string) => {
-    if (!editingProject) return;
-    const newSlug = createSlug(newTitle);
-    setEditingProject({
-      ...editingProject,
-      title: newTitle,
-      id: newSlug,
-      slug: newSlug
-    });
-  };
-
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!firestore || !editingProject?.id) {
-        toast({ variant: 'destructive', title: "Error", description: "El título del proyecto es obligatorio para generar un ID." });
+    if (!firestore || !editingProject || !editingProject.title) {
+        toast({ variant: 'destructive', title: "Error", description: "El título del proyecto es obligatorio." });
         return;
     }
-
+    
     setIsSubmitting(true);
     
     try {
-        const projectId = editingProject.id;
+        let projectId = editingProject.id;
+        let projectData: Partial<Project> = { ...editingProject };
+        
+        // 1. Create document first if it's a new project
+        if (!isEditing) {
+            const tempProjectData = {
+                ...projectData,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            };
+            const docRef = await addDoc(collection(firestore, 'projects'), tempProjectData);
+            projectId = docRef.id;
+        }
+
+        if (!projectId) {
+            throw new Error("No se pudo obtener el ID del proyecto.");
+        }
+
         const projectRef = doc(firestore, 'projects', projectId);
 
+        // 2. Upload images and get URLs
+        const storage = getStorage();
         let thumbnailUrl = editingProject.thumbnail || '';
         if (thumbnailFile) {
-            const storage = getStorage();
-            const fileRef = storageRef(storage, `project-thumbnails/${projectId}-${thumbnailFile.name}`);
+            const fileRef = storageRef(storage, `project-thumbnails/${projectId}/${thumbnailFile.name}`);
             const snapshot = await uploadBytes(fileRef, thumbnailFile);
             thumbnailUrl = await getDownloadURL(snapshot.ref);
         }
@@ -161,21 +158,22 @@ export function ProjectsView() {
         const existingImages = editingProject.images || [];
         let newImageUrls: string[] = [];
         if (galleryFiles.length > 0) {
-            const storage = getStorage();
             newImageUrls = await Promise.all(
                 galleryFiles.map(async (file) => {
-                    const fileRef = storageRef(storage, `project-gallery/${projectId}-${file.name}`);
+                    const fileRef = storageRef(storage, `project-gallery/${projectId}/${file.name}`);
                     const snapshot = await uploadBytes(fileRef, file);
                     return getDownloadURL(snapshot.ref);
                 })
             );
         }
 
+        // 3. Update document with image URLs and other data
         const finalProjectData: Partial<Project> = {
-          ...editingProject,
-          thumbnail: thumbnailUrl,
-          images: [...existingImages, ...newImageUrls],
-          updatedAt: serverTimestamp(),
+            ...projectData,
+            id: projectId, // Ensure the ID is set
+            thumbnail: thumbnailUrl,
+            images: [...existingImages, ...newImageUrls],
+            updatedAt: serverTimestamp(),
         };
 
         if (!isEditing) {
@@ -190,15 +188,15 @@ export function ProjectsView() {
         });
         
         setIsModalOpen(false);
-        setEditingProject(null);
-        setThumbnailFile(null);
-        setGalleryFiles([]);
 
     } catch (error) {
         console.error("Error saving project: ", error);
         toast({ variant: 'destructive', title: "Error", description: "No se pudo guardar el proyecto." });
     } finally {
         setIsSubmitting(false);
+        setEditingProject(null);
+        setThumbnailFile(null);
+        setGalleryFiles([]);
     }
   };
   
@@ -293,11 +291,11 @@ export function ProjectsView() {
                 {modalDescription}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleFormSubmit} className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-6">
+            <form onSubmit={handleFormSubmit} id="project-form" className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Título del Proyecto</Label>
-                  <Input id="title" value={editingProject.title || ''} onChange={e => handleTitleChange(e.target.value)} placeholder="Ej: Renovación de Marca" disabled={isSubmitting} />
+                  <Input id="title" value={editingProject.title || ''} onChange={e => setEditingProject({...editingProject, title: e.target.value})} placeholder="Ej: Renovación de Marca" disabled={isSubmitting} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tagline">Tagline</Label>
@@ -405,7 +403,7 @@ export function ProjectsView() {
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit" form="project-form" onClick={handleFormSubmit} disabled={isSubmitting || !editingProject.title}>
+              <Button type="submit" form="project-form" disabled={isSubmitting || !editingProject.title}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {isSubmitting ? 'Guardando...' : 'Guardar Proyecto'}
               </Button>
