@@ -4,6 +4,8 @@ import { ThemeProvider } from '@/components/shared/ThemeProvider';
 import './globals.css';
 import { AvailabilityStatus } from '@/components/shared/AvailabilityStatus';
 import { FirebaseClientProvider } from '@/firebase';
+import GoogleAnalytics from '@/components/shared/GoogleAnalytics';
+import { GTM_ID } from '@/lib/gtag';
 
 export const metadata: Metadata = {
   title: 'Velásquez Digital',
@@ -26,6 +28,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
+        <GoogleAnalytics gaId={GTM_ID} />
         <ThemeProvider defaultTheme="dark" enableSystem={false} attribute="class">
           <FirebaseClientProvider>
             {children}
