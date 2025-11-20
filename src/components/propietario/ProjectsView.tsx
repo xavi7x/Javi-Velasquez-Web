@@ -39,14 +39,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import type { Project } from '@/lib/project-types';
-import { PlusCircle, Upload, Trash, Loader2 } from 'lucide-react';
+import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 
 
-const emptyProject: Omit<Project, 'id'> = {
+const emptyProject: Partial<Project> = {
   title: '',
   tagline: '',
   thumbnail: '',
@@ -62,10 +62,15 @@ const emptyProject: Omit<Project, 'id'> = {
 
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<Project | Partial<Project> | null>(null);
+  const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -81,20 +86,33 @@ export function ProjectsView() {
   const openAddModal = () => {
     setEditingProject(emptyProject);
     setThumbnailFile(null);
+    setGalleryFiles([]);
     setIsModalOpen(true);
   };
 
   const openEditModal = (project: Project) => {
     setEditingProject(project);
     setThumbnailFile(null);
+    setGalleryFiles([]);
     setIsModalOpen(true);
   };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setThumbnailFile(e.target.files[0]);
     }
   };
+
+  const handleGalleryFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setGalleryFiles(prev => [...prev, ...Array.from(e.target.files ?? [])]);
+    }
+  };
+
+  const removeGalleryFile = (index: number) => {
+    setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
 
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -103,34 +121,50 @@ export function ProjectsView() {
     setIsSubmitting(true);
     
     try {
-      let thumbnail = editingProject.thumbnail || '';
+      let projectData = { ...editingProject };
+
+      // 1. Upload Thumbnail
       if (thumbnailFile) {
         const storage = getStorage();
         const fileRef = storageRef(storage, `project-thumbnails/${Date.now()}-${thumbnailFile.name}`);
         const snapshot = await uploadBytes(fileRef, thumbnailFile);
-        thumbnail = await getDownloadURL(snapshot.ref);
+        projectData.thumbnail = await getDownloadURL(snapshot.ref);
       }
 
-      const projectData = {
-        ...editingProject,
-        thumbnail,
-      };
+      // 2. Upload Gallery Images
+      if (galleryFiles.length > 0) {
+        const storage = getStorage();
+        const galleryUrls = await Promise.all(
+          galleryFiles.map(async (file) => {
+            const fileRef = storageRef(storage, `project-gallery/${Date.now()}-${file.name}`);
+            const snapshot = await uploadBytes(fileRef, file);
+            return getDownloadURL(snapshot.ref);
+          })
+        );
+         projectData.images = [...(projectData.images || []), ...galleryUrls];
+      }
       
-      if ('id' in editingProject && editingProject.id) {
+      const projectsCollection = collection(firestore, 'projects');
+
+      if ('id' in projectData && projectData.id) {
         // Update existing project
-        const projectRef = doc(firestore, 'projects', editingProject.id);
+        const projectRef = doc(firestore, 'projects', projectData.id);
         await updateDoc(projectRef, projectData);
         toast({ title: "Proyecto actualizado", description: `"${projectData.title}" ha sido actualizado.` });
       } else {
         // Add new project
-        const projectsCollection = collection(firestore, 'projects');
-        await addDoc(projectsCollection, projectData);
+        const docRef = await addDoc(projectsCollection, {
+            ...projectData,
+            slug: projectData.title?.toLowerCase().replace(/\s+/g, '-') || ''
+        });
+        await updateDoc(docRef, { id: docRef.id }); // Add the id to the document itself
         toast({ title: "Proyecto añadido", description: `"${projectData.title}" ha sido creado.` });
       }
 
       setIsModalOpen(false);
       setEditingProject(null);
       setThumbnailFile(null);
+      setGalleryFiles([]);
 
     } catch (error) {
       console.error("Error saving project: ", error);
@@ -228,46 +262,74 @@ export function ProjectsView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Título del Proyecto</Label>
-                  <Input id="title" value={editingProject.title} onChange={e => setEditingProject({...editingProject, title: e.target.value})} placeholder="Ej: Renovación de Marca" />
+                  <Input id="title" value={editingProject.title || ''} onChange={e => setEditingProject({...editingProject, title: e.target.value})} placeholder="Ej: Renovación de Marca" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tagline">Tagline</Label>
                   <Input
                     id="tagline"
-                    value={editingProject.tagline}
+                    value={editingProject.tagline || ''}
                     onChange={e => setEditingProject({...editingProject, tagline: e.target.value})}
                     placeholder="Una descripción corta y llamativa"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="thumbnail-upload">Miniatura del Proyecto</Label>
-                <input 
+                <Label>Miniatura del Proyecto</Label>
+                 <input 
                   type="file" 
                   id="thumbnail-upload"
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
+                  ref={thumbnailInputRef} 
+                  onChange={handleThumbnailChange} 
                   className="hidden" 
                   accept="image/*"
                 />
-                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                <Button type="button" variant="outline" onClick={() => thumbnailInputRef.current?.click()}>
                   <Upload className="mr-2 h-4 w-4" />
                   Subir Miniatura
                 </Button>
-                <p className="text-xs text-muted-foreground">
+                 <p className="text-xs text-muted-foreground">
                   Recomendado: 1200x800 píxeles.
                 </p>
-                {thumbnailFile ? (
-                  <p className="text-sm text-foreground">Archivo seleccionado: {thumbnailFile.name}</p>
-                ) : editingProject?.thumbnail ? (
-                  <p className="text-sm text-foreground">Miniatura actual: {editingProject.thumbnail.split('/').pop()}</p>
-                ) : null}
+                {thumbnailFile && <p className="text-sm text-foreground">Archivo seleccionado: {thumbnailFile.name}</p>}
+                {!thumbnailFile && editingProject.thumbnail && <p className="text-sm text-foreground">Miniatura actual: {editingProject.thumbnail.split('/').pop()?.split('?')[0].slice(-20)}</p>}
               </div>
+
+               <div className="space-y-2">
+                <Label>Galería de Imágenes</Label>
+                <input
+                  type="file"
+                  id="gallery-upload"
+                  ref={galleryInputRef}
+                  onChange={handleGalleryFilesChange}
+                  className="hidden"
+                  accept="image/*"
+                  multiple
+                />
+                <Button type="button" variant="outline" onClick={() => galleryInputRef.current?.click()}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Añadir a la galería
+                </Button>
+                 <div className="space-y-2">
+                  {galleryFiles.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm p-2 rounded-md border">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <Paperclip className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">{file.name}</span>
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => removeGalleryFile(index)}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                 </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="challenge">El Desafío</Label>
                 <Textarea
                   id="challenge"
-                  value={editingProject.description?.challenge}
+                  value={editingProject.description?.challenge || ''}
                   onChange={e => setEditingProject({...editingProject, description: {...editingProject.description!, challenge: e.target.value}})}
                   placeholder="Describe el problema o desafío."
                   className="min-h-[100px]"
@@ -277,7 +339,7 @@ export function ProjectsView() {
                 <Label htmlFor="solution">La Solución</Label>
                 <Textarea
                   id="solution"
-                  value={editingProject.description?.solution}
+                  value={editingProject.description?.solution || ''}
                   onChange={e => setEditingProject({...editingProject, description: {...editingProject.description!, solution: e.target.value}})}
                   placeholder="Explica la solución que implementaste."
                   className="min-h-[100px]"
@@ -287,7 +349,7 @@ export function ProjectsView() {
                 <Label htmlFor="results">Los Resultados</Label>
                 <Textarea
                   id="results"
-                  value={editingProject.description?.results}
+                  value={editingProject.description?.results || ''}
                   onChange={e => setEditingProject({...editingProject, description: {...editingProject.description!, results: e.target.value}})}
                   placeholder="Menciona los resultados obtenidos."
                   className="min-h-[100px]"
@@ -297,7 +359,7 @@ export function ProjectsView() {
                 <Label htmlFor="skills">Habilidades (separadas por coma)</Label>
                 <Input 
                   id="skills" 
-                  value={editingProject.skills?.join(', ')} 
+                  value={editingProject.skills?.join(', ') || ''} 
                   onChange={e => setEditingProject({...editingProject, skills: e.target.value.split(',').map(s => s.trim())})} 
                   placeholder="Ej: React, Figma, Branding" />
               </div>
