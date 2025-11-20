@@ -112,7 +112,7 @@ service cloud.firestore {
       allow list: if isOwner();
       allow create: if true;
       allow update: if isOwner();
-      allow delete: if false;
+      allow delete: if isOwner();
     }
 
     /**
@@ -137,3 +137,5 @@ service cloud.firestore {
      }
   }
 }
+
+    

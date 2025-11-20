@@ -13,13 +13,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '../ui/button';
 import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, updateDoc } from 'firebase/firestore';
+import { collection, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Skeleton } from '../ui/skeleton';
-import { AlertCircle, FileText, Inbox, Link as LinkIcon, Phone, User, Calendar } from 'lucide-react';
+import { AlertCircle, FileText, Inbox, Link as LinkIcon, Phone, User, Calendar, Trash } from 'lucide-react';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useToast } from '@/hooks/use-toast';
+
 
 export interface Message {
   id: string;
@@ -41,6 +53,8 @@ interface MessagesViewProps {
 export function MessagesView({ messages, isLoading, error }: MessagesViewProps) {
   const firestore = useFirestore();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
+  const { toast } = useToast();
 
   const handleOpenMessage = (message: Message) => {
     setSelectedMessage(message);
@@ -57,6 +71,28 @@ export function MessagesView({ messages, isLoading, error }: MessagesViewProps) 
       });
     }
   };
+
+  const handleDeleteMessage = async () => {
+    if (!messageToDelete || !firestore) return;
+
+    const messageRef = doc(firestore, 'contactFormSubmissions', messageToDelete.id);
+    try {
+      await deleteDoc(messageRef);
+      toast({
+        title: 'Mensaje eliminado',
+        description: 'El mensaje ha sido eliminado correctamente.',
+      });
+    } catch (error) {
+       const contextualError = new FirestorePermissionError({
+          path: messageRef.path,
+          operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', contextualError);
+    } finally {
+        setMessageToDelete(null);
+    }
+  };
+
 
   const renderContent = () => {
     if (isLoading) {
@@ -133,8 +169,12 @@ export function MessagesView({ messages, isLoading, error }: MessagesViewProps) 
                 {msg.status === 'new' ? 'Nuevo' : msg.status === 'read' ? 'Leído' : 'Archivado'}
               </Badge>
             </TableCell>
-            <TableCell className="text-right">
+            <TableCell className="text-right space-x-2">
               <Button variant="outline" size="sm" className="rounded-full" onClick={() => handleOpenMessage(msg)}>Ver</Button>
+              <Button variant="destructive" size="icon" className="rounded-full h-9 w-9" onClick={() => setMessageToDelete(msg)}>
+                <Trash className="h-4 w-4" />
+                <span className="sr-only">Eliminar</span>
+              </Button>
             </TableCell>
           </TableRow>
         ))}
@@ -242,6 +282,25 @@ export function MessagesView({ messages, isLoading, error }: MessagesViewProps) 
             </DialogContent>
         </Dialog>
     )}
+    <AlertDialog open={!!messageToDelete} onOpenChange={(isOpen) => !isOpen && setMessageToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente el mensaje de
+              "{messageToDelete?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteMessage}>
+              Sí, eliminar mensaje
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
+
+    
