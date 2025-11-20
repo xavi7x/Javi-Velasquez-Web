@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/shared/ThemeProvider';
 import './globals.css';
@@ -28,7 +29,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <GoogleAnalytics gaId={GTM_ID} />
+        <Suspense>
+          <GoogleAnalytics gaId={GTM_ID} />
+        </Suspense>
         <ThemeProvider defaultTheme="dark" enableSystem={false} attribute="class">
           <FirebaseClientProvider>
             {children}
