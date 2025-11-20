@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError, useUser } from '@/firebase';
 import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
@@ -77,6 +77,7 @@ export function ProjectsView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -177,7 +178,8 @@ export function ProjectsView() {
         setIsModalOpen(false);
 
     } catch (error) {
-        console.error("Error during form submission process:", error);
+        console.error("DEBUG: Error during form submission process:", error);
+        console.log("DEBUG: User object at time of error:", user);
         if (!(error instanceof FirestorePermissionError)) {
             toast({ variant: 'destructive', title: "Error de carga", description: "No se pudo guardar el proyecto. Revisa la consola para más detalles." });
         }
