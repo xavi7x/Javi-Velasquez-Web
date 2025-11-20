@@ -7,18 +7,17 @@ import { MessagesView, type Message } from '@/components/propietario/MessagesVie
 import { AnalyticsView } from '@/components/propietario/AnalyticsView';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useAuth, useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useAuth, useUser, useCollection, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import Image from 'next/image';
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useAvailability } from '@/hooks/use-availability';
-import { useMaintenanceMode } from '@/hooks/use-maintenance-mode';
 
 function OwnerDashboard() {
   const [activeView, setActiveView] = useState('projects');
@@ -29,8 +28,21 @@ function OwnerDashboard() {
   const firestore = useFirestore();
   const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/velsquez-digital.firebasestorage.app/o/Private%2Flogo-javier.svg?alt=media&token=7d179ca6-55ad-4a5f-9cf6-e6050f004630';
   const { isAvailable, setIsAvailable } = useAvailability();
-  const { isMaintenanceMode, setIsMaintenanceMode } = useMaintenanceMode();
 
+  const settingsRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'settings', 'site');
+  }, [firestore]);
+
+  const { data: settings } = useDoc<{ isMaintenanceMode: boolean }>(settingsRef);
+  
+  const isMaintenanceMode = settings?.isMaintenanceMode ?? false;
+
+  const setIsMaintenanceMode = async (value: boolean) => {
+    if (settingsRef) {
+      await setDoc(settingsRef, { isMaintenanceMode: value }, { merge: true });
+    }
+  };
 
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore) return null;

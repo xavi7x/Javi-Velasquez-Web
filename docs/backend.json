@@ -170,6 +170,19 @@
         "submissionDate",
         "status"
       ]
+    },
+    "SiteSettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SiteSettings",
+      "type": "object",
+      "description": "Global settings for the website.",
+      "properties": {
+        "isMaintenanceMode": {
+          "type": "boolean",
+          "description": "If true, the site displays a 'coming soon' page. If false, it shows the full site."
+        }
+      },
+      "required": ["isMaintenanceMode"]
     }
   },
   "auth": {
@@ -227,8 +240,18 @@
             }
           ]
         }
+      },
+       {
+        "path": "/settings/site",
+        "definition": {
+          "entityName": "SiteSettings",
+          "schema": {
+            "$ref": "#/backend/entities/SiteSettings"
+          },
+          "description": "Stores global site settings, like maintenance mode."
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. The `owners` collection stores owner information, enabling authentication and authorization based on their `uid`. The `projects` collection stores project data. The `contactFormSubmissions` collection stores user-submitted contact form data. This structure facilitates secure `list` operations by segregating data with different access requirements into distinct collections. The segregation also simplifies security rule creation, reducing complexity. The structure leverages path-based ownership for owner data and maintains data clarity through explicit state modeling and predictable schema. Because all collections are root-level, there is no reliance on `get()` calls to authorize based on parent documents, thus achieving Authorization Independence. Authentication will be managed using Firebase Authentication."
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. The `owners` collection stores owner information, enabling authentication and authorization based on their `uid`. The `projects` collection stores project data. The `contactFormSubmissions` collection stores user-submitted contact form data. A single document in the `settings` collection holds global site state like maintenance mode. This structure facilitates secure `list` operations by segregating data with different access requirements. The segregation also simplifies security rule creation, reducing complexity. The structure leverages path-based ownership for owner data and maintains data clarity through explicit state modeling and predictable schema. Because all collections are root-level, there is no reliance on `get()` calls to authorize based on parent documents, thus achieving Authorization Independence. Authentication will be managed using Firebase Authentication."
   }
 }

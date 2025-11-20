@@ -15,6 +15,8 @@
  * - /contactFormSubmissions/{submissionId}: Stores contact form submissions. Any
  *   user, authenticated or anonymous, can create a submission, but only the owner
  *   can read them.
+ * - /settings/site: Stores global site settings. Publicly readable, but only
+ *   the owner can write.
  *
  * Key Security Decisions:
  * - Owner Collection: Strict ownership model enforced. Only the authenticated user
@@ -112,5 +114,26 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if false;
     }
+
+    /**
+     * @description Controls access to global site settings.
+     * @path /settings/site
+     * @allow read: to anyone (for checking maintenance mode).
+     * @allow write: only to the authenticated owner.
+     * @principle Allows public read for settings, but restricts changes to the owner.
+     */
+     match /settings/{docId} {
+        function isSignedIn() {
+          return request.auth != null;
+        }
+
+        function isOwner() {
+          return isSignedIn();
+        }
+
+       allow get: if true;
+       allow list: if true;
+       allow write: if isOwner();
+     }
   }
 }

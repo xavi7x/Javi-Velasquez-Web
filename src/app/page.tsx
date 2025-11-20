@@ -6,14 +6,25 @@ import { ContactCTA } from '@/components/home/ContactCTA';
 import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
 import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
-import { useMaintenanceMode } from '@/hooks/use-maintenance-mode';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MinimalHeader } from '@/components/shared/MinimalHeader';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+
 
 export default function Home() {
-  const { isMaintenanceMode, isLoaded } = useMaintenanceMode();
+  const firestore = useFirestore();
 
-  if (!isLoaded) {
+  const settingsRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'settings', 'site');
+  }, [firestore]);
+
+  const { data: settings, isLoading: isSettingsLoading } = useDoc<{ isMaintenanceMode: boolean }>(settingsRef);
+
+  const isMaintenanceMode = settings?.isMaintenanceMode ?? false;
+
+  if (isSettingsLoading) {
     return (
        <div className="flex h-screen w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
