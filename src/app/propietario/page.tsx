@@ -29,7 +29,6 @@ import {
 } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { AuthGuard } from '@/components/auth/AuthGuard';
 import Image from 'next/image';
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
@@ -46,7 +45,7 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
-function OwnerDashboard() {
+export default function OwnerDashboard() {
   const [activeView, setActiveView] = useState('projects');
   const [newMessagesCount, setNewMessagesCount] = useState(0);
   const { user } = useUser();
@@ -296,13 +295,5 @@ function OwnerDashboard() {
         {renderView()}
       </main>
     </div>
-  );
-}
-
-export default function OwnerPage() {
-  return (
-    <AuthGuard>
-      <OwnerDashboard />
-    </AuthGuard>
   );
 }
