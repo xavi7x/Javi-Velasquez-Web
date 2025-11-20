@@ -8,22 +8,13 @@ service firebase.storage {
       return request.auth != null && request.auth.uid == 'H8PgEUNupRNQhBpfAxiEA3jNVSf2';
     }
 
-    // Default deny
+    // Default public read, restricted write
     match /{allPaths=**} {
-      allow read: if true; // Allow public read for all files
-      allow write: if false;
+      allow read: if true;
+      allow write: if isOwner();
     }
 
-    // Rules for project folders
-    match /project-thumbnails/{projectId}/{fileName} {
-      allow create, update, delete: if isOwner();
-    }
-
-    match /project-gallery/{projectId}/{fileName} {
-      allow create, update, delete: if isOwner();
-    }
-
-    // DIAGNOSTIC: Temporarily allow public write to contact-attachments
+    // Allow anyone to create a contact attachment, but only owner can delete.
     match /contact-attachments/{fileName} {
       allow create: if true;
       allow delete: if isOwner();
