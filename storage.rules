@@ -1,0 +1,17 @@
+rules_version = '2';
+
+// Reglas para Firebase Storage
+service firebase.storage {
+  // Coincide con todos los buckets de tu proyecto
+  match /b/{bucket}/o {
+    
+    // Cualquier usuario puede leer cualquier archivo.
+    // Esto es necesario para que las imágenes de los proyectos sean visibles públicamente.
+    allow read;
+
+    // Solo los usuarios autenticados (el propietario) pueden escribir (subir, actualizar, eliminar) archivos.
+    // Esto protege tu almacenamiento de subidas no autorizadas.
+    allow write: if request.auth != null;
+
+  }
+}
