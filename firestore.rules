@@ -139,5 +139,4 @@ service cloud.firestore {
      }
   }
 }
-// Force re-sync trigger
-    
+// Force re-sync trigger.
