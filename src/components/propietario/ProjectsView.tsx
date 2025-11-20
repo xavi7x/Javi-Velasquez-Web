@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
@@ -124,64 +124,67 @@ export function ProjectsView() {
     }
     
     setIsSubmitting(true);
-    let projectId = editingProject.id;
+    let projectData: Partial<Project> = { ...editingProject };
     
     try {
-        if (!projectId) {
-            const tempDocRef = doc(collection(firestore, 'projects'));
-            projectId = tempDocRef.id;
-        }
-
-        const projectRef = doc(firestore, 'projects', projectId);
         const storage = getStorage();
+        
+        // Define a consistent project ID
+        const projectId = projectData.id || doc(collection(firestore, 'projects')).id;
+        projectData.id = projectId;
 
         const uploadMetadata = {
           cacheControl: 'public,max-age=31536000',
         };
 
-        let thumbnailUrl = editingProject.thumbnail || '';
+        // Upload thumbnail if a new one is provided
         if (thumbnailFile) {
             const fileRef = storageRef(storage, `project-thumbnails/${projectId}/${thumbnailFile.name}`);
             const snapshot = await uploadBytes(fileRef, thumbnailFile, uploadMetadata);
-            thumbnailUrl = await getDownloadURL(snapshot.ref);
+            projectData.thumbnail = await getDownloadURL(snapshot.ref);
         }
         
-        const existingImages = editingProject.images || [];
-        let newImageUrls: string[] = [];
+        // Upload gallery images if new ones are provided
         if (galleryFiles.length > 0) {
-            newImageUrls = await Promise.all(
+            const newImageUrls = await Promise.all(
                 galleryFiles.map(async (file) => {
                     const fileRef = storageRef(storage, `project-gallery/${projectId}/${file.name}`);
                     const snapshot = await uploadBytes(fileRef, file, uploadMetadata);
                     return await getDownloadURL(snapshot.ref);
                 })
             );
+            projectData.images = [...(projectData.images || []), ...newImageUrls];
         }
 
-        const finalProjectData: Partial<Project> = {
-            ...editingProject,
-            id: projectId,
-            thumbnail: thumbnailUrl,
-            images: [...existingImages, ...newImageUrls],
-            updatedAt: serverTimestamp() as any,
-        };
-
+        projectData.updatedAt = serverTimestamp() as any;
         if (!isEditing) {
-          finalProjectData.createdAt = serverTimestamp() as any;
+          projectData.createdAt = serverTimestamp() as any;
         }
 
-        await setDoc(projectRef, finalProjectData, { merge: true });
+        const projectRef = doc(firestore, 'projects', projectId);
+        await setDoc(projectRef, projectData, { merge: true })
+         .catch(error => {
+            const contextualError = new FirestorePermissionError({
+                path: projectRef.path,
+                operation: isEditing ? 'update' : 'create',
+                requestResourceData: projectData,
+            });
+            errorEmitter.emit('permission-error', contextualError);
+            throw contextualError; // Re-throw to be caught by the outer try-catch
+        });
 
         toast({ 
             title: isEditing ? "Proyecto actualizado" : "Proyecto añadido",
-            description: `"${editingProject.title}" ha sido guardado.` 
+            description: `"${projectData.title}" ha sido guardado.` 
         });
         
         setIsModalOpen(false);
 
     } catch (error) {
         console.error("Error during submission:", error);
-        toast({ variant: 'destructive', title: "Error", description: "No se pudo guardar el proyecto." });
+        if (!(error instanceof FirestorePermissionError)) {
+          toast({ variant: 'destructive', title: "Error de carga", description: "No se pudo subir el proyecto o sus imágenes." });
+        }
     } finally {
         setIsSubmitting(false);
         setEditingProject(null);
@@ -197,8 +200,11 @@ export function ProjectsView() {
       await deleteDoc(projectRef);
       toast({ title: "Proyecto eliminado", description: `"${projectToDelete.title}" ha sido eliminado.` });
     } catch(error) {
-      console.error("Error deleting project:", error);
-      toast({ variant: 'destructive', title: "Error", description: "No se pudo eliminar el proyecto." });
+      const contextualError = new FirestorePermissionError({
+          path: `projects/${projectToDelete.id}`,
+          operation: 'delete',
+      });
+      errorEmitter.emit('permission-error', contextualError);
     } finally {
       setProjectToDelete(null);
     }
