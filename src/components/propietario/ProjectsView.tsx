@@ -39,7 +39,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import type { Project } from '@/lib/project-types';
-import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
+import { PlusCircle, Upload, Trash, Loader2, Paperclip, X, Link as LinkIcon } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy, updateDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -67,15 +67,9 @@ export function ProjectsView() {
   const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
-  
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
-
-  const thumbnailInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
-
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newImageUrl, setNewImageUrl] = useState('');
 
   const firestore = useFirestore();
 
@@ -89,53 +83,13 @@ export function ProjectsView() {
   const openAddModal = () => {
     setEditingProject(emptyProject);
     setIsEditing(false);
-    setThumbnailFile(null);
-    setGalleryFiles([]);
     setIsModalOpen(true);
   };
 
   const openEditModal = (project: Project) => {
     setEditingProject(project);
     setIsEditing(true);
-    setThumbnailFile(null);
-    setGalleryFiles([]);
     setIsModalOpen(true);
-  };
-  
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setThumbnailFile(e.target.files[0]);
-       if (editingProject) {
-        setEditingProject({ ...editingProject, thumbnail: '' });
-      }
-    }
-  };
-
-  const handleRemoveThumbnail = () => {
-    setThumbnailFile(null);
-    if (thumbnailInputRef.current) {
-      thumbnailInputRef.current.value = '';
-    }
-    if (editingProject) {
-      setEditingProject({ ...editingProject, thumbnail: '' });
-    }
-  };
-
-  const handleGalleryFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setGalleryFiles(prev => [...prev, ...Array.from(e.target.files ?? [])]);
-    }
-  };
-
-  const removeGalleryFile = (index: number) => {
-    setGalleryFiles(prev => prev.filter((_, i) => i !== index));
-  };
-  
-  const uploadFile = async (file: File, path: string) => {
-    const storage = getStorage();
-    const fileRef = storageRef(storage, path);
-    const uploadResult = await uploadBytes(fileRef, file);
-    return getDownloadURL(uploadResult.ref);
   };
   
  const handleFormSubmit = async (e: FormEvent) => {
@@ -152,21 +106,6 @@ export function ProjectsView() {
     try {
         const projectId = projectData.id || doc(collection(firestore, 'projects')).id;
         projectData.id = projectId;
-
-        if (thumbnailFile) {
-          const thumbPath = `project-thumbnails/${projectId}/${thumbnailFile.name}`;
-          projectData.thumbnail = await uploadFile(thumbnailFile, thumbPath);
-        }
-
-        if (galleryFiles.length > 0) {
-            const newImageUrls = await Promise.all(
-                galleryFiles.map(file => {
-                    const galleryImagePath = `project-gallery/${projectId}/${file.name}`;
-                    return uploadFile(file, galleryImagePath);
-                })
-            );
-            projectData.images = [...(projectData.images || []), ...newImageUrls];
-        }
 
         projectData.updatedAt = serverTimestamp() as any;
         
@@ -203,12 +142,10 @@ export function ProjectsView() {
 
     } catch (error) {
         console.error("Error submitting form:", error);
-        toast({ variant: 'destructive', title: "Error de carga", description: "No se pudo guardar el proyecto. Revisa la consola para más detalles." });
+        toast({ variant: 'destructive', title: "Error al guardar", description: "No se pudo guardar el proyecto. Revisa la consola para más detalles." });
     } finally {
         setIsSubmitting(false);
         setEditingProject(null);
-        setThumbnailFile(null);
-        setGalleryFiles([]);
     }
 };
 
@@ -227,6 +164,21 @@ export function ProjectsView() {
       errorEmitter.emit('permission-error', contextualError);
     } finally {
       setProjectToDelete(null);
+    }
+  };
+
+  const addImageUrlToGallery = () => {
+    if (newImageUrl && editingProject) {
+      const updatedImages = [...(editingProject.images || []), newImageUrl];
+      setEditingProject({ ...editingProject, images: updatedImages });
+      setNewImageUrl('');
+    }
+  };
+
+  const removeImageFromGallery = (index: number) => {
+    if (editingProject) {
+      const updatedImages = editingProject.images?.filter((_, i) => i !== index) || [];
+      setEditingProject({ ...editingProject, images: updatedImages });
     }
   };
 
@@ -325,92 +277,50 @@ export function ProjectsView() {
                 </div>
               </div>
                <div className="space-y-2">
-                <Label>Miniatura del Proyecto</Label>
+                <Label>URL de la Miniatura</Label>
+                <Input
+                  id="thumbnail-url"
+                  value={editingProject.thumbnail || ''}
+                  onChange={e => setEditingProject({ ...editingProject, thumbnail: e.target.value })}
+                  placeholder="Pega la URL de la imagen aquí"
+                  disabled={isSubmitting}
+                />
                 {editingProject.thumbnail && (
-                  <div className="relative w-48 h-32 rounded-md overflow-hidden group">
+                  <div className="mt-2 relative w-48 h-32 rounded-md overflow-hidden group">
                     <Image
                       src={editingProject.thumbnail}
                       alt="Miniatura actual"
                       layout="fill"
                       objectFit="cover"
+                      className="bg-muted"
                     />
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        onClick={handleRemoveThumbnail}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </div>
-                )}
-                 {thumbnailFile && (
-                  <div className="relative w-48 h-32 rounded-md overflow-hidden group">
-                     <Image
-                      src={URL.createObjectURL(thumbnailFile)}
-                      alt="Nueva miniatura"
-                      layout="fill"
-                      objectFit="cover"
-                    />
-                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        onClick={handleRemoveThumbnail}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                {!editingProject.thumbnail && !thumbnailFile && (
-                  <>
-                    <input
-                      type="file"
-                      id="thumbnail-upload"
-                      ref={thumbnailInputRef}
-                      onChange={handleThumbnailChange}
-                      className="hidden"
-                      accept="image/*"
-                    />
-                    <Button type="button" variant="outline" onClick={() => thumbnailInputRef.current?.click()}>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Subir Miniatura
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      Recomendado: 1200x800 píxeles.
-                    </p>
-                  </>
                 )}
               </div>
 
 
                <div className="space-y-2">
-                <Label>Galería de Imágenes</Label>
-                <input
-                  type="file"
-                  id="gallery-upload"
-                  ref={galleryInputRef}
-                  onChange={handleGalleryFilesChange}
-                  className="hidden"
-                  accept="image/*"
-                  multiple
-                />
-                <Button type="button" variant="outline" onClick={() => galleryInputRef.current?.click()}>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Añadir a la galería
-                </Button>
-                 <div className="space-y-2">
-                  {galleryFiles.map((file, index) => (
+                <Label>URLs de la Galería</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="url"
+                    value={newImageUrl}
+                    onChange={e => setNewImageUrl(e.target.value)}
+                    placeholder="Pega una URL de imagen y añádela"
+                    className="flex-grow"
+                  />
+                  <Button type="button" onClick={addImageUrlToGallery} disabled={!newImageUrl}>
+                    <PlusCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+                 <div className="space-y-2 mt-2">
+                  {editingProject.images?.map((imageUrl, index) => (
                     <div key={index} className="flex items-center justify-between text-sm p-2 rounded-md border">
                       <div className="flex items-center gap-2 overflow-hidden">
-                        <Paperclip className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">{file.name}</span>
+                        <LinkIcon className="h-4 w-4 flex-shrink-0" />
+                        <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="truncate text-blue-500 hover:underline">{imageUrl}</a>
                       </div>
-                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => removeGalleryFile(index)}>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => removeImageFromGallery(index)}>
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
@@ -493,5 +403,3 @@ export function ProjectsView() {
     </div>
   );
 }
-
-    
