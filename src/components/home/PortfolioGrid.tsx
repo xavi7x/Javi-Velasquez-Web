@@ -18,8 +18,6 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '../ui/button';
 
 export function PortfolioGrid() {
   const { ref: inViewRef, inView } = useInView({
@@ -101,14 +99,14 @@ export function PortfolioGrid() {
               </DialogTrigger>
             ))}
             {selectedProject && (
-              <DialogContent className="max-w-4xl w-full h-[90vh] bg-white/50 dark:bg-white/5 border-neutral-200/50 dark:border-white/10 backdrop-blur-xl p-0">
+              <DialogContent className="max-w-4xl w-full h-[90vh] md:h-[80vh] bg-white/50 dark:bg-white/5 border-neutral-200/50 dark:border-white/10 backdrop-blur-xl p-0">
                 <ScrollArea className="h-full w-full rounded-lg">
                   <div className="p-6 md:p-8">
                     <DialogHeader className="text-center mb-8">
-                      <DialogTitle className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                      <DialogTitle className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">
                         {selectedProject.title}
                       </DialogTitle>
-                      <p className="mt-4 text-lg text-muted-foreground md:text-xl">{selectedProject.tagline}</p>
+                      <p className="mt-2 text-lg text-muted-foreground md:text-xl">{selectedProject.tagline}</p>
                     </DialogHeader>
 
                     <article className="space-y-8">
@@ -162,7 +160,7 @@ export function PortfolioGrid() {
                             <h3 className="font-headline text-xl font-bold">Habilidades y Herramientas</h3>
                             <div className="mt-4 flex flex-wrap gap-2">
                               {selectedProject.skills.map((skill) => (
-                                <Badge key={skill} variant="secondary">
+                                <Badge key={skill} variant="outline" className="bg-accent text-accent-foreground">
                                   {skill}
                                 </Badge>
                               ))}
