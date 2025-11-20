@@ -42,11 +42,10 @@ import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
-import { getStorage, ref as storageRef, getDownloadURL } from "firebase/storage";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { getSignedUrl } from '@/ai/flows/get-signed-url-flow';
 
 const emptyProject: Partial<Project> = {
   title: '',
@@ -118,17 +117,11 @@ export function ProjectsView() {
     setGalleryFiles(prev => prev.filter((_, i) => i !== index));
   };
   
-  const uploadFileWithSignedUrl = async (file: File, path: string) => {
-    const { signedUrl } = await getSignedUrl({ filePath: path, contentType: file.type });
-    await fetch(signedUrl, {
-      method: 'PUT',
-      body: file,
-      headers: { 'Content-Type': file.type },
-    });
-    // Convert the gs:// URL to a public HTTPS URL
+  const uploadFile = async (file: File, path: string) => {
     const storage = getStorage();
     const fileRef = storageRef(storage, path);
-    return getDownloadURL(fileRef);
+    const uploadResult = await uploadBytes(fileRef, file);
+    return getDownloadURL(uploadResult.ref);
   };
   
   const handleFormSubmit = async (e: FormEvent) => {
@@ -148,14 +141,14 @@ export function ProjectsView() {
 
         if (thumbnailFile) {
           const thumbPath = `project-thumbnails/${projectId}/${thumbnailFile.name}`;
-          projectData.thumbnail = await uploadFileWithSignedUrl(thumbnailFile, thumbPath);
+          projectData.thumbnail = await uploadFile(thumbnailFile, thumbPath);
         }
 
         if (galleryFiles.length > 0) {
             const newImageUrls = await Promise.all(
-                galleryFiles.map(async (file) => {
+                galleryFiles.map(file => {
                     const galleryImagePath = `project-gallery/${projectId}/${file.name}`;
-                    return uploadFileWithSignedUrl(file, galleryImagePath);
+                    return uploadFile(file, galleryImagePath);
                 })
             );
             projectData.images = [...(projectData.images || []), ...newImageUrls];
