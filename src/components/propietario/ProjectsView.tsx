@@ -41,11 +41,12 @@ import {
 import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy, updateDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Image from 'next/image';
 
 const emptyProject: Partial<Project> = {
   title: '',
@@ -104,6 +105,19 @@ export function ProjectsView() {
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setThumbnailFile(e.target.files[0]);
+       if (editingProject) {
+        setEditingProject({ ...editingProject, thumbnail: '' });
+      }
+    }
+  };
+
+  const handleRemoveThumbnail = () => {
+    setThumbnailFile(null);
+    if (thumbnailInputRef.current) {
+      thumbnailInputRef.current.value = '';
+    }
+    if (editingProject) {
+      setEditingProject({ ...editingProject, thumbnail: '' });
     }
   };
 
@@ -155,20 +169,31 @@ export function ProjectsView() {
         }
 
         projectData.updatedAt = serverTimestamp() as any;
-        if (!isEditing) {
-            projectData.createdAt = serverTimestamp() as any;
-        }
-
+        
         const projectRef = doc(firestore, 'projects', projectId);
-        await setDoc(projectRef, projectData, { merge: true }).catch(error => {
-            const contextualError = new FirestorePermissionError({
-                path: projectRef.path,
-                operation: isEditing ? 'update' : 'create',
-                requestResourceData: projectData,
+
+        if (isEditing) {
+            await updateDoc(projectRef, projectData).catch(error => {
+                const contextualError = new FirestorePermissionError({
+                    path: projectRef.path,
+                    operation: 'update',
+                    requestResourceData: projectData,
+                });
+                errorEmitter.emit('permission-error', contextualError);
+                throw contextualError;
             });
-            errorEmitter.emit('permission-error', contextualError);
-            throw contextualError;
-        });
+        } else {
+            projectData.createdAt = serverTimestamp() as any;
+            await setDoc(projectRef, projectData).catch(error => {
+                const contextualError = new FirestorePermissionError({
+                    path: projectRef.path,
+                    operation: 'create',
+                    requestResourceData: projectData,
+                });
+                errorEmitter.emit('permission-error', contextualError);
+                throw contextualError;
+            });
+        }
 
         toast({
             title: isEditing ? "Proyecto actualizado" : "Proyecto añadido",
@@ -299,26 +324,69 @@ export function ProjectsView() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
+               <div className="space-y-2">
                 <Label>Miniatura del Proyecto</Label>
-                 <input 
-                  type="file" 
-                  id="thumbnail-upload"
-                  ref={thumbnailInputRef} 
-                  onChange={handleThumbnailChange} 
-                  className="hidden" 
-                  accept="image/*"
-                />
-                <Button type="button" variant="outline" onClick={() => thumbnailInputRef.current?.click()}>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Subir Miniatura
-                </Button>
-                 <p className="text-xs text-muted-foreground">
-                  Recomendado: 1200x800 píxeles.
-                </p>
-                {thumbnailFile && <p className="text-sm text-foreground">Archivo seleccionado: {thumbnailFile.name}</p>}
-                {!thumbnailFile && editingProject.thumbnail && <p className="text-sm text-foreground">Miniatura actual: {editingProject.thumbnail.split('/').pop()?.split('?')[0].slice(-20)}</p>}
+                {editingProject.thumbnail && (
+                  <div className="relative w-48 h-32 rounded-md overflow-hidden group">
+                    <Image
+                      src={editingProject.thumbnail}
+                      alt="Miniatura actual"
+                      layout="fill"
+                      objectFit="cover"
+                    />
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={handleRemoveThumbnail}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                 {thumbnailFile && (
+                  <div className="relative w-48 h-32 rounded-md overflow-hidden group">
+                     <Image
+                      src={URL.createObjectURL(thumbnailFile)}
+                      alt="Nueva miniatura"
+                      layout="fill"
+                      objectFit="cover"
+                    />
+                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={handleRemoveThumbnail}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {!editingProject.thumbnail && !thumbnailFile && (
+                  <>
+                    <input
+                      type="file"
+                      id="thumbnail-upload"
+                      ref={thumbnailInputRef}
+                      onChange={handleThumbnailChange}
+                      className="hidden"
+                      accept="image/*"
+                    />
+                    <Button type="button" variant="outline" onClick={() => thumbnailInputRef.current?.click()}>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Subir Miniatura
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Recomendado: 1200x800 píxeles.
+                    </p>
+                  </>
+                )}
               </div>
+
 
                <div className="space-y-2">
                 <Label>Galería de Imágenes</Label>
@@ -425,3 +493,5 @@ export function ProjectsView() {
     </div>
   );
 }
+
+    
