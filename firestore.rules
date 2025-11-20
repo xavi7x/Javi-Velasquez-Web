@@ -14,7 +14,7 @@
  *   owner can create, update, or delete projects.
  * - /contactFormSubmissions/{submissionId}: Stores contact form submissions. Any
  *   user, authenticated or anonymous, can create a submission, but only the owner
- *   can read them.
+ *   can read and update them.
  * - /settings/site: Stores global site settings. Publicly readable, but only
  *   the owner can write.
  *
@@ -23,8 +23,8 @@
  *   matching the `ownerId` can read or write their profile data.
  * - Project Collection: Only the authenticated owner can create, update, or delete
  *   projects. Read access is public.
- * - ContactFormSubmission Collection: Public creation is allowed, but listing and
- *   getting submissions is restricted to the authenticated owner.
+ * - ContactFormSubmission Collection: Public creation is allowed, but listing,
+ *   getting, and updating submissions is restricted to the authenticated owner.
  * - Denormalization for Authorization: None. The `ownerId` in `/owners/{ownerId}`
  *   matches the `request.auth.uid`, avoiding the need for `get()` calls.
  * - No User Listing: Listing users (owners) is not permitted.
@@ -91,13 +91,13 @@ service cloud.firestore {
 
     /**
      * @description Manages contact form submissions. Anyone can create a submission,
-     *              but only the authenticated owner can read the submissions.
+     *              but only the authenticated owner can read or update the submissions.
      * @path /contactFormSubmissions/{submissionId}
      * @allow create: Anyone can create a contact form submission.
-     * @allow get, list: Only the authenticated owner can read submissions.
-     * @deny get, list: to anyone else.
+     * @allow get, list, update: Only the authenticated owner can read or update submissions.
+     * @deny get, list, update: to anyone else.
      * @principle Allows public creation of contact form submissions while
-     *            restricting read access to the owner.
+     *            restricting read/update access to the owner.
      */
     match /contactFormSubmissions/{submissionId} {
       function isSignedIn() {
@@ -111,7 +111,7 @@ service cloud.firestore {
       allow get: if isOwner();
       allow list: if isOwner();
       allow create: if true;
-      allow update: if false;
+      allow update: if isOwner();
       allow delete: if false;
     }
 
