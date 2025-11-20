@@ -42,10 +42,11 @@ import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getStorage, ref as storageRef, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { getSignedUrl } from '@/ai/flows/get-signed-url-flow';
 
 const emptyProject: Partial<Project> = {
   title: '',
@@ -117,6 +118,19 @@ export function ProjectsView() {
     setGalleryFiles(prev => prev.filter((_, i) => i !== index));
   };
   
+  const uploadFileWithSignedUrl = async (file: File, path: string) => {
+    const { signedUrl } = await getSignedUrl({ filePath: path, contentType: file.type });
+    await fetch(signedUrl, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type },
+    });
+    // Convert the gs:// URL to a public HTTPS URL
+    const storage = getStorage();
+    const fileRef = storageRef(storage, path);
+    return getDownloadURL(fileRef);
+  };
+  
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -127,24 +141,21 @@ export function ProjectsView() {
 
     setIsSubmitting(true);
     const projectData = { ...editingProject };
-    const storage = getStorage();
-
+    
     try {
         const projectId = projectData.id || doc(collection(firestore, 'projects')).id;
         projectData.id = projectId;
 
         if (thumbnailFile) {
-            const thumbRef = storageRef(storage, `project-thumbnails/${projectId}/${thumbnailFile.name}`);
-            const thumbSnapshot = await uploadBytes(thumbRef, thumbnailFile);
-            projectData.thumbnail = await getDownloadURL(thumbSnapshot.ref);
+          const thumbPath = `project-thumbnails/${projectId}/${thumbnailFile.name}`;
+          projectData.thumbnail = await uploadFileWithSignedUrl(thumbnailFile, thumbPath);
         }
 
         if (galleryFiles.length > 0) {
             const newImageUrls = await Promise.all(
                 galleryFiles.map(async (file) => {
-                    const galleryImageRef = storageRef(storage, `project-gallery/${projectId}/${file.name}`);
-                    const snapshot = await uploadBytes(galleryImageRef, file);
-                    return getDownloadURL(snapshot.ref);
+                    const galleryImagePath = `project-gallery/${projectId}/${file.name}`;
+                    return uploadFileWithSignedUrl(file, galleryImagePath);
                 })
             );
             projectData.images = [...(projectData.images || []), ...newImageUrls];
