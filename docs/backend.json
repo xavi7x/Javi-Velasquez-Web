@@ -41,6 +41,16 @@
           "items": {
             "type": "string"
           }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the project was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the project was last updated."
         }
       },
       "required": [

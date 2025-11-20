@@ -41,10 +41,11 @@ import {
 import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
-
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const emptyProject: Partial<Project> = {
   title: '',
@@ -60,12 +61,13 @@ const emptyProject: Partial<Project> = {
 };
 
 const createSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // remove non-alphanumeric characters except spaces and hyphens
-      .trim()
-      .replace(/\s+/g, '-') // replace spaces with hyphens
-      .replace(/-+/g, '-'); // replace multiple hyphens with a single one
+  if (!title) return '';
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') 
+    .trim()
+    .replace(/\s+/g, '-') 
+    .replace(/-+/g, '-'); 
 };
 
 
@@ -85,12 +87,12 @@ export function ProjectsView() {
 
   const firestore = useFirestore();
 
-  const projectsCollection = useMemoFirebase(() => {
+  const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return collection(firestore, 'projects');
+    return query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
-  const { data: projects, isLoading } = useCollection<Project>(projectsCollection);
+  const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
 
   const openAddModal = () => {
     setEditingProject(emptyProject);
@@ -130,9 +132,11 @@ export function ProjectsView() {
     setIsSubmitting(true);
     
     try {
-        const isEditing = editingProject.id;
-        // Generate a URL-friendly slug from the title. This will be the document ID.
-        const slug = createSlug(editingProject.title);
+        const isEditing = !!editingProject.id;
+        const slug = isEditing ? editingProject.id! : createSlug(editingProject.title);
+        if (!slug) {
+          throw new Error("El título no puede estar vacío para crear un slug.");
+        }
 
         const projectRef = doc(firestore, 'projects', slug);
 
@@ -156,26 +160,24 @@ export function ProjectsView() {
             );
         }
 
-        const finalProjectData: Project = {
-            id: slug, // The ID is the slug
-            slug: slug,
-            title: editingProject.title,
-            tagline: editingProject.tagline || '',
-            thumbnail: thumbnailUrl,
-            images: [...(editingProject.images || []), ...newImageUrls],
-            description: {
-              challenge: editingProject.description?.challenge || '',
-              solution: editingProject.description?.solution || '',
-              results: editingProject.description?.results || '',
-            },
-            skills: editingProject.skills || [],
+        const finalProjectData = {
+          ...editingProject,
+          id: slug,
+          slug: slug,
+          thumbnail: thumbnailUrl,
+          images: [...(editingProject.images || []), ...newImageUrls],
+          updatedAt: serverTimestamp(),
         };
+
+        if (!isEditing) {
+          finalProjectData.createdAt = serverTimestamp();
+        }
         
         await setDoc(projectRef, finalProjectData, { merge: true });
 
         toast({ 
             title: isEditing ? "Proyecto actualizado" : "Proyecto añadido",
-            description: `"${finalProjectData.title}" ha sido guardado.` 
+            description: `"${editingProject.title}" ha sido guardado.` 
         });
         
         setIsModalOpen(false);
@@ -230,30 +232,37 @@ export function ProjectsView() {
               <TableRow>
                 <TableHead>Título</TableHead>
                 <TableHead>Tagline</TableHead>
+                <TableHead>Creado</TableHead>
+                <TableHead>Modificado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center h-24">
+                  <TableCell colSpan={5} className="text-center h-24">
                     <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               ) : projects?.map((project) => (
                 <TableRow key={project.id}>
                   <TableCell className="font-medium">{project.title}</TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="text-muted-foreground max-w-xs truncate">
                     {project.tagline}
                   </TableCell>
+                  <TableCell className="text-muted-foreground text-nowrap">
+                    {project.createdAt ? format(project.createdAt.toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-nowrap">
+                    {project.updatedAt ? format(project.updatedAt.toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}
+                  </TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="outline" size="sm" className="rounded-full" onClick={() => openEditModal(project)}>
+                    <Button variant="outline" size="sm" onClick={() => openEditModal(project)}>
                       Editar
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
-                      className="rounded-full"
                       onClick={() => setProjectToDelete(project)}
                     >
                       <Trash className="h-4 w-4" />
@@ -279,7 +288,7 @@ export function ProjectsView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Título del Proyecto</Label>
-                  <Input id="title" value={editingProject.title || ''} onChange={e => setEditingProject({...editingProject, title: e.target.value})} placeholder="Ej: Renovación de Marca" />
+                  <Input id="title" value={editingProject.title || ''} onChange={e => setEditingProject({...editingProject, title: e.target.value})} placeholder="Ej: Renovación de Marca" disabled={isSubmitting || !!editingProject.id} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tagline">Tagline</Label>
