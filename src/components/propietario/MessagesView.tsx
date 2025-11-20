@@ -12,7 +12,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '../ui/button';
-import { useFirestore } from '@/firebase';
+import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, updateDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -46,8 +46,14 @@ export function MessagesView({ messages, isLoading, error }: MessagesViewProps) 
     setSelectedMessage(message);
     if (message.status === 'new' && firestore) {
       const messageRef = doc(firestore, 'contactFormSubmissions', message.id);
-      updateDoc(messageRef, { status: 'read' }).catch(err => {
-        console.error("Error updating message status: ", err);
+      const data = { status: 'read' };
+      updateDoc(messageRef, data).catch(err => {
+        const contextualError = new FirestorePermissionError({
+          path: messageRef.path,
+          operation: 'update',
+          requestResourceData: data,
+        });
+        errorEmitter.emit('permission-error', contextualError);
       });
     }
   };
