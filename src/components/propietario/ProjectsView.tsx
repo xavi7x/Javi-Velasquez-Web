@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, type FormEvent, ChangeEvent, useMemo } from 'react';
+import { useState, useRef, type FormEvent, ChangeEvent, useMemo, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -70,6 +70,7 @@ export function ProjectsView() {
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
   
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -84,18 +85,21 @@ export function ProjectsView() {
 
   const { data: projectsData, isLoading } = useCollection<Project>(projectsQuery);
   
-  const sortedProjects = useMemo(() => {
-    if (!projectsData) return [];
-    return projectsData.map((p, i) => ({
-      ...p,
-      order: p.order ?? i, 
-    }));
+  useEffect(() => {
+    if (projectsData) {
+      // Ensure every project has a valid order number. Fallback to index if null/undefined.
+      const sanitizedProjects = projectsData.map((p, index) => ({
+        ...p,
+        order: p.order ?? index,
+      }));
+      setProjects(sanitizedProjects);
+    }
   }, [projectsData]);
 
 
   const openAddModal = () => {
-    const maxOrder = sortedProjects.reduce((max, p) => Math.max(p.order ?? 0, max), 0);
-    setEditingProject({...emptyProject, order: maxOrder + 1 });
+    const maxOrder = projects.reduce((max, p) => Math.max(p.order ?? 0, max), 0);
+    setEditingProject({...emptyProject, order: projects.length > 0 ? maxOrder + 1 : 0 });
     setIsEditing(false);
     setIsModalOpen(true);
   };
@@ -119,7 +123,7 @@ export function ProjectsView() {
       const file = e.target.files[0];
       setIsSubmitting(true);
       try {
-        const path = `project-thumbnails/${user.uid}/${file.name}`;
+        const path = `project-thumbnails/${user.uid}/${Date.now()}_${file.name}`;
         const downloadURL = await uploadFile(file, path);
         setEditingProject({ ...editingProject, thumbnail: downloadURL });
         toast({ title: 'Miniatura subida', description: 'La imagen se ha subido y asignado correctamente.' });
@@ -140,7 +144,7 @@ export function ProjectsView() {
       setIsSubmitting(true);
       try {
         const uploadPromises = files.map(file => {
-            const path = `project-gallery/${user.uid}/${file.name}`;
+            const path = `project-gallery/${user.uid}/${Date.now()}_${file.name}`;
             return uploadFile(file, path);
         });
 
@@ -172,8 +176,8 @@ export function ProjectsView() {
     
     try {
         if (projectData.order === undefined || projectData.order === null) {
-          const maxOrder = sortedProjects.reduce((max, p) => Math.max(p.order ?? 0, max), 0);
-          projectData.order = maxOrder + 1;
+          const maxOrder = projects.reduce((max, p) => Math.max(p.order ?? 0, max), 0);
+          projectData.order = projects.length > 0 ? maxOrder + 1 : 0;
         }
         
         const projectId = projectData.id || doc(collection(firestore, 'projects')).id;
@@ -225,6 +229,15 @@ export function ProjectsView() {
     try {
       const projectRef = doc(firestore, 'projects', projectToDelete.id);
       await deleteDoc(projectRef);
+      // After deletion, re-order remaining projects to fill any gaps
+      const remainingProjects = projects.filter(p => p.id !== projectToDelete.id);
+      const batch = writeBatch(firestore);
+      remainingProjects.forEach((p, index) => {
+        const docRef = doc(firestore, 'projects', p.id);
+        batch.update(docRef, { order: index });
+      });
+      await batch.commit();
+
       toast({ title: "Proyecto eliminado", description: `"${projectToDelete.title}" ha sido eliminado.` });
     } catch(error) {
       const contextualError = new FirestorePermissionError({
@@ -236,45 +249,42 @@ export function ProjectsView() {
       setProjectToDelete(null);
     }
   };
-
+  
   const moveProject = async (currentIndex: number, direction: 'up' | 'down') => {
-    if (!firestore || !sortedProjects) return;
+    if (!firestore) return;
 
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= projects.length) return;
 
-    if (targetIndex < 0 || targetIndex >= sortedProjects.length) {
-      return;
-    }
+    // Create a new sorted array
+    const reorderedProjects = Array.from(projects);
+    const [movedItem] = reorderedProjects.splice(currentIndex, 1);
+    reorderedProjects.splice(targetIndex, 0, movedItem);
 
-    const projectToMove = sortedProjects[currentIndex];
-    const otherProject = sortedProjects[targetIndex];
+    // Update local state immediately for a responsive UI
+    setProjects(reorderedProjects);
 
-    if (!projectToMove?.id || !otherProject?.id) {
-        console.error("Project ID is missing, cannot reorder.");
-        return;
-    }
-    
+    // Update the 'order' field for all projects in Firestore
     const batch = writeBatch(firestore);
-
-    const projectToMoveRef = doc(firestore, 'projects', projectToMove.id);
-    batch.update(projectToMoveRef, { order: otherProject.order });
-
-    const otherProjectRef = doc(firestore, 'projects', otherProject.id);
-    batch.update(otherProjectRef, { order: projectToMove.order });
+    reorderedProjects.forEach((project, index) => {
+      const projectRef = doc(firestore, 'projects', project.id);
+      batch.update(projectRef, { order: index });
+    });
 
     try {
       await batch.commit();
       toast({
-        title: 'Proyecto movido',
-        description: `Se ha actualizado el orden de los proyectos.`,
+        title: 'Orden actualizado',
+        description: 'Se ha guardado el nuevo orden de los proyectos.',
       });
     } catch (error) {
-      console.error("Error moving project:", error);
+      console.error("Error updating project order:", error);
       toast({
         variant: 'destructive',
-        title: 'Error al mover',
-        description: 'No se pudo actualizar el orden de los proyectos.',
+        title: 'Error al reordenar',
+        description: 'No se pudo guardar el nuevo orden. La lista se recargará.',
       });
+      // Optionally, revert local state or refetch data here
     }
   };
 
@@ -314,7 +324,7 @@ export function ProjectsView() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">Orden</TableHead>
+                  <TableHead className="w-[80px]">Orden</TableHead>
                   <TableHead>Título</TableHead>
                   <TableHead className="hidden sm:table-cell">Tagline</TableHead>
                   <TableHead className="hidden lg:table-cell">Modificado</TableHead>
@@ -328,14 +338,14 @@ export function ProjectsView() {
                       <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
                     </TableCell>
                   </TableRow>
-                ) : sortedProjects?.map((project, index) => (
+                ) : projects.map((project, index) => (
                   <TableRow key={project.id}>
                     <TableCell>
-                      <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-1">
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-6 w-6" 
+                            className="h-8 w-8" 
                             onClick={() => moveProject(index, 'up')}
                             disabled={index === 0}
                           >
@@ -344,9 +354,9 @@ export function ProjectsView() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-6 w-6" 
+                            className="h-8 w-8" 
                             onClick={() => moveProject(index, 'down')}
-                            disabled={index === sortedProjects.length - 1}
+                            disabled={index === projects.length - 1}
                           >
                             <ArrowDown className="h-4 w-4" />
                           </Button>
