@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useFirestore } from '@/firebase';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, setDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 export function Hero() {
@@ -241,7 +241,8 @@ export function Hero() {
                 style={{ animationDelay: '0.2s' }}
                 className="animate-fade-in-up bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text font-headline text-4xl font-bold tracking-tighter text-transparent sm:text-5xl md:text-6xl lg:text-7xl py-2"
               >
-                Desarrollo <span className="whitespace-nowrap">{text}</span>
+                <span className="block">Desarrollo</span>
+                <span>{text}</span>
                 <span className="animate-pulse">|</span>
               </h1>
               <p
