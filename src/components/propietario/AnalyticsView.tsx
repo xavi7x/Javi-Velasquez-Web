@@ -1,5 +1,7 @@
 'use client';
-import { BarChart, LineChart } from 'lucide-react';
+
+import { useState, useEffect } from 'react';
+import { BarChart, LineChart, Loader2, AlertCircle } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -12,8 +14,6 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from '@/components/ui/chart';
 import {
   Bar,
@@ -23,24 +23,10 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  ResponsiveContainer
 } from 'recharts';
-
-const chartData = [
-  { month: 'Enero', visitors: 186 },
-  { month: 'Febrero', visitors: 305 },
-  { month: 'Marzo', visitors: 237 },
-  { month: 'Abril', visitors: 273 },
-  { month: 'Mayo', visitors: 209 },
-  { month: 'Junio', visitors: 214 },
-];
-
-const sourceData = [
-    { source: 'Google', visitors: 1240, fill: "hsl(var(--chart-1))" },
-    { source: 'Instagram', visitors: 870, fill: "hsl(var(--chart-2))" },
-    { source: 'LinkedIn', visitors: 520, fill: "hsl(var(--chart-3))" },
-    { source: 'Directo', visitors: 310, fill: "hsl(var(--chart-4))" },
-    { source: 'Otros', visitors: 180, fill: "hsl(var(--chart-5))" },
-]
+import { getAnalyticsData, type AnalyticsDataOutput } from '@/ai/flows/get-analytics-data';
+import { Skeleton } from '../ui/skeleton';
 
 const chartConfig = {
   visitors: {
@@ -49,44 +35,130 @@ const chartConfig = {
   },
 };
 
+const sourceColors = [
+    "hsl(var(--chart-1))",
+    "hsl(var(--chart-2))",
+    "hsl(var(--chart-3))",
+    "hsl(var(--chart-4))",
+    "hsl(var(--chart-5))",
+];
+
 export function AnalyticsView() {
+  const [data, setData] = useState<AnalyticsDataOutput | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const result = await getAnalyticsData();
+        setData(result);
+      } catch (e: any) {
+        setError(e.message || 'Ocurrió un error al cargar los datos de Analytics.');
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return (
+        <div className="space-y-8">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                    <Card key={i}>
+                        <CardHeader className="pb-2">
+                            <Skeleton className="h-4 w-2/3" />
+                            <Skeleton className="h-10 w-1/3" />
+                        </CardHeader>
+                        <CardFooter>
+                           <Skeleton className="h-3 w-1/2" />
+                        </CardFooter>
+                    </Card>
+                ))}
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+                 <Card><CardContent className="p-6"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+                 <Card><CardContent className="p-6"><Skeleton className="h-[250px] w-full" /></CardContent></Card>
+            </div>
+        </div>
+    );
+  }
+
+  if (error) {
+    return (
+        <Card className="col-span-full">
+            <CardHeader>
+                <CardTitle className="text-destructive flex items-center gap-2">
+                    <AlertCircle />
+                    Error al cargar datos
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p>No se pudieron obtener los datos de Google Analytics.</p>
+                <pre className="mt-4 p-4 bg-muted rounded-md text-xs whitespace-pre-wrap font-code">
+                    {error}
+                </pre>
+                 <p className="mt-4 text-sm text-muted-foreground">
+                    Asegúrate de que las variables de entorno `GA4_PROPERTY_ID` y `GOOGLE_ANALYTICS_CREDENTIALS` están configuradas correctamente en el archivo `.env`.
+                </p>
+            </CardContent>
+        </Card>
+    )
+  }
+
+  if (!data) {
+    return <p>No hay datos disponibles.</p>;
+  }
+
+  const { stats, monthlyVisitors, trafficSources } = data;
+  
+  const sourceDataWithFill = trafficSources.map((item, index) => ({
+    ...item,
+    fill: sourceColors[index % sourceColors.length],
+  }));
+
   return (
     <div className="space-y-8">
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Visitantes Únicos</CardDescription>
-            <CardTitle className="text-4xl">1,254</CardTitle>
+            <CardTitle className="text-4xl">{stats.totalUsers}</CardTitle>
           </CardHeader>
           <CardFooter>
-            <p className="text-xs text-muted-foreground">+25% desde el mes pasado</p>
+            <p className="text-xs text-muted-foreground">Últimos 28 días</p>
           </CardFooter>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Vistas de Página</CardDescription>
-            <CardTitle className="text-4xl">3,480</CardTitle>
+            <CardTitle className="text-4xl">{stats.pageViews}</CardTitle>
           </CardHeader>
           <CardFooter>
-            <p className="text-xs text-muted-foreground">+15% desde el mes pasado</p>
+            <p className="text-xs text-muted-foreground">Últimos 28 días</p>
           </CardFooter>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Tasa de Rebote</CardDescription>
-            <CardTitle className="text-4xl">34.1%</CardTitle>
+            <CardTitle className="text-4xl">{stats.bounceRate}</CardTitle>
           </CardHeader>
           <CardFooter>
-            <p className="text-xs text-muted-foreground">-5% desde el mes pasado</p>
+             <p className="text-xs text-muted-foreground">Últimos 28 días</p>
           </CardFooter>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Duración de la Sesión</CardDescription>
-            <CardTitle className="text-4xl">3m 15s</CardTitle>
+            <CardTitle className="text-4xl">{stats.averageSessionDuration}</CardTitle>
           </CardHeader>
           <CardFooter>
-            <p className="text-xs text-muted-foreground">+10s desde el mes pasado</p>
+            <p className="text-xs text-muted-foreground">Últimos 28 días</p>
           </CardFooter>
         </Card>
       </div>
@@ -99,7 +171,7 @@ export function AnalyticsView() {
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-              <RechartsLineChart data={chartData}>
+              <RechartsLineChart data={monthlyVisitors}>
                 <CartesianGrid vertical={false} />
                 <XAxis
                   dataKey="month"
@@ -135,7 +207,7 @@ export function AnalyticsView() {
           </CardHeader>
           <CardContent>
              <ChartContainer config={{}} className="min-h-[200px] w-full">
-              <RechartsBarChart data={sourceData} layout="vertical">
+              <RechartsBarChart data={sourceDataWithFill} layout="vertical">
                  <CartesianGrid horizontal={false} />
                 <YAxis
                   dataKey="source"
@@ -143,6 +215,8 @@ export function AnalyticsView() {
                   tickLine={false}
                   axisLine={false}
                   tickMargin={10}
+                  width={80}
+                  tick={{ fontSize: 12 }}
                 />
                  <XAxis dataKey="visitors" type="number" hide />
                 <ChartTooltip
