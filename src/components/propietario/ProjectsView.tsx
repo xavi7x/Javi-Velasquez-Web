@@ -42,10 +42,10 @@ import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { uploadFile } from '@/ai/flows/upload-file-flow';
 
 const emptyProject: Partial<Project> = {
   title: '',
@@ -60,13 +60,6 @@ const emptyProject: Partial<Project> = {
   skills: [],
 };
 
-const toDataURL = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -126,47 +119,32 @@ export function ProjectsView() {
   
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log('DEBUG: handleFormSubmit triggered.');
 
     if (!firestore || !editingProject || !editingProject.title) {
         toast({ variant: "destructive", title: "Error", description: "El título del proyecto es obligatorio." });
-        console.error('DEBUG: Form validation failed. Firestore, editingProject, or title missing.', { firestore, editingProject });
         return;
     }
 
     setIsSubmitting(true);
-    console.log('DEBUG: Submitting project...', { isEditing, project: editingProject });
-
     const projectData = { ...editingProject };
+    const storage = getStorage();
 
     try {
         const projectId = projectData.id || doc(collection(firestore, 'projects')).id;
         projectData.id = projectId;
-        console.log(`DEBUG: Project ID is: ${projectId}`);
 
         if (thumbnailFile) {
-            console.log('DEBUG: Uploading thumbnail:', thumbnailFile.name);
-            const dataUri = await toDataURL(thumbnailFile);
-            const { downloadUrl } = await uploadFile({ 
-              fileDataUri: dataUri,
-              filePath: `project-thumbnails/${projectId}/${thumbnailFile.name}`
-            });
-            projectData.thumbnail = downloadUrl;
-            console.log('DEBUG: Thumbnail URL:', projectData.thumbnail);
+            const thumbRef = storageRef(storage, `project-thumbnails/${projectId}/${thumbnailFile.name}`);
+            const thumbSnapshot = await uploadBytes(thumbRef, thumbnailFile);
+            projectData.thumbnail = await getDownloadURL(thumbSnapshot.ref);
         }
 
         if (galleryFiles.length > 0) {
-            console.log(`DEBUG: Uploading ${galleryFiles.length} gallery files.`);
             const newImageUrls = await Promise.all(
-                galleryFiles.map(async (file, index) => {
-                    console.log(`DEBUG: Uploading gallery file ${index + 1}:`, file.name);
-                    const dataUri = await toDataURL(file);
-                    const { downloadUrl } = await uploadFile({
-                      fileDataUri: dataUri,
-                      filePath: `project-gallery/${projectId}/${file.name}`
-                    });
-                    console.log(`DEBUG: Gallery file ${index + 1} URL:`, downloadUrl);
-                    return downloadUrl;
+                galleryFiles.map(async (file) => {
+                    const galleryImageRef = storageRef(storage, `project-gallery/${projectId}/${file.name}`);
+                    const snapshot = await uploadBytes(galleryImageRef, file);
+                    return getDownloadURL(snapshot.ref);
                 })
             );
             projectData.images = [...(projectData.images || []), ...newImageUrls];
@@ -177,11 +155,8 @@ export function ProjectsView() {
             projectData.createdAt = serverTimestamp() as any;
         }
 
-        console.log('DEBUG: Final project data before Firestore write:', projectData);
-
         const projectRef = doc(firestore, 'projects', projectId);
         await setDoc(projectRef, projectData, { merge: true }).catch(error => {
-            console.error('DEBUG: Firestore setDoc error caught.', error);
             const contextualError = new FirestorePermissionError({
                 path: projectRef.path,
                 operation: isEditing ? 'update' : 'create',
@@ -191,7 +166,6 @@ export function ProjectsView() {
             throw contextualError;
         });
 
-        console.log('DEBUG: Firestore write successful.');
         toast({
             title: isEditing ? "Proyecto actualizado" : "Proyecto añadido",
             description: `"${projectData.title}" ha sido guardado.`
@@ -199,12 +173,11 @@ export function ProjectsView() {
         setIsModalOpen(false);
 
     } catch (error) {
-        console.error("DEBUG: Error during form submission process:", error);
+        console.error("Error during form submission process:", error);
         if (!(error instanceof FirestorePermissionError)) {
             toast({ variant: 'destructive', title: "Error de carga", description: "No se pudo guardar el proyecto. Revisa la consola para más detalles." });
         }
     } finally {
-        console.log('DEBUG: handleFormSubmit finished.');
         setIsSubmitting(false);
         setEditingProject(null);
         setThumbnailFile(null);
