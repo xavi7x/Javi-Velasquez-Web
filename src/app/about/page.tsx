@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
 import { Badge } from '@/components/ui/badge';
+import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
 
 const tools = [
   { name: 'Next.js' },
@@ -19,7 +20,7 @@ export default function AboutPage() {
   const extendedTools = [...tools, ...tools]; // Duplicate for seamless loop
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background text-foreground">
+    <CursorGradientWrapper>
       <Header />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-16 md:px-6 md:py-24">
@@ -85,6 +86,6 @@ export default function AboutPage() {
         </section>
       </main>
       <Footer />
-    </div>
+    </CursorGradientWrapper>
   );
 }

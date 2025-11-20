@@ -5,6 +5,7 @@ import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
 
 export default function ContactPage() {
   const { toast } = useToast();
@@ -18,7 +19,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <CursorGradientWrapper>
       <Header />
       <main className="flex-1">
         <div className="container mx-auto flex h-full min-h-[calc(100vh-160px)] flex-col items-center justify-center px-4 text-center md:px-6">
@@ -45,6 +46,6 @@ export default function ContactPage() {
         </div>
       </main>
       <Footer />
-    </div>
+    </CursorGradientWrapper>
   );
 }

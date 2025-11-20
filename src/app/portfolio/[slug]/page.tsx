@@ -7,6 +7,7 @@ import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
 
 type ProjectPageProps = {
   params: {
@@ -28,7 +29,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <CursorGradientWrapper>
       <Header />
       <main className="flex-1 pt-16">
         <div className="container mx-auto px-4 py-12 md:px-6 md:py-20">
@@ -101,6 +102,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </div>
       </main>
       <Footer />
-    </div>
+    </CursorGradientWrapper>
   );
 }
