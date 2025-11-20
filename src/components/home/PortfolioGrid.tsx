@@ -64,13 +64,15 @@ export function PortfolioGrid() {
               <div className="relative">
                 <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500 to-pink-500 opacity-0 blur-lg transition-all duration-300 group-hover:opacity-25"></div>
                 <Card className="relative overflow-hidden rounded-2xl transition-all duration-300 h-full">
-                  <Image
-                    src={project.thumbnail}
-                    width={600}
-                    height={400}
-                    alt={project.title}
-                    className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
+                  {project.thumbnail && (
+                    <Image
+                      src={project.thumbnail}
+                      width={600}
+                      height={400}
+                      alt={project.title}
+                      className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  )}
                   <CardContent className="p-4">
                     <h3 className="text-md font-semibold text-foreground">
                       {project.title}
