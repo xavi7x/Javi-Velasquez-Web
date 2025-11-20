@@ -73,6 +73,7 @@ const emptyProject: Partial<Project> = {
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -95,6 +96,7 @@ export function ProjectsView() {
 
   const openAddModal = () => {
     setEditingProject(emptyProject);
+    setIsEditing(false);
     setThumbnailFile(null);
     setGalleryFiles([]);
     setIsModalOpen(true);
@@ -102,6 +104,7 @@ export function ProjectsView() {
 
   const openEditModal = (project: Project) => {
     setEditingProject(project);
+    setIsEditing(true);
     setThumbnailFile(null);
     setGalleryFiles([]);
     setIsModalOpen(true);
@@ -124,21 +127,20 @@ export function ProjectsView() {
   };
   
   const handleTitleChange = (newTitle: string) => {
-    const isEditing = !!editingProject?.id;
-    if (isEditing) {
-      // If editing, only update the title, not the ID/slug.
-      setEditingProject({ ...editingProject, title: newTitle });
-    } else {
-      // If creating a new project, update title and generate slug as ID.
-      const slug = createSlug(newTitle);
-      setEditingProject({ ...editingProject, title: newTitle, id: slug, slug: slug });
-    }
+    if (!editingProject) return;
+    const newSlug = createSlug(newTitle);
+    setEditingProject({
+      ...editingProject,
+      title: newTitle,
+      id: newSlug,
+      slug: newSlug
+    });
   };
 
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!firestore || !editingProject?.title || !editingProject.id) {
-        toast({ variant: 'destructive', title: "Error", description: "El título del proyecto es obligatorio." });
+    if (!firestore || !editingProject?.id) {
+        toast({ variant: 'destructive', title: "Error", description: "El título del proyecto es obligatorio para generar un ID." });
         return;
     }
 
@@ -176,14 +178,14 @@ export function ProjectsView() {
           updatedAt: serverTimestamp(),
         };
 
-        if (!editingProject.createdAt) {
+        if (!isEditing) {
           finalProjectData.createdAt = serverTimestamp();
         }
         
         await setDoc(projectRef, finalProjectData, { merge: true });
 
         toast({ 
-            title: editingProject.createdAt ? "Proyecto actualizado" : "Proyecto añadido",
+            title: isEditing ? "Proyecto actualizado" : "Proyecto añadido",
             description: `"${editingProject.title}" ha sido guardado.` 
         });
         
@@ -215,8 +217,8 @@ export function ProjectsView() {
   };
 
 
-  const modalTitle = editingProject && editingProject.id ? 'Editar Proyecto' : 'Añadir Nuevo Proyecto';
-  const modalDescription = editingProject && editingProject.id
+  const modalTitle = isEditing ? 'Editar Proyecto' : 'Añadir Nuevo Proyecto';
+  const modalDescription = isEditing && editingProject?.title
     ? `Realiza cambios en el proyecto "${editingProject.title}".`
     : 'Completa el formulario para añadir un nuevo proyecto a tu portafolio.';
 
@@ -403,7 +405,7 @@ export function ProjectsView() {
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit" onClick={handleFormSubmit} disabled={isSubmitting || !editingProject.title}>
+              <Button type="submit" form="project-form" onClick={handleFormSubmit} disabled={isSubmitting || !editingProject.title}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {isSubmitting ? 'Guardando...' : 'Guardar Proyecto'}
               </Button>
