@@ -1,31 +1,20 @@
 rules_version = '2';
-
 service firebase.storage {
   match /b/{bucket}/o {
+    // Para project-thumbnails
+    match /project-thumbnails/{allPaths=**} {
+      allow read, write: if true;
+    }
     
-    // Allow public read access to all files
+    // Para project-gallery  
+    match /project-gallery/{allPaths=**} {
+      allow read, write: if true;
+    }
+    
+    // Para cualquier otra carpeta que puedas necesitar
     match /{allPaths=**} {
-      allow read: if true;
-    }
-    
-    function isOwner() {
-      // THIS IS YOUR UID
-      return request.auth != null && request.auth.uid == 'H8PgEUNupRNQhBpfAxiEA3jNVSf2';
-    }
-
-    match /project-thumbnails/{projectId}/{fileName} {
-      allow write: if isOwner();
-    }
-
-    match /project-gallery/{projectId}/{fileName} {
-      allow write: if isOwner();
-    }
-
-    match /contact-attachments/{fileName} {
-      // Anyone can create a contact form attachment
-      allow create: if true;
-      // Only owner can read or delete
-      allow read, delete: if isOwner();
+      allow read, write: if true;
     }
   }
 }
+    

@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError, useUser } from '@/firebase';
 import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy, updateDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
@@ -74,6 +74,7 @@ export function ProjectsView() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -94,19 +95,21 @@ export function ProjectsView() {
     setIsModalOpen(true);
   };
   
- const uploadFile = async (file: File, path: string): Promise<string> => {
+  const uploadFile = async (file: File, path: string): Promise<string> => {
+    if (!user) throw new Error("Usuario no autenticado.");
     const storage = getStorage();
-    const fileRef = storageRef(storage, `${path}/${editingProject?.id}/${file.name}`);
+    const fileRef = storageRef(storage, path);
     const snapshot = await uploadBytes(fileRef, file);
     return getDownloadURL(snapshot.ref);
   };
 
   const handleThumbnailUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0] && editingProject) {
+    if (e.target.files && e.target.files[0] && editingProject && user) {
       const file = e.target.files[0];
       setIsSubmitting(true);
       try {
-        const downloadURL = await uploadFile(file, 'project-thumbnails');
+        const path = `project-thumbnails/${user.uid}/${file.name}`;
+        const downloadURL = await uploadFile(file, path);
         setEditingProject({ ...editingProject, thumbnail: downloadURL });
         toast({ title: 'Miniatura subida', description: 'La imagen se ha subido y asignado correctamente.' });
       } catch (error) {
@@ -119,17 +122,26 @@ export function ProjectsView() {
   };
   
   const handleGalleryUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0] && editingProject) {
-      const file = e.target.files[0];
+    if (e.target.files && editingProject && user) {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+      
       setIsSubmitting(true);
       try {
-        const downloadURL = await uploadFile(file, 'project-gallery');
-        const updatedImages = [...(editingProject.images || []), downloadURL];
+        const uploadPromises = files.map(file => {
+            const path = `project-gallery/${user.uid}/${file.name}`;
+            return uploadFile(file, path);
+        });
+
+        const downloadURLs = await Promise.all(uploadPromises);
+
+        const updatedImages = [...(editingProject.images || []), ...downloadURLs];
         setEditingProject({ ...editingProject, images: updatedImages });
-        toast({ title: 'Imagen añadida', description: 'La imagen se ha añadido a la galería.' });
+        toast({ title: 'Imágenes añadidas', description: `${files.length} imagen(es) se han añadido a la galería.` });
+
       } catch (error) {
-        console.error("Error uploading gallery image:", error);
-        toast({ variant: 'destructive', title: 'Error de carga', description: 'No se pudo subir la imagen a la galería.' });
+        console.error("Error uploading gallery images:", error);
+        toast({ variant: 'destructive', title: 'Error de carga', description: 'No se pudieron subir las imágenes a la galería.' });
       } finally {
         setIsSubmitting(false);
       }
@@ -355,7 +367,7 @@ export function ProjectsView() {
                     </div>
                   ))}
                  </div>
-                <Input id="gallery-upload" type="file" onChange={handleGalleryUpload} ref={galleryInputRef} className="hidden" />
+                <Input id="gallery-upload" type="file" multiple onChange={handleGalleryUpload} ref={galleryInputRef} className="hidden" />
                 <Button type="button" variant="outline" onClick={() => galleryInputRef.current?.click()} disabled={isSubmitting}>
                   <Upload className="mr-2 h-4 w-4" /> Añadir a Galería
                 </Button>
@@ -436,3 +448,5 @@ export function ProjectsView() {
     </div>
   );
 }
+
+    
