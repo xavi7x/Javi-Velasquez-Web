@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, type FormEvent } from 'react';
+import { useState, useRef, type FormEvent, ChangeEvent } from 'react';
 import {
   Table,
   TableBody,
@@ -119,24 +119,28 @@ export function ProjectsView() {
   
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    console.log('[DEBUG] handleFormSubmit: Starting submission.');
+
     if (!firestore || !editingProject || !editingProject.title) {
+        console.error('[DEBUG] handleFormSubmit: Validation failed. Project title is required.');
         toast({ variant: 'destructive', title: "Error", description: "El título del proyecto es obligatorio." });
         return;
     }
     
     setIsSubmitting(true);
-    
-    let projectId = editingProject.id;
+    console.log(`[DEBUG] handleFormSubmit: isEditing = ${isEditing}`);
+    console.log('[DEBUG] handleFormSubmit: Current editingProject state:', editingProject);
+
 
     try {
+        let projectId = editingProject.id;
+
         // Step 1: If it's a new project, create the document first to get an ID.
         if (!isEditing) {
-            const tempDocRef = await addDoc(collection(firestore, 'projects'), {
-                title: editingProject.title, // Add a temporary title to avoid empty doc
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-            });
+            console.log('[DEBUG] handleFormSubmit: Creating new document to get ID.');
+            const tempDocRef = doc(collection(firestore, 'projects'));
             projectId = tempDocRef.id;
+            console.log(`[DEBUG] handleFormSubmit: Generated new projectId: ${projectId}`);
         }
 
         if (!projectId) {
@@ -149,19 +153,24 @@ export function ProjectsView() {
         // Step 2: Upload images and get URLs
         let thumbnailUrl = editingProject.thumbnail || '';
         if (thumbnailFile) {
+            console.log(`[DEBUG] handleFormSubmit: Uploading thumbnail for projectId: ${projectId}`);
             const fileRef = storageRef(storage, `project-thumbnails/${projectId}/${thumbnailFile.name}`);
             const snapshot = await uploadBytes(fileRef, thumbnailFile);
             thumbnailUrl = await getDownloadURL(snapshot.ref);
+            console.log(`[DEBUG] handleFormSubmit: Thumbnail uploaded. URL: ${thumbnailUrl}`);
         }
         
         const existingImages = editingProject.images || [];
         let newImageUrls: string[] = [];
         if (galleryFiles.length > 0) {
+            console.log(`[DEBUG] handleFormSubmit: Uploading ${galleryFiles.length} gallery images for projectId: ${projectId}`);
             newImageUrls = await Promise.all(
                 galleryFiles.map(async (file) => {
                     const fileRef = storageRef(storage, `project-gallery/${projectId}/${file.name}`);
                     const snapshot = await uploadBytes(fileRef, file);
-                    return getDownloadURL(snapshot.ref);
+                    const downloadUrl = await getDownloadURL(snapshot.ref);
+                    console.log(`[DEBUG] handleFormSubmit: Gallery image uploaded. URL: ${downloadUrl}`);
+                    return downloadUrl;
                 })
             );
         }
@@ -173,11 +182,13 @@ export function ProjectsView() {
             thumbnail: thumbnailUrl,
             images: [...existingImages, ...newImageUrls],
             updatedAt: serverTimestamp(),
-            // Ensure createdAt is only set on creation
-            createdAt: isEditing ? editingProject.createdAt : serverTimestamp(),
+            ...( !isEditing && { createdAt: serverTimestamp() } )
         };
 
+        console.log('[DEBUG] handleFormSubmit: Final data to be saved:', finalProjectData);
         await setDoc(projectRef, finalProjectData, { merge: true });
+        console.log('[DEBUG] handleFormSubmit: Document successfully saved to Firestore.');
+
 
         toast({ 
             title: isEditing ? "Proyecto actualizado" : "Proyecto añadido",
@@ -187,9 +198,10 @@ export function ProjectsView() {
         setIsModalOpen(false);
 
     } catch (error) {
-        console.error("Error saving project: ", error);
+        console.error("[DEBUG] handleFormSubmit: Error during submission:", error);
         toast({ variant: 'destructive', title: "Error", description: "No se pudo guardar el proyecto." });
     } finally {
+        console.log('[DEBUG] handleFormSubmit: Submission process finished. Resetting state.');
         setIsSubmitting(false);
         setEditingProject(null);
         setThumbnailFile(null);
