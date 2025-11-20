@@ -6,8 +6,22 @@ service firebase.storage {
     // Allow public read access to all files
     match /{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+    }
+    
+    function isOwner() {
+      return request.auth != null && request.auth.uid == 'H8PgEUNupRNQhBpfAxiEA3jNVSf2';
     }
 
+    match /project-thumbnails/{projectId}/{fileName} {
+      allow create, update, delete: if isOwner();
+    }
+
+    match /project-gallery/{projectId}/{fileName} {
+      allow create, update, delete: if isOwner();
+    }
+
+    match /contact-attachments/{fileName} {
+      allow create: if true;
+    }
   }
 }
