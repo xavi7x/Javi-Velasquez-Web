@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Github, Instagram, X } from 'lucide-react';
+import { Github, Instagram } from 'lucide-react';
+import { XIcon } from '@/components/icons/XIcon';
 
 export function Footer() {
   const [year, setYear] = useState(new Date().getFullYear());
@@ -24,7 +25,7 @@ export function Footer() {
               aria-label="X (Twitter)"
               className="text-muted-foreground transition-colors hover:text-white"
             >
-              <X className="h-5 w-5" />
+              <XIcon className="h-5 w-5" />
             </Link>
             <Link
               href="#"
