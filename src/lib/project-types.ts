@@ -13,6 +13,7 @@ export interface Project {
     results: string;
   };
   skills: string[];
+  order: number;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }

@@ -51,6 +51,10 @@
           "type": "string",
           "format": "date-time",
           "description": "The timestamp when the project was last updated."
+        },
+        "order": {
+            "type": "number",
+            "description": "The display order of the project."
         }
       },
       "required": [
@@ -61,7 +65,8 @@
         "solution",
         "results",
         "thumbnailUrl",
-        "galleryUrls"
+        "galleryUrls",
+        "order"
       ]
     },
     "Owner": {

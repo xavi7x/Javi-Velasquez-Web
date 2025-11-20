@@ -39,9 +39,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import type { Project } from '@/lib/project-types';
-import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
+import { PlusCircle, Upload, Trash, Loader2, Paperclip, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError, useUser } from '@/firebase';
-import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy, updateDoc } from 'firebase/firestore';
+import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, writeBatch } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -59,6 +59,7 @@ const emptyProject: Partial<Project> = {
     results: '',
   },
   skills: [],
+  order: 0
 };
 
 
@@ -78,13 +79,14 @@ export function ProjectsView() {
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'projects'), orderBy('title'));
+    return query(collection(firestore, 'projects'), orderBy('order', 'asc'));
   }, [firestore]);
 
   const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
 
   const openAddModal = () => {
-    setEditingProject(emptyProject);
+    const nextOrder = (projects?.length ?? 0) + 1;
+    setEditingProject({...emptyProject, order: nextOrder });
     setIsEditing(false);
     setIsModalOpen(true);
   };
@@ -160,6 +162,11 @@ export function ProjectsView() {
     const projectData = { ...editingProject };
     
     try {
+        if (!isEditing) {
+            const maxOrder = projects?.reduce((max, p) => Math.max(p.order, max), 0) ?? 0;
+            projectData.order = maxOrder + 1;
+        }
+        
         const projectId = projectData.id || doc(collection(firestore, 'projects')).id;
         projectData.id = projectId;
 
@@ -221,6 +228,46 @@ export function ProjectsView() {
     }
   };
 
+  const moveProject = async (currentIndex: number, direction: 'up' | 'down') => {
+    if (!firestore || !projects) return;
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+    if (targetIndex < 0 || targetIndex >= projects.length) {
+      return; // Can't move outside of bounds
+    }
+
+    const projectToMove = projects[currentIndex];
+    const otherProject = projects[targetIndex];
+
+    const batch = writeBatch(firestore);
+
+    // Swap order values
+    const newOrderForCurrent = otherProject.order;
+    const newOrderForOther = projectToMove.order;
+
+    const projectToMoveRef = doc(firestore, 'projects', projectToMove.id);
+    batch.update(projectToMoveRef, { order: newOrderForCurrent, updatedAt: serverTimestamp() });
+
+    const otherProjectRef = doc(firestore, 'projects', otherProject.id);
+    batch.update(otherProjectRef, { order: newOrderForOther, updatedAt: serverTimestamp() });
+
+    try {
+      await batch.commit();
+      toast({
+        title: 'Proyecto movido',
+        description: `Se ha actualizado el orden de los proyectos.`,
+      });
+    } catch (error) {
+      console.error("Error moving project:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error al mover',
+        description: 'No se pudo actualizar el orden de los proyectos.',
+      });
+    }
+  };
+
   const removeImageFromGallery = (index: number) => {
     if (editingProject) {
       const updatedImages = editingProject.images?.filter((_, i) => i !== index) || [];
@@ -257,9 +304,9 @@ export function ProjectsView() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[50px]">Orden</TableHead>
                   <TableHead>Título</TableHead>
                   <TableHead className="hidden sm:table-cell">Tagline</TableHead>
-                  <TableHead className="hidden lg:table-cell">Creado</TableHead>
                   <TableHead className="hidden lg:table-cell">Modificado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -271,17 +318,36 @@ export function ProjectsView() {
                       <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
                     </TableCell>
                   </TableRow>
-                ) : projects?.map((project) => (
+                ) : projects?.map((project, index) => (
                   <TableRow key={project.id}>
+                    <TableCell>
+                      <div className="flex flex-col items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6" 
+                            onClick={() => moveProject(index, 'up')}
+                            disabled={index === 0}
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6" 
+                            onClick={() => moveProject(index, 'down')}
+                            disabled={index === projects.length - 1}
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                      </div>
+                    </TableCell>
                     <TableCell className="font-medium max-w-xs truncate">{project.title}</TableCell>
                     <TableCell className="text-muted-foreground max-w-xs truncate hidden sm:table-cell">
                       {project.tagline}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-nowrap hidden lg:table-cell">
-                      {project.createdAt ? format(project.createdAt.toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-nowrap hidden lg:table-cell">
-                      {project.updatedAt ? format(project.updatedAt.toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}
+                      {project.updatedAt ? format(project.updatedAt.toDate(), 'dd MMM yyyy, HH:mm', { locale: es }) : 'N/A'}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" onClick={() => openEditModal(project)}>
@@ -289,7 +355,8 @@ export function ProjectsView() {
                       </Button>
                       <Button
                         variant="destructive"
-                        size="sm"
+                        size="icon"
+                        className="h-9 w-9"
                         onClick={() => setProjectToDelete(project)}
                       >
                         <Trash className="h-4 w-4" />
@@ -448,5 +515,3 @@ export function ProjectsView() {
     </div>
   );
 }
-
-    

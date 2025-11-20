@@ -30,7 +30,7 @@ export function PortfolioGrid() {
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'projects'), orderBy('title'), limit(6));
+    return query(collection(firestore, 'projects'), orderBy('order', 'asc'), limit(6));
   }, [firestore]);
 
   const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
