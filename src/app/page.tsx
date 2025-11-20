@@ -22,8 +22,6 @@ export default function Home() {
 
   const { data: settings, isLoading: isSettingsLoading } = useDoc<{ isMaintenanceMode: boolean }>(settingsRef);
 
-  const isMaintenanceMode = settings?.isMaintenanceMode ?? false;
-
   if (isSettingsLoading) {
     return (
        <div className="flex h-screen w-full items-center justify-center">
@@ -37,6 +35,8 @@ export default function Home() {
       </div>
     );
   }
+
+  const isMaintenanceMode = settings?.isMaintenanceMode ?? false;
 
   return (
     <CursorGradientWrapper>
