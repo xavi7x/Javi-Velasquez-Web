@@ -6,6 +6,12 @@ import { Footer } from '@/components/shared/Footer';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export default function ContactPage() {
   const { toast } = useToast();
@@ -32,16 +38,25 @@ export default function ContactPage() {
             </p>
           </div>
           <div className="mt-12">
-            <button
-              onClick={handleCopy}
-              className={cn(
-                'group relative font-headline text-2xl font-bold tracking-tight text-foreground transition-colors sm:text-3xl md:text-4xl'
-              )}
-            >
-              <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text group-hover:brightness-125 transition-all">
-                 {email}
-              </span>
-            </button>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleCopy}
+                    className={cn(
+                      'group relative font-headline text-2xl font-bold tracking-tight text-foreground transition-colors sm:text-3xl md:text-4xl'
+                    )}
+                  >
+                    <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text group-hover:brightness-125 transition-all">
+                      {email}
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Toca para copiar</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </main>
