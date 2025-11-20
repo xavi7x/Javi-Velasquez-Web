@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Briefcase, MessageSquare, LogOut, AreaChart, ExternalLink } from 'lucide-react';
+import { Briefcase, MessageSquare, LogOut, AreaChart, ExternalLink, Wrench } from 'lucide-react';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { MessagesView, type Message } from '@/components/propietario/MessagesView';
 import { AnalyticsView } from '@/components/propietario/AnalyticsView';
@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useAvailability } from '@/hooks/use-availability';
+import { useMaintenanceMode } from '@/hooks/use-maintenance-mode';
 
 function OwnerDashboard() {
   const [activeView, setActiveView] = useState('projects');
@@ -28,6 +29,8 @@ function OwnerDashboard() {
   const firestore = useFirestore();
   const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/velsquez-digital.firebasestorage.app/o/Private%2Flogo-javier.svg?alt=media&token=7d179ca6-55ad-4a5f-9cf6-e6050f004630';
   const { isAvailable, setIsAvailable } = useAvailability();
+  const { isMaintenanceMode, setIsMaintenanceMode } = useMaintenanceMode();
+
 
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -107,6 +110,16 @@ function OwnerDashboard() {
                 <span>Disponibilidad</span>
                 <span className="font-normal text-xs text-muted-foreground">
                   {isAvailable ? 'Visible' : 'Oculto'}
+                </span>
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2 rounded-lg p-3">
+              <Switch id="maintenance-mode" checked={isMaintenanceMode} onCheckedChange={setIsMaintenanceMode} />
+              <Label htmlFor="maintenance-mode" className="flex flex-col">
+                <span>Modo Construcción</span>
+                <span className="font-normal text-xs text-muted-foreground">
+                  {isMaintenanceMode ? 'Activo' : 'Inactivo'}
                 </span>
               </Label>
             </div>
