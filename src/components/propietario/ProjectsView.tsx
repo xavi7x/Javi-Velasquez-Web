@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, type FormEvent, ChangeEvent } from 'react';
+import { useState, useRef, type FormEvent, ChangeEvent, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -79,13 +79,31 @@ export function ProjectsView() {
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'projects'), orderBy('order', 'asc'));
+    // Order by creation date initially to ensure old projects without 'order' appear
+    return query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
-  const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
+  const { data: projectsData, isLoading } = useCollection<Project>(projectsQuery);
+
+  // Client-side sorting to respect the 'order' field when available
+  const sortedProjects = useMemo(() => {
+    if (!projectsData) return [];
+    return [...projectsData].sort((a, b) => {
+      const orderA = a.order ?? Infinity;
+      const orderB = b.order ?? Infinity;
+      if (orderA === orderB) {
+        // Fallback to creation date if order is the same or non-existent
+        const timeA = a.createdAt?.toMillis() ?? 0;
+        const timeB = b.createdAt?.toMillis() ?? 0;
+        return timeA - timeB;
+      }
+      return orderA - orderB;
+    });
+  }, [projectsData]);
+
 
   const openAddModal = () => {
-    const nextOrder = (projects?.length ?? 0) + 1;
+    const nextOrder = (sortedProjects?.length ?? 0) + 1;
     setEditingProject({...emptyProject, order: nextOrder });
     setIsEditing(false);
     setIsModalOpen(true);
@@ -163,7 +181,7 @@ export function ProjectsView() {
     
     try {
         if (!isEditing) {
-            const maxOrder = projects?.reduce((max, p) => Math.max(p.order, max), 0) ?? 0;
+            const maxOrder = sortedProjects?.reduce((max, p) => Math.max(p.order ?? 0, max), 0) ?? 0;
             projectData.order = maxOrder + 1;
         }
         
@@ -229,19 +247,22 @@ export function ProjectsView() {
   };
 
   const moveProject = async (currentIndex: number, direction: 'up' | 'down') => {
-    if (!firestore || !projects) return;
+    if (!firestore || !sortedProjects) return;
 
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
 
-    if (targetIndex < 0 || targetIndex >= projects.length) {
+    if (targetIndex < 0 || targetIndex >= sortedProjects.length) {
       return; // Can't move outside of bounds
     }
 
-    const projectToMove = projects[currentIndex];
-    const otherProject = projects[targetIndex];
-
     const batch = writeBatch(firestore);
 
+    // Ensure all projects have an order number before swapping
+    const projectsToUpdate = sortedProjects.map((p, i) => ({ ...p, order: p.order ?? i + 1 }));
+
+    const projectToMove = projectsToUpdate[currentIndex];
+    const otherProject = projectsToUpdate[targetIndex];
+    
     // Swap order values
     const newOrderForCurrent = otherProject.order;
     const newOrderForOther = projectToMove.order;
@@ -318,7 +339,7 @@ export function ProjectsView() {
                       <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
                     </TableCell>
                   </TableRow>
-                ) : projects?.map((project, index) => (
+                ) : sortedProjects?.map((project, index) => (
                   <TableRow key={project.id}>
                     <TableCell>
                       <div className="flex flex-col items-center gap-1">
@@ -336,7 +357,7 @@ export function ProjectsView() {
                             size="icon" 
                             className="h-6 w-6" 
                             onClick={() => moveProject(index, 'down')}
-                            disabled={index === projects.length - 1}
+                            disabled={index === sortedProjects.length - 1}
                           >
                             <ArrowDown className="h-4 w-4" />
                           </Button>
