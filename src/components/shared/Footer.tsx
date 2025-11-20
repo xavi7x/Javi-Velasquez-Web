@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Linkedin, Dribbble } from 'lucide-react';
-import { BehanceIcon } from '@/components/icons/BehanceIcon';
+import { Github, Instagram, X } from 'lucide-react';
 
 export function Footer() {
   const [year, setYear] = useState(new Date().getFullYear());
@@ -22,24 +21,24 @@ export function Footer() {
           <div className="flex items-center gap-4">
             <Link
               href="#"
-              aria-label="LinkedIn"
+              aria-label="X (Twitter)"
               className="text-muted-foreground transition-colors hover:text-white"
             >
-              <Linkedin className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </Link>
             <Link
               href="#"
-              aria-label="Behance"
+              aria-label="GitHub"
               className="text-muted-foreground transition-colors hover:text-white"
             >
-              <BehanceIcon className="h-5 w-5" />
+              <Github className="h-5 w-5" />
             </Link>
             <Link
               href="#"
-              aria-label="Dribbble"
+              aria-label="Instagram"
               className="text-muted-foreground transition-colors hover:text-white"
             >
-              <Dribbble className="h-5 w-5" />
+              <Instagram className="h-5 w-5" />
             </Link>
           </div>
         </div>
