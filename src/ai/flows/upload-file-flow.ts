@@ -6,15 +6,15 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import * as admin from 'firebase-admin';
+import { getStorage } from 'firebase-admin/storage';
+import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { firebaseConfig } from '@/firebase/config';
 
 // Initialize Firebase Admin SDK if not already initialized
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-    storageBucket: firebaseConfig.storageBucket,
-  });
+if (!getApps().length) {
+    initializeApp({
+        storageBucket: firebaseConfig.storageBucket,
+    });
 }
 
 const UploadFileInputSchema = z.object({
@@ -41,7 +41,7 @@ const uploadFileFlow = ai.defineFlow(
     outputSchema: UploadFileOutputSchema,
   },
   async ({ fileDataUri, filePath }) => {
-    const bucket = admin.storage().bucket();
+    const bucket = getStorage().bucket();
 
     // Extract content type and base64 data from data URI
     const match = fileDataUri.match(/^data:(.+);base64,(.+)$/);
@@ -61,14 +61,11 @@ const uploadFileFlow = ai.defineFlow(
       },
     });
 
-    const [url] = await file.getSignedUrl({
-      action: 'read',
-      expires: '03-09-2491', // A far-future date
-    });
-    
-    // Convert the signed URL to a public, un-authenticated URL format.
-    // This is a common pattern for Firebase Storage URLs.
-    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media`;
+    // Make the file public to get a predictable URL
+    await file.makePublic();
+
+    // Construct the public, un-authenticated URL format.
+    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
 
     return { downloadUrl: publicUrl };
   }
