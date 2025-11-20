@@ -9,28 +9,34 @@ service firebase.storage {
       allow read, write: if false;
     }
 
+    // Función para verificar si el usuario es el propietario del sitio.
+    // Se utiliza el UID proporcionado para garantizar el acceso.
+    function isOwner() {
+      return request.auth != null && request.auth.uid == 'H8PgEUNupRNQhBpfAxiEA3jNVSf2';
+    }
+
     // Regla para las carpetas de proyectos (miniaturas y galería)
-    // y los adjuntos de contacto.
     match /project-thumbnails/{projectId}/{fileName} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null && request.auth.uid != null;
+      allow write: if isOwner(); // create, update, delete
     }
 
     match /project-gallery/{projectId}/{fileName} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null && request.auth.uid != null;
+      allow write: if isOwner(); // create, update, delete
     }
 
+    // Regla para los archivos adjuntos del formulario de contacto
     match /contact-attachments/{fileName} {
       allow read: if true; // Permite leer si tienes la URL
-      allow create: if true; // Permite que cualquiera suba un adjunto de contacto
-      allow delete: if request.auth != null && request.auth.uid != null; // Solo el propietario puede borrar
+      allow create: if true; // Permite que cualquiera suba un adjunto
+      allow delete: if isOwner(); // Solo el propietario puede borrar
     }
     
     // Regla para archivos privados (como el logo en el panel de propietario)
     match /Private/{allPaths=**} {
       allow read: if true; // Permite lectura pública para que el logo se vea
-      allow write: if request.auth != null && request.auth.uid != null; // Solo el propietario puede escribir
+      allow write: if isOwner(); // Solo el propietario puede escribir
     }
   }
 }
