@@ -14,11 +14,11 @@ service firebase.storage {
     }
 
     match /project-thumbnails/{projectId}/{fileName} {
-      allow create, update, delete: if isOwner();
+      allow write: if isOwner();
     }
 
     match /project-gallery/{projectId}/{fileName} {
-      allow create, update, delete: if isOwner();
+      allow write: if isOwner();
     }
 
     match /contact-attachments/{fileName} {
