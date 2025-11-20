@@ -24,6 +24,8 @@ import {
   useFirestore,
   useDoc,
   useMemoFirebase,
+  errorEmitter,
+  FirestorePermissionError
 } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -69,7 +71,16 @@ function OwnerDashboard() {
 
   const setIsMaintenanceMode = async (value: boolean) => {
     if (settingsRef) {
-      await setDoc(settingsRef, { isMaintenanceMode: value }, { merge: true });
+      const data = { isMaintenanceMode: value };
+      setDoc(settingsRef, data, { merge: true })
+        .catch(error => {
+          const contextualError = new FirestorePermissionError({
+            path: settingsRef.path,
+            operation: 'update',
+            requestResourceData: data,
+          });
+          errorEmitter.emit('permission-error', contextualError);
+        });
     }
   };
 
