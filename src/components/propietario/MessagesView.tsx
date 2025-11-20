@@ -59,9 +59,9 @@ export function MessagesView({ messages, isLoading, error }: MessagesViewProps) 
           {[...Array(3)].map((_, i) => (
             <TableRow key={i}>
               <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-              <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-              <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-              <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+              <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-32" /></TableCell>
+              <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-48" /></TableCell>
+              <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-20" /></TableCell>
               <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
               <TableCell className="text-right"><Skeleton className="h-8 w-16 rounded-full inline-block" /></TableCell>
             </TableRow>
@@ -106,12 +106,12 @@ export function MessagesView({ messages, isLoading, error }: MessagesViewProps) 
       <TableBody>
         {messages.map((msg) => (
           <TableRow key={msg.id} className={msg.status === 'new' ? 'font-bold' : ''}>
-            <TableCell className="font-medium">{msg.name}</TableCell>
-            <TableCell className="text-muted-foreground">{msg.phone}</TableCell>
-            <TableCell className="max-w-[300px] truncate text-muted-foreground">
+            <TableCell className="font-medium max-w-[120px] truncate">{msg.name}</TableCell>
+            <TableCell className="text-muted-foreground hidden sm:table-cell">{msg.phone}</TableCell>
+            <TableCell className="max-w-[150px] sm:max-w-[200px] truncate text-muted-foreground hidden lg:table-cell">
               {msg.message || <span className="italic text-muted-foreground/60">Sin mensaje de texto</span>}
             </TableCell>
-            <TableCell className="text-muted-foreground">
+            <TableCell className="text-muted-foreground hidden lg:table-cell">
               {format(new Date(msg.submissionDate), "dd MMM yyyy", { locale: es })}
             </TableCell>
             <TableCell>
@@ -127,23 +127,7 @@ export function MessagesView({ messages, isLoading, error }: MessagesViewProps) 
                 {msg.status === 'new' ? 'Nuevo' : msg.status === 'read' ? 'Leído' : 'Archivado'}
               </Badge>
             </TableCell>
-            <TableCell className="text-right space-x-2">
-              {msg.attachmentUrl && (
-                <Button asChild variant="outline" size="sm" className="rounded-full">
-                  <Link href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer">
-                    <FileText className="mr-2 h-4 w-4"/>
-                    Adjunto
-                  </Link>
-                </Button>
-              )}
-               {msg.url && (
-                <Button asChild variant="outline" size="sm" className="rounded-full">
-                  <Link href={msg.url} target="_blank" rel="noopener noreferrer">
-                    <LinkIcon className="mr-2 h-4 w-4"/>
-                    URL
-                  </Link>
-                </Button>
-              )}
+            <TableCell className="text-right">
               <Button variant="outline" size="sm" className="rounded-full" onClick={() => handleOpenMessage(msg)}>Ver</Button>
             </TableCell>
           </TableRow>
@@ -164,9 +148,9 @@ export function MessagesView({ messages, isLoading, error }: MessagesViewProps) 
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Teléfono</TableHead>
-                <TableHead>Mensaje</TableHead>
-                <TableHead>Fecha</TableHead>
+                <TableHead className="hidden sm:table-cell">Teléfono</TableHead>
+                <TableHead className="hidden lg:table-cell">Mensaje</TableHead>
+                <TableHead className="hidden lg:table-cell">Fecha</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>

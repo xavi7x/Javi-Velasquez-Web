@@ -124,20 +124,14 @@ export function ProjectsView() {
     }
     
     setIsSubmitting(true);
-
+    let projectId = editingProject.id;
+    
     try {
-        let projectId = editingProject.id;
-        
-        // If it's a new project, create the document first to get an ID.
-        if (!isEditing) {
+        if (!projectId) {
             const tempDocRef = doc(collection(firestore, 'projects'));
             projectId = tempDocRef.id;
         }
 
-        if (!projectId) {
-            throw new Error("No se pudo obtener el ID del proyecto.");
-        }
-        
         const projectRef = doc(firestore, 'projects', projectId);
         const storage = getStorage();
 
@@ -145,7 +139,6 @@ export function ProjectsView() {
           cacheControl: 'public,max-age=31536000',
         };
 
-        // Upload images and get URLs
         let thumbnailUrl = editingProject.thumbnail || '';
         if (thumbnailFile) {
             const fileRef = storageRef(storage, `project-thumbnails/${projectId}/${thumbnailFile.name}`);
@@ -165,7 +158,6 @@ export function ProjectsView() {
             );
         }
 
-        // Prepare the final data and update the document
         const finalProjectData: Partial<Project> = {
             ...editingProject,
             id: projectId,
@@ -221,7 +213,7 @@ export function ProjectsView() {
   return (
     <div className="space-y-8">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <CardTitle>Proyectos Actuales</CardTitle>
           </div>
@@ -231,51 +223,53 @@ export function ProjectsView() {
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Título</TableHead>
-                <TableHead>Tagline</TableHead>
-                <TableHead>Creado</TableHead>
-                <TableHead>Modificado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+           <div className="relative w-full overflow-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center h-24">
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-                  </TableCell>
+                  <TableHead>Título</TableHead>
+                  <TableHead className="hidden sm:table-cell">Tagline</TableHead>
+                  <TableHead className="hidden lg:table-cell">Creado</TableHead>
+                  <TableHead className="hidden lg:table-cell">Modificado</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
-              ) : projects?.map((project) => (
-                <TableRow key={project.id}>
-                  <TableCell className="font-medium">{project.title}</TableCell>
-                  <TableCell className="text-muted-foreground max-w-xs truncate">
-                    {project.tagline}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-nowrap">
-                    {project.createdAt ? format(project.createdAt.toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-nowrap">
-                    {project.updatedAt ? format(project.updatedAt.toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => openEditModal(project)}>
-                      Editar
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setProjectToDelete(project)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center h-24">
+                      <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                    </TableCell>
+                  </TableRow>
+                ) : projects?.map((project) => (
+                  <TableRow key={project.id}>
+                    <TableCell className="font-medium max-w-xs truncate">{project.title}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-xs truncate hidden sm:table-cell">
+                      {project.tagline}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-nowrap hidden lg:table-cell">
+                      {project.createdAt ? format(project.createdAt.toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-nowrap hidden lg:table-cell">
+                      {project.updatedAt ? format(project.updatedAt.toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => openEditModal(project)}>
+                        Editar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setProjectToDelete(project)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 

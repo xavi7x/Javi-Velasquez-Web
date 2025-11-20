@@ -41,7 +41,7 @@ export default function AboutPage() {
                 Fuera del trabajo, me encontrarás explorando nuevas tecnologías, contribuyendo a proyectos de código abierto o buscando inspiración en la resolución de algoritmos complejos.
               </p>
             </div>
-            <div className="relative group">
+            <div className="relative group order-first md:order-last">
                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
               <Image
                 src="https://picsum.photos/seed/101/600/800"
@@ -59,7 +59,7 @@ export default function AboutPage() {
           className="w-full py-16 md:py-24"
         >
           <div className="container mx-auto px-4 md:px-6">
-            <div className="mx-auto max-w-5xl text-center">
+            <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
                 Mi Stack Tecnológico
               </h2>
@@ -68,14 +68,14 @@ export default function AboutPage() {
               </p>
             </div>
           </div>
-          <div className="mt-16 relative w-full overflow-hidden">
+          <div className="mt-12 md:mt-16 relative w-full overflow-hidden">
              <div className="scrolling-wrapper">
               <div className="scrolling-content">
                 {extendedTools.map((tool, index) => (
                   <Badge
                     key={`${tool.name}-${index}`}
                     variant="outline"
-                    className="whitespace-nowrap rounded-full text-lg py-2 px-6 bg-white/10 dark:bg-white/5 border-neutral-200/50 dark:border-white/10 backdrop-blur-sm"
+                    className="whitespace-nowrap rounded-full text-base md:text-lg py-2 px-4 md:px-6 bg-white/10 dark:bg-white/5 border-neutral-200/50 dark:border-white/10 backdrop-blur-sm"
                   >
                     {tool.name}
                   </Badge>

@@ -18,8 +18,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useFirestore } from '@/firebase';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection } from 'firebase/firestore';
+import { addDoc, collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 export function Hero() {
@@ -164,6 +163,7 @@ export function Hero() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!firestore) return;
     if (!message && !file && !url) {
         toast({
             variant: 'destructive',
@@ -193,7 +193,7 @@ export function Hero() {
       }
 
       const submissionsCollection = collection(firestore, 'contactFormSubmissions');
-      await addDocumentNonBlocking(submissionsCollection, {
+      await addDoc(submissionsCollection, {
         name,
         phone,
         email: 'N/A', // Email is not collected in this form
@@ -232,7 +232,7 @@ export function Hero() {
   };
 
   return (
-    <section className="relative flex min-h-[calc(100vh-160px)] w-full items-center justify-center overflow-hidden">
+    <section className="relative flex min-h-[calc(100vh-160px)] w-full items-center justify-center overflow-hidden py-16 sm:py-0">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="mx-auto max-w-4xl text-center">
           <div className="group flex flex-col items-center space-y-8">
@@ -246,7 +246,7 @@ export function Hero() {
               </h1>
               <p
                 style={{ animationDelay: '0.6s' }}
-                className="animate-fade-in-up font-headline text-xl font-medium tracking-tight text-muted-foreground sm:text-2xl md:text-3xl"
+                className="animate-fade-in-up font-headline text-lg sm:text-xl md:text-3xl font-medium tracking-tight text-muted-foreground"
               >
                 Convierto tus ideas en experiencias digitales memorables.
               </p>
@@ -371,7 +371,7 @@ export function Hero() {
                       : 'max-h-0 opacity-0'
                   )}
                 >
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Input
                       type="text"
                       placeholder="Tu nombre"
