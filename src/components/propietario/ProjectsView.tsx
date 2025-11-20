@@ -141,11 +141,15 @@ export function ProjectsView() {
         const projectRef = doc(firestore, 'projects', projectId);
         const storage = getStorage();
 
+        const uploadMetadata = {
+          cacheControl: 'public,max-age=31536000',
+        };
+
         // Upload images and get URLs
         let thumbnailUrl = editingProject.thumbnail || '';
         if (thumbnailFile) {
             const fileRef = storageRef(storage, `project-thumbnails/${projectId}/${thumbnailFile.name}`);
-            const snapshot = await uploadBytes(fileRef, thumbnailFile);
+            const snapshot = await uploadBytes(fileRef, thumbnailFile, uploadMetadata);
             thumbnailUrl = await getDownloadURL(snapshot.ref);
         }
         
@@ -155,21 +159,24 @@ export function ProjectsView() {
             newImageUrls = await Promise.all(
                 galleryFiles.map(async (file) => {
                     const fileRef = storageRef(storage, `project-gallery/${projectId}/${file.name}`);
-                    const snapshot = await uploadBytes(fileRef, file);
+                    const snapshot = await uploadBytes(fileRef, file, uploadMetadata);
                     return await getDownloadURL(snapshot.ref);
                 })
             );
         }
 
         // Prepare the final data and update the document
-        const finalProjectData = {
+        const finalProjectData: Partial<Project> = {
             ...editingProject,
             id: projectId,
             thumbnail: thumbnailUrl,
             images: [...existingImages, ...newImageUrls],
-            updatedAt: serverTimestamp(),
-            ...( !isEditing && { createdAt: serverTimestamp() } )
+            updatedAt: serverTimestamp() as any,
         };
+
+        if (!isEditing) {
+          finalProjectData.createdAt = serverTimestamp() as any;
+        }
 
         await setDoc(projectRef, finalProjectData, { merge: true });
 
