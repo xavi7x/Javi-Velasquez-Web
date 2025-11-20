@@ -79,7 +79,6 @@ export function ProjectsView() {
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // Correctly order by the 'order' field
     return query(collection(firestore, 'projects'), orderBy('order', 'asc'));
   }, [firestore]);
 
@@ -87,7 +86,6 @@ export function ProjectsView() {
   
   const sortedProjects = useMemo(() => {
     if (!projectsData) return [];
-    // Data is already sorted by the query, we just need to ensure 'order' exists for local manipulation
     return projectsData.map((p, i) => ({
       ...p,
       order: p.order ?? i, 
@@ -245,19 +243,24 @@ export function ProjectsView() {
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
 
     if (targetIndex < 0 || targetIndex >= sortedProjects.length) {
-      return; 
+      return;
     }
-    
+
     const projectToMove = sortedProjects[currentIndex];
     const otherProject = sortedProjects[targetIndex];
 
+    if (!projectToMove?.id || !otherProject?.id) {
+        console.error("Project ID is missing, cannot reorder.");
+        return;
+    }
+    
     const batch = writeBatch(firestore);
 
     const projectToMoveRef = doc(firestore, 'projects', projectToMove.id);
-    batch.update(projectToMoveRef, { order: otherProject.order, updatedAt: serverTimestamp() });
+    batch.update(projectToMoveRef, { order: otherProject.order });
 
     const otherProjectRef = doc(firestore, 'projects', otherProject.id);
-    batch.update(otherProjectRef, { order: projectToMove.order, updatedAt: serverTimestamp() });
+    batch.update(otherProjectRef, { order: projectToMove.order });
 
     try {
       await batch.commit();
