@@ -42,10 +42,10 @@ import type { Project } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { uploadFile } from '@/ai/flows/upload-file-flow';
 
 const emptyProject: Partial<Project> = {
   title: '',
@@ -59,6 +59,14 @@ const emptyProject: Partial<Project> = {
   },
   skills: [],
 };
+
+const toDataURL = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -132,20 +140,18 @@ export function ProjectsView() {
     const projectData = { ...editingProject };
 
     try {
-        const storage = getStorage();
         const projectId = projectData.id || doc(collection(firestore, 'projects')).id;
         projectData.id = projectId;
         console.log(`DEBUG: Project ID is: ${projectId}`);
 
-        const uploadMetadata = {
-            cacheControl: 'public,max-age=31536000',
-        };
-
         if (thumbnailFile) {
             console.log('DEBUG: Uploading thumbnail:', thumbnailFile.name);
-            const fileRef = storageRef(storage, `project-thumbnails/${projectId}/${thumbnailFile.name}`);
-            const snapshot = await uploadBytes(fileRef, thumbnailFile, uploadMetadata);
-            projectData.thumbnail = await getDownloadURL(snapshot.ref);
+            const dataUri = await toDataURL(thumbnailFile);
+            const { downloadUrl } = await uploadFile({ 
+              fileDataUri: dataUri,
+              filePath: `project-thumbnails/${projectId}/${thumbnailFile.name}`
+            });
+            projectData.thumbnail = downloadUrl;
             console.log('DEBUG: Thumbnail URL:', projectData.thumbnail);
         }
 
@@ -154,11 +160,13 @@ export function ProjectsView() {
             const newImageUrls = await Promise.all(
                 galleryFiles.map(async (file, index) => {
                     console.log(`DEBUG: Uploading gallery file ${index + 1}:`, file.name);
-                    const fileRef = storageRef(storage, `project-gallery/${projectId}/${file.name}`);
-                    const snapshot = await uploadBytes(fileRef, file, uploadMetadata);
-                    const url = await getDownloadURL(snapshot.ref);
-                    console.log(`DEBUG: Gallery file ${index + 1} URL:`, url);
-                    return url;
+                    const dataUri = await toDataURL(file);
+                    const { downloadUrl } = await uploadFile({
+                      fileDataUri: dataUri,
+                      filePath: `project-gallery/${projectId}/${file.name}`
+                    });
+                    console.log(`DEBUG: Gallery file ${index + 1} URL:`, downloadUrl);
+                    return downloadUrl;
                 })
             );
             projectData.images = [...(projectData.images || []), ...newImageUrls];
