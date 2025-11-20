@@ -99,7 +99,7 @@ export function PortfolioGrid() {
               </DialogTrigger>
             ))}
             {selectedProject && (
-              <DialogContent className="max-w-4xl w-full h-[90vh] md:h-[80vh] bg-white dark:bg-white/5 border-neutral-200/50 dark:border-white/10 dark:backdrop-blur-xl p-0">
+              <DialogContent className="max-w-4xl w-[95%] h-[90vh] md:h-[80vh] bg-white dark:bg-white/5 border-neutral-200/50 dark:border-white/10 dark:backdrop-blur-xl p-0">
                 <ScrollArea className="h-full w-full rounded-lg">
                   <div className="p-6 md:p-8">
                     <DialogHeader className="text-center mb-8">
