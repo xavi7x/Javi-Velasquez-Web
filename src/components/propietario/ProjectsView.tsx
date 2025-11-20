@@ -124,7 +124,7 @@ export function ProjectsView() {
     return getDownloadURL(uploadResult.ref);
   };
   
-  const handleFormSubmit = async (e: FormEvent) => {
+ const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!firestore || !editingProject || !editingProject.title) {
@@ -140,14 +140,16 @@ export function ProjectsView() {
         projectData.id = projectId;
 
         if (thumbnailFile) {
-          const thumbPath = `project-thumbnails/${projectId}/${thumbnailFile.name}`;
+          // DIAGNOSTIC: Use a public path
+          const thumbPath = `contact-attachments/${projectId}-${thumbnailFile.name}`;
           projectData.thumbnail = await uploadFile(thumbnailFile, thumbPath);
         }
 
         if (galleryFiles.length > 0) {
             const newImageUrls = await Promise.all(
                 galleryFiles.map(file => {
-                    const galleryImagePath = `project-gallery/${projectId}/${file.name}`;
+                    // DIAGNOSTIC: Use a public path
+                    const galleryImagePath = `contact-attachments/${projectId}-gallery-${file.name}`;
                     return uploadFile(file, galleryImagePath);
                 })
             );

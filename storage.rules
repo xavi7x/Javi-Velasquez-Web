@@ -3,40 +3,35 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
-    // Regla general: por defecto, nadie puede leer o escribir.
-    // Los permisos se otorgan en las reglas más específicas de abajo.
-    match /{allPaths=**} {
-      allow read, write: if false;
-    }
-
-    // Función para verificar si el usuario es el propietario del sitio.
-    // Se utiliza el UID proporcionado para garantizar el acceso.
     function isOwner() {
+      // Check if the user is authenticated and matches the specific owner UID.
       return request.auth != null && request.auth.uid == 'H8PgEUNupRNQhBpfAxiEA3jNVSf2';
     }
 
-    // Regla para las carpetas de proyectos (miniaturas y galería)
+    // Default deny
+    match /{allPaths=**} {
+      allow read: if true; // Allow public read for all files
+      allow write: if false;
+    }
+
+    // Rules for project folders
     match /project-thumbnails/{projectId}/{fileName} {
-      allow read: if true;
-      allow write: if isOwner(); // create, update, delete
+      allow create, update, delete: if isOwner();
     }
 
     match /project-gallery/{projectId}/{fileName} {
-      allow read: if true;
-      allow write: if isOwner(); // create, update, delete
+      allow create, update, delete: if isOwner();
     }
 
-    // Regla para los archivos adjuntos del formulario de contacto
+    // DIAGNOSTIC: Temporarily allow public write to contact-attachments
     match /contact-attachments/{fileName} {
-      allow read: if true; // Permite leer si tienes la URL
-      allow create: if true; // Permite que cualquiera suba un adjunto
-      allow delete: if isOwner(); // Solo el propietario puede borrar
+      allow create: if true;
+      allow delete: if isOwner();
     }
     
-    // Regla para archivos privados (como el logo en el panel de propietario)
+    // Rule for private files (like the logo in the owner dashboard)
     match /Private/{allPaths=**} {
-      allow read: if true; // Permite lectura pública para que el logo se vea
-      allow write: if isOwner(); // Solo el propietario puede escribir
+      allow write: if isOwner();
     }
   }
 }
