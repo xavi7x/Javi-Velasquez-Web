@@ -8,6 +8,7 @@ import { Footer } from '@/components/shared/Footer';
 import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
 import { useMaintenanceMode } from '@/hooks/use-maintenance-mode';
 import { Skeleton } from '@/components/ui/skeleton';
+import { MinimalHeader } from '@/components/shared/MinimalHeader';
 
 export default function Home() {
   const { isMaintenanceMode, isLoaded } = useMaintenanceMode();
@@ -29,9 +30,12 @@ export default function Home() {
   return (
     <CursorGradientWrapper>
       {isMaintenanceMode ? (
-        <main>
-          <Hero />
-        </main>
+        <>
+          <MinimalHeader />
+          <main>
+            <Hero />
+          </main>
+        </>
       ) : (
         <>
           <Header />
