@@ -79,20 +79,17 @@ export function ProjectsView() {
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // Order by creation date initially to ensure old projects without 'order' appear
     return query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
   const { data: projectsData, isLoading } = useCollection<Project>(projectsQuery);
 
-  // Client-side sorting to respect the 'order' field when available
   const sortedProjects = useMemo(() => {
     if (!projectsData) return [];
     return [...projectsData].sort((a, b) => {
       const orderA = a.order ?? Infinity;
       const orderB = b.order ?? Infinity;
       if (orderA === orderB) {
-        // Fallback to creation date if order is the same or non-existent
         const timeA = a.createdAt?.toMillis() ?? 0;
         const timeB = b.createdAt?.toMillis() ?? 0;
         return timeA - timeB;
@@ -103,8 +100,8 @@ export function ProjectsView() {
 
 
   const openAddModal = () => {
-    const nextOrder = (sortedProjects?.length ?? 0) + 1;
-    setEditingProject({...emptyProject, order: nextOrder });
+    const maxOrder = sortedProjects.reduce((max, p) => Math.max(p.order ?? 0, max), 0);
+    setEditingProject({...emptyProject, order: maxOrder + 1 });
     setIsEditing(false);
     setIsModalOpen(true);
   };
@@ -180,9 +177,9 @@ export function ProjectsView() {
     const projectData = { ...editingProject };
     
     try {
-        if (!isEditing) {
-            const maxOrder = sortedProjects?.reduce((max, p) => Math.max(p.order ?? 0, max), 0) ?? 0;
-            projectData.order = maxOrder + 1;
+        if (projectData.order === undefined || projectData.order === null) {
+          const maxOrder = sortedProjects.reduce((max, p) => Math.max(p.order ?? 0, max), 0);
+          projectData.order = maxOrder + 1;
         }
         
         const projectId = projectData.id || doc(collection(firestore, 'projects')).id;
@@ -252,26 +249,24 @@ export function ProjectsView() {
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
 
     if (targetIndex < 0 || targetIndex >= sortedProjects.length) {
-      return; // Can't move outside of bounds
+      return; 
     }
+    
+    const projectsWithOrder = sortedProjects.map((p, i) => ({
+      ...p,
+      order: p.order ?? i + 1,
+    }));
+    
+    const projectToMove = projectsWithOrder[currentIndex];
+    const otherProject = projectsWithOrder[targetIndex];
 
     const batch = writeBatch(firestore);
 
-    // Ensure all projects have an order number before swapping
-    const projectsToUpdate = sortedProjects.map((p, i) => ({ ...p, order: p.order ?? i + 1 }));
-
-    const projectToMove = projectsToUpdate[currentIndex];
-    const otherProject = projectsToUpdate[targetIndex];
-    
-    // Swap order values
-    const newOrderForCurrent = otherProject.order;
-    const newOrderForOther = projectToMove.order;
-
     const projectToMoveRef = doc(firestore, 'projects', projectToMove.id);
-    batch.update(projectToMoveRef, { order: newOrderForCurrent, updatedAt: serverTimestamp() });
+    batch.update(projectToMoveRef, { order: otherProject.order, updatedAt: serverTimestamp() });
 
     const otherProjectRef = doc(firestore, 'projects', otherProject.id);
-    batch.update(otherProjectRef, { order: newOrderForOther, updatedAt: serverTimestamp() });
+    batch.update(otherProjectRef, { order: projectToMove.order, updatedAt: serverTimestamp() });
 
     try {
       await batch.commit();
