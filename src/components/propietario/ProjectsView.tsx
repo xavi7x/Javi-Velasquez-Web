@@ -48,6 +48,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const emptyProject: Partial<Project> = {
+  id: '',
   title: '',
   tagline: '',
   thumbnail: '',
@@ -125,29 +126,27 @@ export function ProjectsView() {
     
     setIsSubmitting(true);
     
+    let projectId = editingProject.id;
+
     try {
-        let projectId = editingProject.id;
-        let projectData: Partial<Project> = { ...editingProject };
-        
-        // 1. Create document first if it's a new project
+        // Step 1: If it's a new project, create the document first to get an ID.
         if (!isEditing) {
-            const tempProjectData = {
-                ...projectData,
+            const tempDocRef = await addDoc(collection(firestore, 'projects'), {
+                title: editingProject.title, // Add a temporary title to avoid empty doc
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-            };
-            const docRef = await addDoc(collection(firestore, 'projects'), tempProjectData);
-            projectId = docRef.id;
+            });
+            projectId = tempDocRef.id;
         }
 
         if (!projectId) {
             throw new Error("No se pudo obtener el ID del proyecto.");
         }
-
+        
         const projectRef = doc(firestore, 'projects', projectId);
-
-        // 2. Upload images and get URLs
         const storage = getStorage();
+
+        // Step 2: Upload images and get URLs
         let thumbnailUrl = editingProject.thumbnail || '';
         if (thumbnailFile) {
             const fileRef = storageRef(storage, `project-thumbnails/${projectId}/${thumbnailFile.name}`);
@@ -167,19 +166,17 @@ export function ProjectsView() {
             );
         }
 
-        // 3. Update document with image URLs and other data
-        const finalProjectData: Partial<Project> = {
-            ...projectData,
-            id: projectId, // Ensure the ID is set
+        // Step 3: Prepare the final data and update the document
+        const finalProjectData = {
+            ...editingProject,
+            id: projectId,
             thumbnail: thumbnailUrl,
             images: [...existingImages, ...newImageUrls],
             updatedAt: serverTimestamp(),
+            // Ensure createdAt is only set on creation
+            createdAt: isEditing ? editingProject.createdAt : serverTimestamp(),
         };
 
-        if (!isEditing) {
-          finalProjectData.createdAt = serverTimestamp();
-        }
-        
         await setDoc(projectRef, finalProjectData, { merge: true });
 
         toast({ 
@@ -433,3 +430,5 @@ export function ProjectsView() {
     </div>
   );
 }
+
+    
