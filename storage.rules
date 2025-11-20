@@ -2,11 +2,35 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Permite la lectura pública de todos los archivos para que las imágenes sean visibles.
-    // Solo permite la escritura (subir, actualizar, eliminar) si el usuario está autenticado.
+    
+    // Regla general: por defecto, nadie puede leer o escribir.
+    // Los permisos se otorgan en las reglas más específicas de abajo.
     match /{allPaths=**} {
-      allow read;
-      allow write: if request.auth != null;
+      allow read, write: if false;
+    }
+
+    // Regla para las carpetas de proyectos (miniaturas y galería)
+    // y los adjuntos de contacto.
+    match /project-thumbnails/{projectId}/{fileName} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null && request.auth.uid != null;
+    }
+
+    match /project-gallery/{projectId}/{fileName} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null && request.auth.uid != null;
+    }
+
+    match /contact-attachments/{fileName} {
+      allow read: if true; // Permite leer si tienes la URL
+      allow create: if true; // Permite que cualquiera suba un adjunto de contacto
+      allow delete: if request.auth != null && request.auth.uid != null; // Solo el propietario puede borrar
+    }
+    
+    // Regla para archivos privados (como el logo en el panel de propietario)
+    match /Private/{allPaths=**} {
+      allow read: if true; // Permite lectura pública para que el logo se vea
+      allow write: if request.auth != null && request.auth.uid != null; // Solo el propietario puede escribir
     }
   }
 }
