@@ -54,17 +54,6 @@ export function PortfolioGrid() {
           </p>
         </div>
         <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {isLoading &&
-            Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="overflow-hidden rounded-2xl">
-                <Skeleton className="aspect-video w-full" />
-                <CardContent className="p-4 space-y-2">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </CardContent>
-              </Card>
-            ))}
-
           <Dialog>
             {projects?.map((project) => (
               <DialogTrigger
