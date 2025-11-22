@@ -51,8 +51,24 @@ export default function AboutPage() {
       <Header />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-16 md:px-6 md:py-24">
-          <div className="grid gap-12 md:grid-cols-2 lg:gap-24">
-            <div className="flex flex-col justify-center space-y-6">
+          <div className="grid gap-12 lg:grid-cols-3 lg:gap-16 items-center">
+            <div className="relative group lg:col-span-1">
+               <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+              {isLoading ? (
+                 <Skeleton className="aspect-[3/4] w-full rounded-3xl" />
+              ) : (
+                <Image
+                  src={content.imageUrl}
+                  alt="Javier Velásquez"
+                  width={450}
+                  height={600}
+                  className="relative h-full w-full rounded-3xl object-cover"
+                  data-ai-hint="portrait person"
+                  priority
+                />
+              )}
+            </div>
+            <div className="flex flex-col justify-center space-y-6 lg:col-span-2">
               <header>
                  {isLoading ? (
                   <>
@@ -81,22 +97,6 @@ export default function AboutPage() {
                  <p className="leading-relaxed text-muted-foreground">
                   {content.mainParagraph}
                 </p>
-              )}
-            </div>
-            <div className="relative group order-first md:order-last">
-               <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-              {isLoading ? (
-                 <Skeleton className="h-full w-full aspect-[3/4] rounded-3xl" />
-              ) : (
-                <Image
-                  src={content.imageUrl}
-                  alt="Javier Velásquez"
-                  width={600}
-                  height={800}
-                  className="relative h-full w-full rounded-3xl object-cover"
-                  data-ai-hint="portrait person"
-                  priority
-                />
               )}
             </div>
           </div>
