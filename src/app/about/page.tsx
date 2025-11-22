@@ -35,7 +35,7 @@ export default function AboutPage() {
                 </p>
               </header>
               <p className="leading-relaxed text-muted-foreground">
-                Mi enfoque combina una profunda comprensión de la arquitectura de software con la habilidad para escribir código limpio y mantenible. Disfruto cada etapa del ciclo de vida del desarrollo, desde el análisis de requerimientos y el diseño técnico hasta la implementación y el despliegue.
+                Me apasiona la intersección entre la creatividad y la tecnología. Utilizo un flujo de trabajo potenciado por IA que me permite saltar las barreras técnicas tradicionales y construir plataformas robustas de manera ágil. Mi objetivo no es solo que la web funcione, sino que sea escalable, estética y fácil de mantener, abarcando todo el ciclo de vida del proyecto con una visión integral.
               </p>
               <p className="leading-relaxed text-muted-foreground">
                 Fuera del trabajo, me encontrarás explorando nuevas tecnologías, contribuyendo a proyectos de código abierto o buscando inspiración en la resolución de algoritmos complejos.
