@@ -62,14 +62,17 @@ service cloud.firestore {
     
     // Tickets can be managed by the client who owns it, or the owner
     match /tickets/{ticketId} {
-        allow read, write: if isOwner() || (isClient() && request.auth.uid == resource.data.clientId);
-        // On create, check the incoming data
-        allow create: if isClient() && request.auth.uid == request.resource.data.clientId;
+        // Client can read/write if the ticket belongs to them
+        allow read, write: if isOwner() || (isClient() && resource.data.clientId == request.auth.uid);
+        // Client can only create tickets for themselves
+        allow create: if isClient() && request.resource.data.clientId == request.auth.uid;
     }
 
     match /tickets/{ticketId}/comments/{commentId} {
-       allow read, write: if isOwner() || (isClient() && get(/databases/$(database)/documents/tickets/$(ticketId)).data.clientId == request.auth.uid);
-       allow create: if isOwner() || (isClient() && request.resource.data.authorId == request.auth.uid);
+       // A client can read/write comments if they are the author. The owner can always access.
+       allow read, write: if isOwner() || (isClient() && resource.data.authorId == request.auth.uid);
+       // A client can only create comments as themselves on a ticket they own.
+       allow create: if isOwner() || (isClient() && request.resource.data.authorId == request.auth.uid && get(/databases/$(database)/documents/tickets/$(ticketId)).data.clientId == request.auth.uid);
     }
 
     // Invoices can be read by the client who owns it, or the owner
