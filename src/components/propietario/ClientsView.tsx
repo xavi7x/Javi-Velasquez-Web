@@ -127,7 +127,7 @@ export function ClientsView() {
 
     } catch (error: any) {
         console.error("Error creating client:", error);
-        toast({ variant: 'destructive', title: 'Error al crear cliente', description: error.message });
+        toast({ variant: 'destructive', title: 'Error al crear cliente', description: error.message || 'Ocurrió un error inesperado.' });
         setIsSubmitting(false); // only stop submitting on error
     }
   };
