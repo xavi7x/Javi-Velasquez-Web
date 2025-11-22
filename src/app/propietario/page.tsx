@@ -10,7 +10,9 @@ import {
   Menu,
   Users,
   CreditCard,
+  LayoutDashboard,
 } from 'lucide-react';
+import { DashboardView } from '@/components/propietario/DashboardView';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { ClientsView } from '@/components/propietario/ClientsView';
 import {
@@ -29,7 +31,7 @@ import {
   useDoc,
   useMemoFirebase,
   errorEmitter,
-  FirestorePermissionError
+  FirestorePermissionError,
 } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -50,7 +52,7 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function OwnerDashboard() {
-  const [activeView, setActiveView] = useState('projects');
+  const [activeView, setActiveView] = useState('dashboard');
   const [newMessagesCount, setNewMessagesCount] = useState(0);
   const { user } = useUser();
   const auth = useAuth();
@@ -75,15 +77,14 @@ export default function OwnerDashboard() {
   const setIsMaintenanceMode = async (value: boolean) => {
     if (settingsRef) {
       const data = { isMaintenanceMode: value };
-      setDoc(settingsRef, data, { merge: true })
-        .catch(error => {
-          const contextualError = new FirestorePermissionError({
-            path: settingsRef.path,
-            operation: 'update',
-            requestResourceData: data,
-          });
-          errorEmitter.emit('permission-error', contextualError);
+      setDoc(settingsRef, data, { merge: true }).catch((error) => {
+        const contextualError = new FirestorePermissionError({
+          path: settingsRef.path,
+          operation: 'update',
+          requestResourceData: data,
         });
+        errorEmitter.emit('permission-error', contextualError);
+      });
     }
   };
 
@@ -121,6 +122,8 @@ export default function OwnerDashboard() {
 
   const renderView = () => {
     switch (activeView) {
+      case 'dashboard':
+        return <DashboardView setActiveView={setActiveView} />;
       case 'projects':
         return <ProjectsView />;
       case 'clients':
@@ -138,7 +141,7 @@ export default function OwnerDashboard() {
       case 'finance':
         return <FinancesView />;
       default:
-        return <ProjectsView />;
+        return <DashboardView setActiveView={setActiveView} />;
     }
   };
 
@@ -156,6 +159,14 @@ export default function OwnerDashboard() {
       </div>
 
       <nav className="flex flex-col gap-2">
+        <Button
+          variant={activeView === 'dashboard' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('dashboard')}
+        >
+          <LayoutDashboard className="h-4 w-4" />
+          <span>Dashboard</span>
+        </Button>
         <Button
           variant={activeView === 'projects' ? 'default' : 'ghost'}
           className="justify-start gap-3"
@@ -290,6 +301,7 @@ export default function OwnerDashboard() {
             </Sheet>
             <div>
               <h1 className="text-xl md:text-3xl font-bold tracking-tight">
+                {activeView === 'dashboard' && 'Dashboard'}
                 {activeView === 'projects' && 'Gestión de Proyectos'}
                 {activeView === 'clients' && 'Gestión de Clientes'}
                 {activeView === 'messages' && 'Mensajes Recibidos'}
@@ -297,10 +309,13 @@ export default function OwnerDashboard() {
                 {activeView === 'finance' && 'Gestión Financiera'}
               </h1>
               <p className="text-muted-foreground text-sm md:text-base">
+                {activeView === 'dashboard' && 'Una vista general de toda tu actividad.'}
                 {activeView === 'projects' &&
                   'Añade, edita y elimina los proyectos de tu portafolio.'}
-                {activeView === 'clients' && 'Administra las cuentas y el acceso de tus clientes.'}
-                {activeView === 'finance' && 'Visualiza el estado de las facturas y pagos.'}
+                {activeView === 'clients' &&
+                  'Administra las cuentas y el acceso de tus clientes.'}
+                {activeView === 'finance' &&
+                  'Visualiza el estado de las facturas y pagos.'}
                 {activeView === 'messages' &&
                   'Aquí puedes ver los mensajes enviados desde el formulario de contacto.'}
                 {activeView === 'traffic' &&
