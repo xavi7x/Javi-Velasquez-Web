@@ -29,7 +29,8 @@ service cloud.firestore {
     }
 
     // --- Collections ---
-    // TEMPORARY: Allow all authenticated access to unblock development due to persistent internal error.
+    // TEMPORARY: Allow all authenticated access to unblock development due to a persistent internal error.
+    // This is a temporary measure to allow development to continue.
     // TODO: Re-implement granular security rules before production.
     match /{path=**} {
       allow read, write: if isSignedIn();
