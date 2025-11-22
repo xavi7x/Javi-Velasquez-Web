@@ -14,8 +14,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
@@ -27,6 +28,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/velsquez-digital.firebasestorage.app/o/Private%2Flogo-javier.svg?alt=media&token=7d179ca6-55ad-4a5f-9cf6-e6050f004630';
@@ -35,13 +37,42 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    if (!auth || !firestore) {
+        setError("Servicios de autenticación no disponibles.");
+        setIsLoading(false);
+        return;
+    }
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      toast({
-        title: '¡Bienvenido!',
-        description: 'Has iniciado sesión correctamente.',
-      });
-      router.push('/propietario');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Check if the user is an owner
+      const ownerDocRef = doc(firestore, 'owners', user.uid);
+      const ownerDoc = await getDoc(ownerDocRef);
+
+      if (ownerDoc.exists()) {
+        toast({
+          title: '¡Bienvenido, Propietario!',
+          description: 'Has iniciado sesión correctamente.',
+        });
+        router.push('/propietario');
+      } else {
+        // Check if the user is a client
+        const clientDocRef = doc(firestore, 'clients', user.uid);
+        const clientDoc = await getDoc(clientDocRef);
+        if (clientDoc.exists()) {
+             toast({
+                title: '¡Bienvenido de vuelta!',
+                description: 'Has iniciado sesión en tu portal.',
+            });
+            router.push('/portal/dashboard');
+        } else {
+            // If user exists in Auth but not in owners or clients collection
+            setError('No tienes un rol asignado. Contacta al administrador.');
+            await auth.signOut();
+        }
+      }
     } catch (error: any) {
       setError(
         'Credenciales incorrectas. Por favor, verifica tu correo y contraseña.'
@@ -113,3 +144,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    

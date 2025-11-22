@@ -6,119 +6,131 @@
       "type": "object",
       "description": "Represents a project in the portfolio.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Project entity."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the project."
-        },
+        "id": { "type": "string", "description": "Unique identifier for the Project entity." },
+        "clientId": { "type": "string", "description": "Identifier for the client this project belongs to." },
+        "title": { "type": "string", "description": "The title of the project." },
+        "tagline": { "type": "string", "description": "A short, catchy phrase describing the project." },
         "description": {
-          "type": "string",
-          "description": "A detailed description of the project."
+          "type": "object",
+          "properties": {
+            "challenge": { "type": "string", "description": "Description of the challenge faced during the project." },
+            "solution": { "type": "string", "description": "Description of the solution implemented in the project." },
+            "results": { "type": "string", "description": "Description of the results achieved by the project." }
+          },
+          "required": ["challenge", "solution", "results"]
         },
-        "challenge": {
-          "type": "string",
-          "description": "Description of the challenge faced during the project."
-        },
-        "solution": {
-          "type": "string",
-          "description": "Description of the solution implemented in the project."
-        },
-        "results": {
-          "type": "string",
-          "description": "Description of the results achieved by the project."
-        },
-        "thumbnailUrl": {
-          "type": "string",
-          "description": "URL of the thumbnail image for the project.",
-          "format": "uri"
-        },
-        "galleryUrls": {
+        "thumbnail": { "type": "string", "description": "URL of the thumbnail image for the project.", "format": "uri" },
+        "images": { "type": "array", "description": "URLs of the images in the project gallery.", "items": { "type": "string" } },
+        "skills": { "type": "array", "description": "List of skills or technologies used.", "items": { "type": "string" } },
+        "order": { "type": "number", "description": "The display order of the project." },
+        "progress": { "type": "number", "description": "Overall project completion percentage (0-100)." },
+        "estimatedDeliveryDate": { "type": "string", "format": "date", "description": "Estimated delivery date for the project." },
+        "stages": {
           "type": "array",
-          "description": "URLs of the images in the project gallery.",
+          "description": "The different stages or milestones of the project.",
           "items": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "status": { "type": "string", "enum": ["Completed", "In Progress", "Pending"] }
+            },
+            "required": ["name", "status"]
           }
         },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the project was created."
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the project was last updated."
-        },
-        "order": {
-            "type": "number",
-            "description": "The display order of the project."
-        }
+        "previewUrl": { "type": "string", "format": "uri", "description": "URL to the project preview." },
+        "credentials": { "type": "string", "description": "Encrypted credentials related to the project." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was created." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was last updated." }
       },
-      "required": [
-        "id",
-        "title",
-        "description",
-        "challenge",
-        "solution",
-        "results",
-        "thumbnailUrl",
-        "galleryUrls",
-        "order"
-      ]
+      "required": ["id", "clientId", "title", "description", "order", "progress", "stages"]
     },
     "Owner": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Owner",
       "type": "object",
-      "description": "Represents the owner/administrator of the website.  Authentication details are assumed to be handled externally.",
+      "description": "Represents the owner/administrator of the website. The existence of this document for a given UID confers owner privileges.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Owner entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the website owner."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the website owner.",
-          "format": "email"
-        },
-        "title": {
-          "type": "string",
-          "description": "The owner's title/role (e.g., CEO, Founder)."
-        },
-        "biography": {
-          "type": "string",
-          "description": "A short biography of the website owner."
-        },
-        "profilePictureUrl": {
-          "type": "string",
-          "description": "URL of the profile picture of the website owner.",
-          "format": "uri"
-        },
-        "linkedinUrl": {
-          "type": "string",
-          "description": "URL of the LinkedIn profile of the website owner.",
-          "format": "uri"
-        },
-        "behanceUrl": {
-          "type": "string",
-          "description": "URL of the Behance profile of the website owner.",
-          "format": "uri"
+        "uid": { "type": "string", "description": "The Firebase Auth UID of the owner." },
+        "email": { "type": "string", "format": "email", "description": "The email address of the website owner." }
+      },
+      "required": ["uid", "email"]
+    },
+    "Client": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Client",
+      "type": "object",
+      "description": "Represents a client user.",
+      "properties": {
+        "uid": { "type": "string", "description": "The Firebase Auth UID of the client." },
+        "name": { "type": "string", "description": "Client's full name." },
+        "email": { "type": "string", "format": "email", "description": "Client's contact email." },
+        "companyName": { "type": "string", "description": "Client's company name." },
+        "billingInfo": {
+          "type": "object",
+          "properties": {
+            "address": { "type": "string" },
+            "taxId": { "type": "string" }
+          }
         }
       },
-      "required": [
-        "id",
-        "name",
-        "email",
-        "title",
-        "biography"
-      ]
+      "required": ["uid", "name", "email"]
+    },
+    "Ticket": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Ticket",
+      "type": "object",
+      "description": "A support/change request ticket submitted by a client.",
+      "properties": {
+        "id": { "type": "string" },
+        "projectId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["In Review", "Approved", "Completed", "Closed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "projectId", "clientId", "title", "status", "createdAt"]
+    },
+    "Comment": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Comment",
+        "type": "object",
+        "description": "A comment on a support ticket.",
+        "properties": {
+            "id": { "type": "string" },
+            "ticketId": { "type": "string" },
+            "authorId": { "type": "string" },
+            "text": { "type": "string" },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "ticketId", "authorId", "text", "createdAt"]
+    },
+    "Invoice": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Invoice",
+      "type": "object",
+      "description": "Represents a financial invoice for a project.",
+      "properties": {
+        "id": { "type": "string" },
+        "projectId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "concept": { "type": "string" },
+        "amount": { "type": "number" },
+        "issueDate": { "type": "string", "format": "date" },
+        "dueDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["Pending", "Paid", "Overdue"] },
+        "pdfUrl": { "type": "string", "format": "uri" }
+      },
+      "required": ["id", "projectId", "clientId", "invoiceNumber", "amount", "issueDate", "status"]
+    },
+    "SiteSettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SiteSettings",
+      "type": "object",
+      "description": "Global settings for the website.",
+      "properties": { "isMaintenanceMode": { "type": "boolean" } },
+      "required": ["isMaintenanceMode"]
     },
     "ContactFormSubmission": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -126,137 +138,58 @@
       "type": "object",
       "description": "Represents a contact form submission from a user.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ContactFormSubmission entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the user submitting the form."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the user submitting the form.",
-          "format": "email"
-        },
-        "phone": {
-          "type": "string",
-          "description": "The phone number of the user submitting the form."
-        },
-        "message": {
-          "type": "string",
-          "description": "The message submitted by the user."
-        },
-        "submissionDate": {
-          "type": "string",
-          "description": "The date and time when the form was submitted.",
-          "format": "date-time"
-        },
-        "attachmentUrl": {
-          "type": "string",
-          "description": "URL of the file attached to the submission.",
-          "format": "uri"
-        },
-        "url": {
-          "type": "string",
-          "description": "A URL provided by the user, e.g., for a reference website.",
-          "format": "uri"
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the submission.",
-          "enum": ["new", "read", "archived"]
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "message": { "type": "string" },
+        "submissionDate": { "type": "string", "format": "date-time" },
+        "attachmentUrl": { "type": "string", "format": "uri" },
+        "url": { "type": "string", "format": "uri" },
+        "status": { "type": "string", "enum": ["new", "read", "archived"] }
       },
-      "required": [
-        "id",
-        "name",
-        "phone",
-        "submissionDate",
-        "status"
-      ]
-    },
-    "SiteSettings": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "SiteSettings",
-      "type": "object",
-      "description": "Global settings for the website.",
-      "properties": {
-        "isMaintenanceMode": {
-          "type": "boolean",
-          "description": "If true, the site displays a 'coming soon' page. If false, it shows the full site."
-        }
-      },
-      "required": ["isMaintenanceMode"]
+      "required": ["id", "name", "phone", "submissionDate", "status"]
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "structure": [
       {
         "path": "/owners/{ownerId}",
-        "definition": {
-          "entityName": "Owner",
-          "schema": {
-            "$ref": "#/backend/entities/Owner"
-          },
-          "description": "Stores owner information. The ownerId corresponds to the Firebase Auth UID. Authentication and authorization are based on the existence of this document.",
-          "params": [
-            {
-              "name": "ownerId",
-              "description": "The Firebase Auth UID of the owner."
-            }
-          ]
-        }
+        "definition": { "schema": { "$ref": "#/entities/Owner" }, "description": "Stores a record of website owners. The existence of a document with the user's UID as the ID grants owner privileges across the app." }
+      },
+      {
+        "path": "/clients/{clientId}",
+        "definition": { "schema": { "$ref": "#/entities/Client" }, "description": "Stores information about a single client." }
       },
       {
         "path": "/projects/{projectId}",
-        "definition": {
-          "entityName": "Project",
-          "schema": {
-            "$ref": "#/backend/entities/Project"
-          },
-          "description": "Stores project data. Only the website owner should have write access.",
-          "params": [
-            {
-              "name": "projectId",
-              "description": "Unique identifier for the project."
-            }
-          ]
-        }
+        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "Stores data for individual projects. Publicly readable for portfolio, but write is restricted. Client-specific access is handled in rules." }
+      },
+      {
+        "path": "/tickets/{ticketId}",
+        "definition": { "schema": { "$ref": "#/entities/Ticket" }, "description": "Stores support or change request tickets." }
+      },
+      {
+        "path": "/tickets/{ticketId}/comments/{commentId}",
+        "definition": { "schema": { "$ref": "#/entities/Comment" }, "description": "Stores comments for a specific ticket." }
+      },
+      {
+        "path": "/invoices/{invoiceId}",
+        "definition": { "schema": { "$ref": "#/entities/Invoice" }, "description": "Stores financial invoices for clients." }
       },
       {
         "path": "/contactFormSubmissions/{submissionId}",
-        "definition": {
-          "entityName": "ContactFormSubmission",
-          "schema": {
-            "$ref": "#/backend/entities/ContactFormSubmission"
-          },
-          "description": "Stores contact form submission data.  Anyone can create, but only the owner can read.",
-          "params": [
-            {
-              "name": "submissionId",
-              "description": "Unique identifier for the contact form submission."
-            }
-          ]
-        }
+        "definition": { "schema": { "$ref": "#/entities/ContactFormSubmission" }, "description": "Stores contact form submissions. Anyone can create, but only owner can read." }
       },
-       {
+      {
         "path": "/settings/site",
-        "definition": {
-          "entityName": "SiteSettings",
-          "schema": {
-            "$ref": "#/backend/entities/SiteSettings"
-          },
-          "description": "Stores global site settings, like maintenance mode."
-        }
+        "definition": { "schema": { "$ref": "#/entities/SiteSettings" }, "description": "Stores global site settings, like maintenance mode." }
       }
-    ],
-    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. The `owners` collection stores owner information, enabling authentication and authorization based on their `uid`. The `projects` collection stores project data. The `contactFormSubmissions` collection stores user-submitted contact form data. A single document in the `settings` collection holds global site state like maintenance mode. This structure facilitates secure `list` operations by segregating data with different access requirements. The segregation also simplifies security rule creation, reducing complexity. The structure leverages path-based ownership for owner data and maintains data clarity through explicit state modeling and predictable schema. Because all collections are root-level, there is no reliance on `get()` calls to authorize based on parent documents, thus achieving Authorization Independence. Authentication will be managed using Firebase Authentication."
+    ]
   }
 }
+
+    

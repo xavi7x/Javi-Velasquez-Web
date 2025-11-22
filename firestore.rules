@@ -1,142 +1,95 @@
 /**
- * @fileoverview Firestore Security Rules for the portfolio application.
+ * @fileoverview Firestore Security Rules for the portfolio and client portal.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for owner profiles,
- * allows public creation of contact form submissions with owner-only access for reading,
- * and restricts project data management to authenticated owners. Data validation
- * is minimal to support rapid prototyping and iteration.
+ * This ruleset enforces a strict ownership model for all client-related data,
+ * ensuring that a client can only access their own projects, tickets, and invoices.
+ * The website owner has administrative access to all data. Public project
+ * listings remain readable by anyone.
  *
- * Data Structure:
- * - /owners/{ownerId}: Stores profile information for website owners. The `ownerId`
- *   must match the Firebase Auth UID of the authenticated user.
- * - /projects/{projectId}: Stores data for individual projects. Only the website
- *   owner can create, update, or delete projects.
- * - /contactFormSubmissions/{submissionId}: Stores contact form submissions. Any
- *   user, authenticated or anonymous, can create a submission, but only the owner
- *   can read and update them.
- * - /settings/site: Stores global site settings. Publicly readable, but only
- *   the owner can write.
- *
- * Key Security Decisions:
- * - Owner Collection: Strict ownership model enforced. Only the authenticated user
- *   matching the `ownerId` can read or write their profile data.
- * - Project Collection: Only the authenticated owner can create, update, or delete
- *   projects. Read access is public.
- * - ContactFormSubmission Collection: Public creation is allowed, but listing,
- *   getting, and updating submissions is restricted to the authenticated owner.
- * - Denormalization for Authorization: None. The `ownerId` in `/owners/{ownerId}`
- *   matches the `request.auth.uid`, avoiding the need for `get()` calls.
- * - No User Listing: Listing users (owners) is not permitted.
- *
- * Force rule re-sync.
+ * Data Structure & Auth Logic:
+ * - /owners/{uid}: Document ID is the Firebase Auth UID. Existence of this doc marks the user as an owner.
+ * - /clients/{uid}: Document ID is the Firebase Auth UID. Links a user to their client data.
+ * - /projects/{projectId}: Contains a `clientId` field. Rules match `request.auth.uid == resource.data.clientId`.
+ * - /tickets/{ticketId}: Contains a `clientId` field.
+ * - /invoices/{invoiceId}: Contains a `clientId` field.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * @description Protects the owner profile data. Only the authenticated user
-     *              with a matching UID can read or write their profile.
-     * @path /owners/{ownerId}
-     * @allow (get, create, update, delete) if the request is made by the owner (UID matches ownerId).
-     * @deny (get, create, update, delete) if the request is made by a different user or an unauthenticated user.
-     * @principle Enforces strict user-ownership for profile data.
-     */
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner() {
+      // An owner is a signed-in user whose UID exists as a document in the 'owners' collection.
+      return isSignedIn() && exists(/databases/$(database)/documents/owners/$(request.auth.uid));
+    }
+    function isClient(clientId) {
+        return isSignedIn() && request.auth.uid == clientId;
+    }
+
+    // --- Collections ---
+
+    // Owners: Only an owner can manage their own document. No one can list owners.
     match /owners/{ownerId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-      function isOwner(ownerId) {
-        return isSignedIn() && request.auth.uid == ownerId;
-      }
-      function isExistingOwner(ownerId) {
-          return isOwner(ownerId) && resource != null;
-      }
-
-      allow get: if isOwner(ownerId);
-      allow list: if false; // Prevent listing all owner profiles.
-
-      allow create: if isOwner(ownerId) && request.resource.data.id == request.auth.uid;
-      allow update: if isExistingOwner(ownerId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(ownerId);
+      allow read, write: if isClient(ownerId);
+      allow list: if false;
+    }
+    
+    // Clients: An owner can manage any client. A client can only manage their own data.
+    match /clients/{clientId} {
+      allow read, update: if isOwner() || isClient(clientId);
+      allow create, delete, list: if isOwner();
     }
 
-    /**
-     * @description Controls access to project data.  Any user can read project
-     *              data, but only the authenticated owner can create, update, or
-     *              delete projects.
-     * @path /projects/{projectId}
-     * @allow (get, list) to anyone.
-     * @allow (create, update, delete) only to the authenticated owner.
-     * @deny (create, update, delete) to anyone else.
-     * @principle Allows public read access while restricting write access to the owner.
-     */
+    // Projects: Public read for portfolio. Write restricted to owner. Client can read their own projects.
     match /projects/{projectId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-      function isOwner() {
-        return isSignedIn() ;
-      }
-     function isExistingOwner() {
-          return isOwner() && resource != null;
-      }
+      // Public portfolio can list and read projects
+      allow get, list: if true;
 
-      allow get: if true;
-      allow list: if true;
+      // Owner can create, update, delete any project
+      allow create, update, delete: if isOwner();
+      
+      // A client can also read a project if their UID matches the project's clientId
+      allow get: if isSignedIn() && isClient(resource.data.clientId);
+    }
+    
+    // Tickets: Only owner or the assigned client can access.
+    match /tickets/{ticketId} {
+        allow read, update: if isOwner() || (isSignedIn() && isClient(get(/databases/$(database)/documents/tickets/$(ticketId)).data.clientId));
+        allow create, delete: if isOwner() || (isSignedIn() && isClient(request.resource.data.clientId));
 
-      allow create: if isOwner();
-      allow update: if isExistingOwner();
-      allow delete: if isExistingOwner();
+        // Comments on tickets
+        match /comments/{commentId} {
+            allow read, create: if isOwner() || (isSignedIn() && isClient(get(/databases/$(database)/documents/tickets/$(ticketId)).data.clientId));
+            allow update, delete: if isOwner();
+        }
     }
 
-    /**
-     * @description Manages contact form submissions. Anyone can create a submission,
-     *              but only the authenticated owner can read or update the submissions.
-     * @path /contactFormSubmissions/{submissionId}
-     * @allow create: Anyone can create a contact form submission.
-     * @allow get, list, update: Only the authenticated owner can read or update submissions.
-     * @deny get, list, update: to anyone else.
-     * @principle Allows public creation of contact form submissions while
-     *            restricting read/update access to the owner.
-     */
+    // Invoices: Only owner or the assigned client can read. Only owner can manage.
+    match /invoices/{invoiceId} {
+      allow read: if isOwner() || (isSignedIn() && isClient(resource.data.clientId));
+      allow list, create, update, delete: if isOwner();
+    }
+
+    // Contact Form: Public can create, only owner can read/manage.
     match /contactFormSubmissions/{submissionId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner() {
-        return isSignedIn();
-      }
-
-      allow get: if isOwner();
-      allow list: if isOwner();
       allow create: if true;
-      allow update: if isOwner();
-      allow delete: if isOwner();
+      allow read, update, delete: if isOwner();
     }
 
-    /**
-     * @description Controls access to global site settings.
-     * @path /settings/site
-     * @allow read: to anyone (for checking maintenance mode).
-     * @allow write: only to the authenticated owner.
-     * @principle Allows public read for settings, but restricts changes to the owner.
-     */
-     match /settings/{docId} {
-        function isSignedIn() {
-          return request.auth != null;
-        }
-
-        function isOwner() {
-          return isSignedIn();
-        }
-
-       allow get: if true;
-       allow list: if true;
-       allow write: if isOwner();
-     }
+    // Site Settings: Public can read, only owner can write.
+    match /settings/site {
+      allow get: if true;
+      allow write: if isOwner();
+    }
+    
+    // Default deny for any other path
+    match /{path=**} {
+        allow read, write: if false;
+    }
   }
 }
-// Force re-sync trigger.
+    
