@@ -10,7 +10,7 @@
  * Data Structure & Auth Logic:
  * - /owners/{uid}: Document ID is the Firebase Auth UID. Existence of this doc marks the user as an owner.
  * - /clients/{uid}: Document ID is the Firebase Auth UID. Links a user to their client data.
- * - /projects/{projectId}: Contains a `clientId` field. Rules match `request.auth.uid == resource.data.clientId`.
+ * - /projects/{projectId}: Contains a `clientId` field.
  * - /tickets/{ticketId}: Contains a `clientId` field.
  * - /invoices/{invoiceId}: Contains a `clientId` field.
  */
@@ -18,22 +18,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Helper Functions ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner() {
-      // An owner is a signed-in user whose UID exists as a document in the 'owners' collection.
-      return isSignedIn() && exists(/databases/$(database)/documents/owners/$(request.auth.uid));
-    }
-
-    // --- Collections ---
     // TEMPORARY: Allow all authenticated access to unblock development due to a persistent internal error.
     // This is a temporary measure to allow development to continue.
     // TODO: Re-implement granular security rules before production.
     match /{path=**} {
-      allow read, write: if isSignedIn();
+      allow read, write: if request.auth != null;
     }
   }
 }
