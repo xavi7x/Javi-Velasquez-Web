@@ -9,6 +9,7 @@ import { QuantumLoader } from '@/components/shared/QuantumLoader';
 
 export default function Home() {
   const [isAppLoading, setIsAppLoading] = useState(true);
+  const [showLoader, setShowLoader] = useState(true);
   const firestore = useFirestore();
 
   const settingsRef = useMemoFirebase(() => {
@@ -21,14 +22,24 @@ export default function Home() {
   );
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const hasLoadedBefore = sessionStorage.getItem('hasLoadedBefore');
+
+    if (hasLoadedBefore) {
       setIsAppLoading(false);
-    }, 2500); // Muestra el loader por 2.5 segundos
+      setShowLoader(false);
+    } else {
+      const timer = setTimeout(() => {
+        setIsAppLoading(false);
+        sessionStorage.setItem('hasLoadedBefore', 'true');
+      }, 2500); // Muestra el loader por 2.5 segundos
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
   }, []);
+  
+  const isLoading = isAppLoading || isSettingsLoading;
 
-  if (isAppLoading || isSettingsLoading) {
+  if (isLoading || showLoader) {
     return <QuantumLoader />;
   }
 
