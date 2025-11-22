@@ -11,10 +11,12 @@ import {
   Users,
   CreditCard,
   LayoutDashboard,
+  User,
 } from 'lucide-react';
 import { DashboardView } from '@/components/propietario/DashboardView';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { ClientsView } from '@/components/propietario/ClientsView';
+import { ProfileView } from '@/components/propietario/ProfileView';
 import {
   MessagesView,
   type Message,
@@ -136,6 +138,8 @@ export default function OwnerDashboard() {
         return <ProjectsView />;
       case 'clients':
         return <ClientsView />;
+       case 'profile':
+        return <ProfileView />;
       case 'messages':
         return (
           <MessagesView
@@ -206,6 +210,14 @@ export default function OwnerDashboard() {
         >
           <CreditCard className="h-4 w-4" />
           <span>Finanzas</span>
+        </Button>
+         <Button
+          variant={activeView === 'profile' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('profile')}
+        >
+          <User className="h-4 w-4" />
+          <span>Mi Perfil</span>
         </Button>
         <Button
           variant={activeView === 'messages' ? 'default' : 'ghost'}
@@ -292,6 +304,7 @@ export default function OwnerDashboard() {
                 {activeView === 'dashboard' && 'Dashboard'}
                 {activeView === 'projects' && 'Gestión de Proyectos'}
                 {activeView === 'clients' && 'Gestión de Clientes'}
+                {activeView === 'profile' && 'Mi Perfil'}
                 {activeView === 'messages' && 'Mensajes Recibidos'}
                 {activeView === 'traffic' && 'Análisis de Tráfico'}
                 {activeView === 'finance' && 'Gestión Financiera'}
@@ -302,6 +315,7 @@ export default function OwnerDashboard() {
                   'Añade, edita y elimina los proyectos de tu portafolio.'}
                 {activeView === 'clients' &&
                   'Administra las cuentas y el acceso de tus clientes.'}
+                {activeView === 'profile' && 'Actualiza tu información pública y de perfil.'}
                 {activeView === 'finance' &&
                   'Visualiza el estado de las facturas y pagos.'}
                 {activeView === 'messages' &&

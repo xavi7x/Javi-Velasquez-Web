@@ -1,8 +1,13 @@
+'use client';
+
 import Image from 'next/image';
 import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
 import { Badge } from '@/components/ui/badge';
 import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const tools = [
   { name: 'Next.js' },
@@ -16,8 +21,30 @@ const tools = [
   { name: 'Git & GitHub' },
 ];
 
+interface AboutContent {
+  headline: string;
+  subheadline: string;
+  mainParagraph: string;
+  imageUrl: string;
+}
+
 export default function AboutPage() {
   const extendedTools = [...tools, ...tools]; // Duplicate for seamless loop
+  const firestore = useFirestore();
+
+  const aboutContentRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'settings', 'about');
+  }, [firestore]);
+
+  const { data: aboutContent, isLoading } = useDoc<AboutContent>(aboutContentRef);
+  
+  const content = aboutContent || {
+      headline: "Transformando Ideas en Código",
+      subheadline: "Soy Javier, un desarrollador apasionado por construir productos digitales que sean eficientes, escalables y resuelvan problemas reales.",
+      mainParagraph: "Me apasiona la intersección entre la creatividad y la tecnología. Utilizo un flujo de trabajo potenciado por IA que me permite saltar las barreras técnicas tradicionales y construir plataformas robustas de manera ágil. Mi objetivo no es solo que la web funcione, sino que sea escalable, estética y fácil de mantener, abarcando todo el ciclo de vida del proyecto con una visión integral.",
+      imageUrl: "https://picsum.photos/seed/101/600/800"
+  };
 
   return (
     <CursorGradientWrapper>
@@ -27,27 +54,50 @@ export default function AboutPage() {
           <div className="grid gap-12 md:grid-cols-2 lg:gap-24">
             <div className="flex flex-col justify-center space-y-6">
               <header>
-                <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
-                  Transformando Ideas en Código
-                </h1>
-                <p className="mt-4 max-w-xl text-lg text-muted-foreground md:text-xl">
-                  Soy Javier, un desarrollador apasionado por construir productos digitales que sean eficientes, escalables y resuelvan problemas reales.
-                </p>
+                 {isLoading ? (
+                  <>
+                    <Skeleton className="h-12 w-3/4" />
+                    <Skeleton className="h-6 w-full mt-4" />
+                    <Skeleton className="h-6 w-5/6 mt-2" />
+                  </>
+                ) : (
+                  <>
+                  <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+                    {content.headline}
+                  </h1>
+                  <p className="mt-4 max-w-xl text-lg text-muted-foreground md:text-xl">
+                    {content.subheadline}
+                  </p>
+                  </>
+                 )}
               </header>
-              <p className="leading-relaxed text-muted-foreground">
-                Me apasiona la intersección entre la creatividad y la tecnología. Utilizo un flujo de trabajo potenciado por IA que me permite saltar las barreras técnicas tradicionales y construir plataformas robustas de manera ágil. Mi objetivo no es solo que la web funcione, sino que sea escalable, estética y fácil de mantener, abarcando todo el ciclo de vida del proyecto con una visión integral.
-              </p>
+              {isLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-4/5" />
+                </div>
+              ) : (
+                 <p className="leading-relaxed text-muted-foreground">
+                  {content.mainParagraph}
+                </p>
+              )}
             </div>
             <div className="relative group order-first md:order-last">
                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-              <Image
-                src="https://picsum.photos/seed/101/600/800"
-                alt="Javier Velásquez"
-                width={600}
-                height={800}
-                className="relative h-full w-full rounded-3xl object-cover"
-                data-ai-hint="portrait person"
-              />
+              {isLoading ? (
+                 <Skeleton className="h-full w-full aspect-[3/4] rounded-3xl" />
+              ) : (
+                <Image
+                  src={content.imageUrl}
+                  alt="Javier Velásquez"
+                  width={600}
+                  height={800}
+                  className="relative h-full w-full rounded-3xl object-cover"
+                  data-ai-hint="portrait person"
+                  priority
+                />
+              )}
             </div>
           </div>
         </div>

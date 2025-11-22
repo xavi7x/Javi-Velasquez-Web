@@ -1,5 +1,18 @@
 {
   "entities": {
+    "AboutPageContent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "About Page Content",
+      "type": "object",
+      "description": "Stores the dynamic content for the 'About Me' page.",
+      "properties": {
+        "headline": { "type": "string", "description": "The main headline on the page." },
+        "subheadline": { "type": "string", "description": "The paragraph directly below the main headline." },
+        "mainParagraph": { "type": "string", "description": "The main body of text on the about page." },
+        "imageUrl": { "type": "string", "format": "uri", "description": "URL of the profile picture." }
+      },
+      "required": ["headline", "subheadline", "mainParagraph", "imageUrl"]
+    },
     "Project": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Project",
@@ -187,9 +200,11 @@
       {
         "path": "/settings/site",
         "definition": { "schema": { "$ref": "#/entities/SiteSettings" }, "description": "Stores global site settings, like maintenance mode." }
+      },
+      {
+        "path": "/settings/about",
+        "definition": { "schema": { "$ref": "#/entities/AboutPageContent" }, "description": "Stores the dynamic content for the 'About Me' page." }
       }
     ]
   }
 }
-
-    
