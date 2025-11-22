@@ -15,6 +15,7 @@ export function ThemeSwitcher() {
   }, []);
 
   if (!mounted) {
+    // A skeleton avoids layout shift and hydration errors
     return <Skeleton className="h-9 w-9 rounded-full" />;
   }
 
