@@ -35,14 +35,16 @@ service cloud.firestore {
     
     function isProjectClient(projectId) {
       // Check if the user is the client associated with a specific project.
-      let projectData = get(/databases/$(database)/documents/projects/$(projectId)).data;
-      return isSignedIn() && isClient(projectData.clientId);
+      // This is safer as it checks for existence before accessing data.
+      let docPath = /databases/$(database)/documents/projects/$(projectId);
+      return isSignedIn() && exists(docPath) && isClient(get(docPath).data.clientId);
     }
     
     function isTicketClient(ticketId) {
-       // Check if the user is the client associated with a specific ticket.
-      let ticketData = get(/databases/$(database)/documents/tickets/$(ticketId)).data;
-      return isSignedIn() && isClient(ticketData.clientId);
+      // Check if the user is the client associated with a specific ticket.
+      // This is safer as it checks for existence before accessing data.
+      let docPath = /databases/$(database)/documents/tickets/$(ticketId);
+      return isSignedIn() && exists(docPath) && isClient(get(docPath).data.clientId);
     }
 
     // --- Collections ---
