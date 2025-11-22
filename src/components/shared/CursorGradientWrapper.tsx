@@ -28,7 +28,11 @@ export function CursorGradientWrapper({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative overflow-hidden bg-background text-foreground">
+    <div 
+      ref={containerRef} 
+      className="relative overflow-hidden bg-background text-foreground"
+      style={{ '--x': '50%', '--y': '50%' } as React.CSSProperties}
+    >
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-background"></div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_400px_400px_at_var(--x,50%)_var(--y,50%),rgba(120,119,198,0.3),transparent)]"></div>
