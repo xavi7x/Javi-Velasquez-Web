@@ -7,6 +7,7 @@ import { AvailabilityStatus } from '@/components/shared/AvailabilityStatus';
 import { FirebaseClientProvider } from '@/firebase';
 import GoogleAnalytics from '@/components/shared/GoogleAnalytics';
 import { GTM_ID } from '@/lib/gtag';
+import { QuantumLoader } from '@/components/shared/QuantumLoader';
 
 export const metadata: Metadata = {
   title: 'Velásquez Digital',
@@ -38,7 +39,9 @@ export default function RootLayout({
             <GoogleAnalytics gaId={GTM_ID} />
           </Suspense>
           <FirebaseClientProvider>
-            {children}
+            <Suspense fallback={<QuantumLoader />}>
+              {children}
+            </Suspense>
             <AvailabilityStatus />
             <Toaster />
           </FirebaseClientProvider>
