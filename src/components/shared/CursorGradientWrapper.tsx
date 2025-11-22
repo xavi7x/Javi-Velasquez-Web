@@ -1,11 +1,14 @@
 'use client';
 
-import { useRef, useEffect, type ReactNode } from 'react';
+import { useRef, useEffect, useState, type ReactNode } from 'react';
 
 export function CursorGradientWrapper({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
+    setIsMounted(true);
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
@@ -27,9 +30,13 @@ export function CursorGradientWrapper({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className="cursor-gradient-wrapper relative overflow-hidden bg-background text-foreground"
     >
       <div className="relative z-10 flex min-h-dvh flex-col">
