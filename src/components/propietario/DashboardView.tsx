@@ -9,35 +9,29 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import {
   AlertCircle,
-  ArrowRight,
   Briefcase,
   CreditCard,
   MessageSquare,
   Users,
 } from 'lucide-react';
-import Link from 'next/link';
 import { getAnalyticsData, type AnalyticsDataOutput } from '@/ai/flows/get-analytics-data';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
-import type { Invoice, Project, Client } from '@/lib/project-types';
+import type { Invoice } from '@/lib/project-types';
 import { Skeleton } from '../ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Separator } from '../ui/separator';
 
 interface DashboardViewProps {
   setActiveView: (view: string) => void;
+  isAvailable: boolean;
+  setIsAvailable: (value: boolean) => void;
+  isMaintenanceMode: boolean;
+  setIsMaintenanceMode: (value: boolean) => void;
 }
 
 const StatCard = ({ title, value, footer, isLoading }: { title: string, value: string, footer: string, isLoading: boolean }) => (
@@ -52,7 +46,13 @@ const StatCard = ({ title, value, footer, isLoading }: { title: string, value: s
     </Card>
 );
 
-export function DashboardView({ setActiveView }: DashboardViewProps) {
+export function DashboardView({ 
+  setActiveView,
+  isAvailable,
+  setIsAvailable,
+  isMaintenanceMode,
+  setIsMaintenanceMode
+ }: DashboardViewProps) {
   const [analytics, setAnalytics] = useState<AnalyticsDataOutput | null>(null);
   const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(true);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
@@ -66,20 +66,6 @@ export function DashboardView({ setActiveView }: DashboardViewProps) {
   }, [firestore]);
   const { data: invoices, isLoading: isInvoicesLoading } = useCollection<Invoice>(invoicesQuery);
   
-  // Fetch Projects
-  const projectsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'projects'), orderBy('order', 'asc'), limit(5));
-  }, [firestore]);
-  const { data: projects, isLoading: isProjectsLoading } = useCollection<Project>(projectsQuery);
-
-  // Fetch Clients
-  const clientsQuery = useMemoFirebase(() => {
-      if (!firestore) return null;
-      return query(collection(firestore, 'clients'), orderBy('name', 'asc'), limit(5));
-  }, [firestore]);
-  const { data: clients, isLoading: isClientsLoading } = useCollection<Client>(clientsQuery);
-
   // Fetch Messages
    const messagesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -156,44 +142,48 @@ export function DashboardView({ setActiveView }: DashboardViewProps) {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6">
         {/* Quick Actions & Recent Clients */}
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Accesos Rápidos</CardTitle>
+                    <CardTitle>Accesos Rápidos y Controles</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4">
+                <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <Button variant="outline" className="w-full justify-start h-12" onClick={() => setActiveView('projects')}><Briefcase className="mr-2"/>Proyectos</Button>
                     <Button variant="outline" className="w-full justify-start h-12" onClick={() => setActiveView('clients')}><Users className="mr-2"/>Clientes</Button>
                     <Button variant="outline" className="w-full justify-start h-12" onClick={() => setActiveView('finance')}><CreditCard className="mr-2"/>Finanzas</Button>
                     <Button variant="outline" className="w-full justify-start h-12" onClick={() => setActiveView('messages')}><MessageSquare className="mr-2"/>Mensajes</Button>
                 </CardContent>
-            </Card>
-            
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                     <div className="space-y-1.5">
-                        <CardTitle>Clientes Recientes</CardTitle>
-                        <CardDescription>Tus últimos clientes añadidos.</CardDescription>
+                <Separator className="my-4"/>
+                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                   <div className="flex items-center space-x-4 rounded-lg p-3">
+                      <Switch
+                        id="availability-mode"
+                        checked={isAvailable}
+                        onCheckedChange={setIsAvailable}
+                      />
+                      <Label htmlFor="availability-mode" className="flex flex-col">
+                        <span>Disponibilidad</span>
+                        <span className="font-normal text-xs text-muted-foreground">
+                          {isAvailable ? 'Visible en la web' : 'Oculto'}
+                        </span>
+                      </Label>
                     </div>
-                     <Button variant="ghost" size="sm" onClick={() => setActiveView('clients')}>
-                        Ver Todos <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                </CardHeader>
-                 <CardContent>
-                    {isClientsLoading ? (
-                        <div className="space-y-2">
-                             <Skeleton className="h-5 w-4/5" />
-                             <Skeleton className="h-5 w-2/3" />
-                        </div>
-                    ): clients?.length ? (
-                        <ul className="space-y-2">
-                            {clients.map(c => <li key={c.id} className="text-sm text-muted-foreground">{c.name}</li>)}
-                        </ul>
-                    ) : (
-                        <p className="text-center text-muted-foreground py-8">No hay clientes aún.</p>
-                    )}
+
+                    <div className="flex items-center space-x-4 rounded-lg p-3">
+                      <Switch
+                        id="maintenance-mode"
+                        checked={isMaintenanceMode}
+                        onCheckedChange={setIsMaintenanceMode}
+                      />
+                      <Label htmlFor="maintenance-mode" className="flex flex-col">
+                        <span>Modo Construcción</span>
+                        <span className="font-normal text-xs text-muted-foreground">
+                          {isMaintenanceMode ? 'Página principal desactivada' : 'Página principal activa'}
+                        </span>
+                      </Label>
+                    </div>
                 </CardContent>
             </Card>
         </div>

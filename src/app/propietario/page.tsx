@@ -123,7 +123,15 @@ export default function OwnerDashboard() {
   const renderView = () => {
     switch (activeView) {
       case 'dashboard':
-        return <DashboardView setActiveView={setActiveView} />;
+        return (
+          <DashboardView
+            setActiveView={setActiveView}
+            isAvailable={isAvailable}
+            setIsAvailable={setIsAvailable}
+            isMaintenanceMode={isMaintenanceMode}
+            setIsMaintenanceMode={setIsMaintenanceMode}
+          />
+        );
       case 'projects':
         return <ProjectsView />;
       case 'clients':
@@ -141,7 +149,15 @@ export default function OwnerDashboard() {
       case 'finance':
         return <FinancesView />;
       default:
-        return <DashboardView setActiveView={setActiveView} />;
+        return (
+          <DashboardView
+            setActiveView={setActiveView}
+            isAvailable={isAvailable}
+            setIsAvailable={setIsAvailable}
+            isMaintenanceMode={isMaintenanceMode}
+            setIsMaintenanceMode={setIsMaintenanceMode}
+          />
+        );
     }
   };
 
@@ -215,34 +231,6 @@ export default function OwnerDashboard() {
       </nav>
 
       <div className="mt-auto space-y-4">
-        <div className="flex items-center space-x-2 rounded-lg p-3">
-          <Switch
-            id="availability-mode"
-            checked={isAvailable}
-            onCheckedChange={setIsAvailable}
-          />
-          <Label htmlFor="availability-mode" className="flex flex-col">
-            <span>Disponibilidad</span>
-            <span className="font-normal text-xs text-muted-foreground">
-              {isAvailable ? 'Visible' : 'Oculto'}
-            </span>
-          </Label>
-        </div>
-
-        <div className="flex items-center space-x-2 rounded-lg p-3">
-          <Switch
-            id="maintenance-mode"
-            checked={isMaintenanceMode}
-            onCheckedChange={setIsMaintenanceMode}
-          />
-          <Label htmlFor="maintenance-mode" className="flex flex-col">
-            <span>Modo Construcción</span>
-            <span className="font-normal text-xs text-muted-foreground">
-              {isMaintenanceMode ? 'Activo' : 'Inactivo'}
-            </span>
-          </Label>
-        </div>
-
         <div className="flex items-center justify-between">
           {user && (
             <div className="text-sm">
