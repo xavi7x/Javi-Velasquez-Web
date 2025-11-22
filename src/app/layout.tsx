@@ -29,14 +29,14 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <Suspense>
-          <GoogleAnalytics gaId={GTM_ID} />
-        </Suspense>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem={false}
         >
+          <Suspense>
+            <GoogleAnalytics gaId={GTM_ID} />
+          </Suspense>
           <FirebaseClientProvider>
             {children}
             <AvailabilityStatus />
