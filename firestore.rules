@@ -22,62 +22,72 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
+
     function isOwner() {
       // An owner is a signed-in user whose UID exists as a document in the 'owners' collection.
       return isSignedIn() && exists(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
+
     function isClient(clientId) {
-        return isSignedIn() && request.auth.uid == clientId;
+      // A client is the signed-in user whose UID matches the provided clientId.
+      return isSignedIn() && request.auth.uid == clientId;
+    }
+    
+    function isProjectClient(projectId) {
+      // Check if the user is the client associated with a specific project.
+      let projectData = get(/databases/$(database)/documents/projects/$(projectId)).data;
+      return isSignedIn() && isClient(projectData.clientId);
+    }
+    
+    function isTicketClient(ticketId) {
+       // Check if the user is the client associated with a specific ticket.
+      let ticketData = get(/databases/$(database)/documents/tickets/$(ticketId)).data;
+      return isSignedIn() && isClient(ticketData.clientId);
     }
 
     // --- Collections ---
 
-    // Owners: Only an owner can manage their own document. No one can list owners.
+    // Owners: Only the owner themself can read/write their own document. No one can list owners.
     match /owners/{ownerId} {
       allow read, write: if isClient(ownerId);
       allow list: if false;
     }
     
-    // Clients: An owner can manage any client. A client can only manage their own data.
+    // Clients: An owner can manage any client. A client can only read/update their own data.
     match /clients/{clientId} {
       allow read, update: if isOwner() || isClient(clientId);
       allow create, delete, list: if isOwner();
     }
 
-    // Projects: Public read for portfolio. Write restricted to owner. Client can read their own projects.
+    // Projects: Public read for portfolio. Client can read their own projects. Owner can write anything.
     match /projects/{projectId} {
-      // Public portfolio can list and read projects
-      allow get, list: if true;
-
-      // Owner can create, update, delete any project
-      allow create, update, delete: if isOwner();
-      
-      // A client can also read a project if their UID matches the project's clientId
-      allow get: if isSignedIn() && isClient(resource.data.clientId);
+      allow get, list: if true; // Public portfolio can list and read projects
+      allow create, update, delete: if isOwner(); // Owner can create, update, delete any project
     }
     
     // Tickets: Only owner or the assigned client can access.
     match /tickets/{ticketId} {
-        allow read, update: if isOwner() || (isSignedIn() && isClient(get(/databases/$(database)/documents/tickets/$(ticketId)).data.clientId));
-        allow create, delete: if isOwner() || (isSignedIn() && isClient(request.resource.data.clientId));
+        allow create: if isOwner() || isClient(request.resource.data.clientId);
+        allow read, update: if isOwner() || isTicketClient(ticketId);
+        allow delete: if isOwner();
 
         // Comments on tickets
         match /comments/{commentId} {
-            allow read, create: if isOwner() || (isSignedIn() && isClient(get(/databases/$(database)/documents/tickets/$(ticketId)).data.clientId));
+            allow read, create: if isOwner() || isTicketClient(ticketId);
             allow update, delete: if isOwner();
         }
     }
 
     // Invoices: Only owner or the assigned client can read. Only owner can manage.
     match /invoices/{invoiceId} {
-      allow read: if isOwner() || (isSignedIn() && isClient(resource.data.clientId));
+      allow read: if isOwner() || isClient(resource.data.clientId);
       allow list, create, update, delete: if isOwner();
     }
 
     // Contact Form: Public can create, only owner can read/manage.
     match /contactFormSubmissions/{submissionId} {
       allow create: if true;
-      allow read, update, delete: if isOwner();
+      allow read, write: if isOwner();
     }
 
     // Site Settings: Public can read, only owner can write.
@@ -86,10 +96,9 @@ service cloud.firestore {
       allow write: if isOwner();
     }
     
-    // Default deny for any other path
+    // Default deny for any other path. This is a good security practice.
     match /{path=**} {
         allow read, write: if false;
     }
   }
 }
-    
