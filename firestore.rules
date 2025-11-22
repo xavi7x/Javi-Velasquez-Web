@@ -1,28 +1,82 @@
-/**
- * @fileoverview Firestore Security Rules for the portfolio and client portal.
- *
- * Core Philosophy:
- * This ruleset enforces a strict ownership model for all client-related data,
- * ensuring that a client can only access their own projects, tickets, and invoices.
- * The website owner has administrative access to all data. Public project
- * listings remain readable by anyone.
- *
- * Data Structure & Auth Logic:
- * - /owners/{uid}: Document ID is the Firebase Auth UID. Existence of this doc marks the user as an owner.
- * - /clients/{uid}: Document ID is the Firebase Auth UID. Links a user to their client data.
- * - /projects/{projectId}: Contains a `clientId` field.
- * - /tickets/{ticketId}: Contains a `clientId` field.
- * - /invoices/{invoiceId}: Contains a `clientId` field.
- */
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // TEMPORARY: Allow all authenticated access to unblock development due to a persistent internal error.
-    // This is a temporary measure to allow development to continue.
-    // TODO: Re-implement granular security rules before production.
-    match /{path=**} {
-      allow read, write: if request.auth != null;
+    
+    // =============================================
+    // Helper Functions
+    // =============================================
+    function isOwner() {
+      return exists(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
+    
+    function isClient() {
+      return exists(/databases/$(database)/documents/clients/$(request.auth.uid));
+    }
+
+    function isTheClient(clientId) {
+      return request.auth.uid == clientId;
+    }
+
+    // =============================================
+    // Public Access
+    // =============================================
+
+    // Anyone can read project data for the public portfolio
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if isOwner(); 
+    }
+    
+    // Anyone can submit the contact form
+    match /contactFormSubmissions/{submissionId} {
+      allow create: if true;
+      allow read, update, delete: if isOwner();
+    }
+    
+    // Site settings can be read by anyone (for maintenance mode check), but only written by owner
+    match /settings/site {
+        allow read: if true;
+        allow write: if isOwner();
+    }
+
+    // =============================================
+    // Owner-Only Access
+    // =============================================
+    
+    // Owners collection is only writeable/readable by the owner themselves,
+    // though this is mostly for setup. The isOwner() function is the real gate.
+    match /owners/{ownerId} {
+      allow read, write: if isOwner() && request.auth.uid == ownerId;
+    }
+
+    // =============================================
+    // Client-Specific Access
+    // =============================================
+
+    // Clients can read/update their own data
+    match /clients/{clientId} {
+      allow read, update: if isOwner() || isTheClient(clientId);
+      allow create, delete: if isOwner(); // Only owner can create/delete client records
+    }
+    
+    // Tickets can be managed by the client who owns it, or the owner
+    match /tickets/{ticketId} {
+        allow read, write: if isOwner() || (isClient() && request.auth.uid == resource.data.clientId);
+        // On create, check the incoming data
+        allow create: if isClient() && request.auth.uid == request.resource.data.clientId;
+    }
+
+    match /tickets/{ticketId}/comments/{commentId} {
+       allow read, write: if isOwner() || (isClient() && get(/databases/$(database)/documents/tickets/$(ticketId)).data.clientId == request.auth.uid);
+       allow create: if isOwner() || (isClient() && request.resource.data.authorId == request.auth.uid);
+    }
+
+    // Invoices can be read by the client who owns it, or the owner
+    match /invoices/{invoiceId} {
+      allow read: if isOwner() || (isClient() && resource.data.clientId == request.auth.uid);
+      allow create, update, delete: if isOwner();
+    }
+    
   }
 }
