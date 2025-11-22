@@ -90,9 +90,6 @@
 }
 
 @layer utilities {
-  .scrolling-wrapper {
-    @apply flex;
-  }
   .scrolling-content {
     @apply flex gap-4 animate-scroll;
   }

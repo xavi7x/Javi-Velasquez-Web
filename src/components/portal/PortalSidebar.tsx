@@ -83,10 +83,10 @@ export function PortalSidebar() {
 
   return (
     <>
-      <aside className="hidden lg:block w-72 flex-shrink-0 border-r bg-background">
+      <aside className="hidden md:block w-72 flex-shrink-0 border-r bg-background">
         <SidebarContent />
       </aside>
-       <header className="lg:hidden sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-20 sm:px-6 w-full">
+       <header className="md:hidden sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-20 sm:px-6 w-full">
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="shrink-0">
@@ -106,5 +106,3 @@ export function PortalSidebar() {
     </>
   );
 }
-
-    
