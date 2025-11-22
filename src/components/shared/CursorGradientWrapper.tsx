@@ -30,8 +30,7 @@ export function CursorGradientWrapper({ children }: { children: ReactNode }) {
   return (
     <div 
       ref={containerRef} 
-      className="relative overflow-hidden bg-background text-foreground bg-[radial-gradient(ellipse_400px_400px_at_var(--x,50%)_var(--y,50%),rgba(120,119,198,0.3),transparent)]"
-      style={{ '--x': '50%', '--y': '50%' } as React.CSSProperties}
+      className="cursor-gradient-wrapper relative overflow-hidden bg-background text-foreground"
     >
       <div className="relative z-10 flex min-h-dvh flex-col">
         {children}
