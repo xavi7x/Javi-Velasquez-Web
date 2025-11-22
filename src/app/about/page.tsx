@@ -37,9 +37,6 @@ export default function AboutPage() {
               <p className="leading-relaxed text-muted-foreground">
                 Me apasiona la intersección entre la creatividad y la tecnología. Utilizo un flujo de trabajo potenciado por IA que me permite saltar las barreras técnicas tradicionales y construir plataformas robustas de manera ágil. Mi objetivo no es solo que la web funcione, sino que sea escalable, estética y fácil de mantener, abarcando todo el ciclo de vida del proyecto con una visión integral.
               </p>
-              <p className="leading-relaxed text-muted-foreground">
-                Fuera del trabajo, me encontrarás explorando nuevas tecnologías, contribuyendo a proyectos de código abierto o buscando inspiración en la resolución de algoritmos complejos.
-              </p>
             </div>
             <div className="relative group order-first md:order-last">
                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
