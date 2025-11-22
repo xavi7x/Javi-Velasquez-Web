@@ -9,10 +9,42 @@ import GoogleAnalytics from '@/components/shared/GoogleAnalytics';
 import { GTM_ID } from '@/lib/gtag';
 import { QuantumLoader } from '@/components/shared/QuantumLoader';
 
+const title = 'Desarrollo Web Integral | Javier Velásquez';
+const description = 'Transformo ideas en experiencias digitales. Desarrollo de páginas web, aplicaciones y tiendas online a medida. Escalables, rápidas y con un diseño impecable.';
+const url = 'https://www.javivelasquez.com'; // Asume tu dominio final
+const imageUrl = `${url}/og-image.png`; // Asume una imagen para redes sociales
+
 export const metadata: Metadata = {
-  title: 'Velásquez Digital',
-  description: 'Portafolio de Tecnólogo Creativo y Diseñador',
+  title: title,
+  description: description,
+  keywords: ['desarrollo web', 'diseño web', 'nextjs', 'react', 'firebase', 'programador', 'freelance', 'aplicaciones web', 'ecommerce'],
+  authors: [{ name: 'Javier Velásquez', url: url }],
+  creator: 'Javier Velásquez',
+  
+  openGraph: {
+    type: 'website',
+    url: url,
+    title: title,
+    description: description,
+    images: [{
+      url: imageUrl,
+      width: 1200,
+      height: 630,
+      alt: 'Banner de Desarrollo Web Integral por Javier Velásquez',
+    }],
+  },
+  
+  twitter: {
+    card: 'summary_large_image',
+    title: title,
+    description: description,
+    images: [imageUrl],
+    creator: '@javivelasquez', // Asume tu usuario de Twitter
+  },
+
+  metadataBase: new URL(url),
 };
+
 
 export default function RootLayout({
   children,
