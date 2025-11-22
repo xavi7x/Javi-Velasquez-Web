@@ -2,57 +2,18 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // =============================================
-    // Helper Functions
-    // =============================================
-    function isOwner() {
-      // A user is an owner if their UID exists as a document ID in the 'owners' collection.
-      return exists(/databases/$(database)/documents/owners/$(request.auth.uid));
-    }
 
-    // =============================================
-    // Public Read Access
-    // =============================================
-
-    // Anyone can read project data for the public portfolio.
-    match /projects/{projectId} {
-      allow read: if true;
-      allow write: if isOwner();
+    // Reglas permisivas para desarrollo: 
+    // Cualquier usuario autenticado puede leer y escribir en toda la base de datos.
+    // ADVERTENCIA: No uses estas reglas en producción.
+    match /{path=**} {
+      allow read, write: if request.auth != null;
     }
     
-    // Site settings (like maintenance mode) are public to read.
-    match /settings/site {
-        allow read: if true;
-        allow write: if isOwner();
-    }
-
-    // About page content is public to read.
-    match /settings/about {
-        allow read: if true;
-        allow write: if isOwner();
-    }
-
-    // =============================================
-    // Authenticated-Only Write
-    // =============================================
-    
-    // Anyone can submit the contact form.
+    // Excepción: El formulario de contacto puede ser enviado por cualquiera.
     match /contactFormSubmissions/{submissionId} {
       allow create: if true;
-      allow read, update, delete: if isOwner();
-    }
-
-    // =============================================
-    // Owner & Client Data Access (Simplified)
-    // =============================================
-
-    // Default-deny all other collections.
-    // The rules below will grant specific access.
-    
-    // Owners have full access to everything else. This includes list, get, create, update, delete.
-    match /{path=**} {
-      allow read, write: if isOwner();
+      allow read, update, delete: if request.auth != null;
     }
   }
 }
