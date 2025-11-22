@@ -66,11 +66,11 @@ const AnimatedStat = ({
 
   return (
     <div ref={ref} className="text-center">
-      <p className="text-4xl sm:text-5xl font-bold tracking-tighter">
+      <p className="text-3xl sm:text-4xl font-bold tracking-tighter">
         {count}
         {suffix}
       </p>
-      <p className="text-xs sm:text-sm uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
     </div>
   );
 };
@@ -121,6 +121,13 @@ export default function AboutPage() {
                  )}
               </header>
 
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-4 py-6">
+                {stats.map((stat, index) => (
+                  <AnimatedStat key={index} finalValue={stat.value} label={stat.label} suffix={stat.suffix} />
+                ))}
+              </div>
+
               {/* Image (Mobile Only) */}
               <div className="relative group w-full max-w-[280px] mx-auto lg:hidden">
                  <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
@@ -150,13 +157,6 @@ export default function AboutPage() {
                   {content.subheadline}
                 </p>
               )}
-
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 py-6">
-                {stats.map((stat, index) => (
-                  <AnimatedStat key={index} finalValue={stat.value} label={stat.label} suffix={stat.suffix} />
-                ))}
-              </div>
 
               {/* Main Paragraph */}
               {isLoading ? (
