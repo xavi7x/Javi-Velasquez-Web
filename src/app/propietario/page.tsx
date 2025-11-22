@@ -8,8 +8,10 @@ import {
   AreaChart,
   ExternalLink,
   Menu,
+  Users,
 } from 'lucide-react';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
+import { ClientsView } from '@/components/propietario/ClientsView';
 import {
   MessagesView,
   type Message,
@@ -105,6 +107,7 @@ export default function OwnerDashboard() {
   }, [messages]);
 
   const handleLogout = async () => {
+    if (!auth) return;
     await signOut(auth);
     router.push('/login');
   };
@@ -118,6 +121,8 @@ export default function OwnerDashboard() {
     switch (activeView) {
       case 'projects':
         return <ProjectsView />;
+      case 'clients':
+        return <ClientsView />;
       case 'messages':
         return (
           <MessagesView
@@ -154,6 +159,14 @@ export default function OwnerDashboard() {
         >
           <Briefcase className="h-4 w-4" />
           <span>Proyectos</span>
+        </Button>
+        <Button
+          variant={activeView === 'clients' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('clients')}
+        >
+          <Users className="h-4 w-4" />
+          <span>Clientes</span>
         </Button>
         <Button
           variant={activeView === 'messages' ? 'default' : 'ghost'}
@@ -266,12 +279,14 @@ export default function OwnerDashboard() {
             <div>
               <h1 className="text-xl md:text-3xl font-bold tracking-tight">
                 {activeView === 'projects' && 'Gestión de Proyectos'}
+                {activeView === 'clients' && 'Gestión de Clientes'}
                 {activeView === 'messages' && 'Mensajes Recibidos'}
                 {activeView === 'traffic' && 'Análisis de Tráfico'}
               </h1>
               <p className="text-muted-foreground text-sm md:text-base">
                 {activeView === 'projects' &&
                   'Añade, edita y elimina los proyectos de tu portafolio.'}
+                {activeView === 'clients' && 'Administra las cuentas y el acceso de tus clientes.'}
                 {activeView === 'messages' &&
                   'Aquí puedes ver los mensajes enviados desde el formulario de contacto.'}
                 {activeView === 'traffic' &&
