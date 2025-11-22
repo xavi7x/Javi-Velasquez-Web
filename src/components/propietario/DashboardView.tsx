@@ -157,48 +157,6 @@ export function DashboardView({ setActiveView }: DashboardViewProps) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Projects */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div className="space-y-1.5">
-                <CardTitle>Proyectos Recientes</CardTitle>
-                <CardDescription>Un vistazo a tus últimos proyectos.</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => setActiveView('projects')}>
-                Ver Todos <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Proyecto</TableHead>
-                        <TableHead className="hidden sm:table-cell">Modificado</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                {isProjectsLoading ? (
-                    [...Array(3)].map((_, i) => (
-                        <TableRow key={i}>
-                            <TableCell><Skeleton className="h-5 w-2/3" /></TableCell>
-                            <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
-                        </TableRow>
-                    ))
-                ) : projects?.length ? projects.map(p => (
-                    <TableRow key={p.id}>
-                        <TableCell className="font-medium">{p.title}</TableCell>
-                        <TableCell className="hidden sm:table-cell text-muted-foreground text-xs">{p.updatedAt ? format(p.updatedAt.toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}</TableCell>
-                    </TableRow>
-                )) : (
-                    <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground py-12">No hay proyectos aún.</TableCell>
-                    </TableRow>
-                )}
-                </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        
         {/* Quick Actions & Recent Clients */}
         <div className="space-y-6">
             <Card>
