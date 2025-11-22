@@ -105,31 +105,60 @@ export default function AboutPage() {
       <Header />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-16 md:px-6 md:py-24">
-          <div className="grid gap-8 lg:grid-cols-3 lg:gap-16 items-start">
-            <div className="flex flex-col justify-center space-y-6 lg:col-span-2 order-last lg:order-first">
+          <div className="grid gap-8 lg:grid-cols-3 lg:gap-12 items-start">
+            
+            {/* --- Text Content Column --- */}
+            <div className="flex flex-col space-y-6 lg:col-span-2">
+              
+              {/* Headline */}
               <header>
                  {isLoading ? (
-                  <>
-                    <Skeleton className="h-12 w-3/4" />
-                    <Skeleton className="h-6 w-full mt-4" />
-                    <Skeleton className="h-6 w-5/6 mt-2" />
-                  </>
+                  <Skeleton className="h-12 w-3/4" />
                 ) : (
-                  <>
                   <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
                     {content.headline}
                   </h1>
-                  <p className="mt-4 max-w-xl text-lg text-muted-foreground md:text-xl">
-                    {content.subheadline}
-                  </p>
-                  </>
                  )}
               </header>
+
+              {/* Image (Mobile Only) */}
+              <div className="relative group w-full max-w-[280px] mx-auto lg:hidden">
+                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                {isLoading ? (
+                   <Skeleton className="aspect-[3/4] w-full rounded-3xl" />
+                ) : (
+                  <Image
+                    src={content.imageUrl}
+                    alt="Javier Velásquez"
+                    width={450}
+                    height={600}
+                    className="relative h-full w-full rounded-3xl object-cover"
+                    data-ai-hint="portrait person"
+                    priority
+                  />
+                )}
+              </div>
+
+              {/* Subheadline */}
+              {isLoading ? (
+                <div className="space-y-2">
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-5/6" />
+                </div>
+              ) : (
+                <p className="max-w-prose text-lg text-muted-foreground md:text-xl">
+                  {content.subheadline}
+                </p>
+              )}
+
+              {/* Stats */}
               <div className="grid grid-cols-3 gap-4 py-6">
                 {stats.map((stat, index) => (
                   <AnimatedStat key={index} finalValue={stat.value} label={stat.label} suffix={stat.suffix} />
                 ))}
               </div>
+
+              {/* Main Paragraph */}
               {isLoading ? (
                 <div className="space-y-2">
                   <Skeleton className="h-5 w-full" />
@@ -137,12 +166,14 @@ export default function AboutPage() {
                   <Skeleton className="h-5 w-4/5" />
                 </div>
               ) : (
-                 <p className="leading-relaxed text-muted-foreground">
+                 <p className="leading-relaxed text-muted-foreground max-w-prose">
                   {content.mainParagraph}
                 </p>
               )}
             </div>
-            <div className="relative group w-full max-w-xs mx-auto lg:col-span-1 order-first lg:order-last">
+
+            {/* --- Image Column (Desktop Only) --- */}
+            <div className="relative group w-full max-w-xs mx-auto hidden lg:block lg:order-first">
                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
               {isLoading ? (
                  <Skeleton className="aspect-[3/4] w-full rounded-3xl" />
@@ -158,6 +189,7 @@ export default function AboutPage() {
                 />
               )}
             </div>
+
           </div>
         </div>
         <section
