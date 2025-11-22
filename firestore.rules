@@ -2,18 +2,20 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Reglas permisivas para desarrollo: 
-    // Cualquier usuario autenticado puede leer y escribir en la base de datos.
-    // ADVERTENCIA: No uses estas reglas en producción.
-    match /{path=**} {
-      allow read, write: if request.auth != null;
-    }
     
-    // Excepción: El formulario de contacto puede ser enviado por cualquiera.
+    // Regla específica para el formulario de contacto.
     match /contactFormSubmissions/{submissionId} {
+      // Cualquiera puede crear (enviar) un formulario.
       allow create: if true;
+      // Solo usuarios autenticados pueden leer o borrar envíos.
       allow read, update, delete: if request.auth != null;
+    }
+
+    // Regla para todos los demás documentos no cubiertos arriba.
+    // Permite a cualquier usuario autenticado leer y escribir.
+    // Ideal para desarrollo, pero debe restringirse en producción.
+    match /{path=**}/documents/{document=**} {
+       allow read, write: if request.auth != null;
     }
   }
 }
