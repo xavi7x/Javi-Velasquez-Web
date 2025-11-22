@@ -2,9 +2,6 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ATENCIÓN: Reglas permisivas solo para desarrollo.
-    // Cualquiera puede leer y escribir en cualquier parte de la base de datos.
-    // Se deben asegurar antes de pasar a producción.
     match /{document=**} {
       allow read, write: if true;
     }
