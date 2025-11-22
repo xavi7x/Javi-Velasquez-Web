@@ -32,7 +32,11 @@ export default function RootLayout({
         <Suspense>
           <GoogleAnalytics gaId={GTM_ID} />
         </Suspense>
-        <ThemeProvider defaultTheme="dark" enableSystem={false} attribute="class">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+        >
           <FirebaseClientProvider>
             {children}
             <AvailabilityStatus />
