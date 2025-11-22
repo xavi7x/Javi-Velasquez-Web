@@ -49,10 +49,9 @@ service cloud.firestore {
 
     // Default-deny all other collections.
     // The rules below will grant specific access.
-
-    // Owners have full access to everything else.
-    // Clients can read their own specific data, but writes are restricted for now to simplify.
-    match /{document=**} {
+    
+    // Owners have full access to everything else. This includes list, get, create, update, delete.
+    match /{path=**} {
       allow read, write: if isOwner();
     }
   }
