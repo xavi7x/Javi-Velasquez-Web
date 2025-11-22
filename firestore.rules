@@ -84,10 +84,5 @@ service cloud.firestore {
       allow get: if true;
       allow write: if isOwner();
     }
-    
-    // Default deny for any other path. This is a good security practice.
-    match /{path=**} {
-        allow read, write: if false;
-    }
   }
 }
