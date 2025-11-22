@@ -31,7 +31,7 @@ export default function AboutPage() {
                   Transformando Ideas en Código
                 </h1>
                 <p className="mt-4 max-w-xl text-lg text-muted-foreground md:text-xl">
-                  Soy Javier Velásquez, un desarrollador de software apasionado por construir productos digitales que sean eficientes, escalables y resuelvan problemas reales.
+                  Soy Javier, un desarrollador apasionado por construir productos digitales que sean eficientes, escalables y resuelvan problemas reales.
                 </p>
               </header>
               <p className="leading-relaxed text-muted-foreground">
