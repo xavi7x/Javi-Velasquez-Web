@@ -1,18 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { MainContent } from '@/components/home/MainContent';
 import { ComingSoon } from '@/components/home/ComingSoon';
 import { doc } from 'firebase/firestore';
 
 export default function Home() {
-  const [isClient, setIsClient] = useState(false);
+  // The isClient state is no longer necessary and has been removed 
+  // to prevent the flickering effect on page load.
   const firestore = useFirestore();
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const settingsRef = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -23,11 +20,12 @@ export default function Home() {
     settingsRef
   );
 
-  // Render ComingSoon by default and on server to avoid layout shifts/skeletons.
-  // Once the client loads and confirms maintenance mode is off, show MainContent.
-  if (!isClient || isLoading || settings?.isMaintenanceMode) {
+  // Render ComingSoon while loading or if maintenance mode is on.
+  // Defaults to ComingSoon on initial server render because isLoading is true.
+  if (isLoading || settings?.isMaintenanceMode) {
     return <ComingSoon />;
   }
 
+  // Once loading is complete and maintenance mode is off, render the full content.
   return <MainContent />;
 }
