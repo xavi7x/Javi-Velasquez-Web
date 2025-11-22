@@ -11,10 +11,10 @@ service cloud.firestore {
       allow read, update, delete: if request.auth != null;
     }
 
-    // Regla para todos los demás documentos no cubiertos arriba.
-    // Permite a cualquier usuario autenticado leer y escribir.
-    // Ideal para desarrollo, pero debe restringirse en producción.
-    match /{path=**}/documents/{document=**} {
+    // Regla para todos los demás documentos. Permite a cualquier usuario autenticado
+    // leer y escribir en CUALQUIER ruta (incluyendo colecciones).
+    // Esto es permisivo para el desarrollo.
+    match /{path=**} {
        allow read, write: if request.auth != null;
     }
   }
