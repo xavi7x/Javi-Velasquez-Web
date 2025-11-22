@@ -25,3 +25,16 @@ export interface Client {
     email: string;
     companyName: string;
 }
+
+export interface Invoice {
+  id: string;
+  projectId: string;
+  clientId: string;
+  invoiceNumber: string;
+  concept: string;
+  amount: number;
+  issueDate: string; // ISO Date String
+  dueDate: string;   // ISO Date String
+  status: 'Pending' | 'Paid' | 'Overdue';
+  pdfUrl?: string;
+}

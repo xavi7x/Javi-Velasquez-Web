@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Menu,
   Users,
+  CreditCard,
 } from 'lucide-react';
 import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { ClientsView } from '@/components/propietario/ClientsView';
@@ -17,6 +18,7 @@ import {
   type Message,
 } from '@/components/propietario/MessagesView';
 import { AnalyticsView } from '@/components/propietario/AnalyticsView';
+import { FinancesView } from '@/components/propietario/FinancesView';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -133,6 +135,8 @@ export default function OwnerDashboard() {
         );
       case 'traffic':
         return <AnalyticsView />;
+      case 'finance':
+        return <FinancesView />;
       default:
         return <ProjectsView />;
     }
@@ -167,6 +171,14 @@ export default function OwnerDashboard() {
         >
           <Users className="h-4 w-4" />
           <span>Clientes</span>
+        </Button>
+        <Button
+          variant={activeView === 'finance' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('finance')}
+        >
+          <CreditCard className="h-4 w-4" />
+          <span>Finanzas</span>
         </Button>
         <Button
           variant={activeView === 'messages' ? 'default' : 'ghost'}
@@ -282,11 +294,13 @@ export default function OwnerDashboard() {
                 {activeView === 'clients' && 'Gestión de Clientes'}
                 {activeView === 'messages' && 'Mensajes Recibidos'}
                 {activeView === 'traffic' && 'Análisis de Tráfico'}
+                {activeView === 'finance' && 'Gestión Financiera'}
               </h1>
               <p className="text-muted-foreground text-sm md:text-base">
                 {activeView === 'projects' &&
                   'Añade, edita y elimina los proyectos de tu portafolio.'}
                 {activeView === 'clients' && 'Administra las cuentas y el acceso de tus clientes.'}
+                {activeView === 'finance' && 'Visualiza el estado de las facturas y pagos.'}
                 {activeView === 'messages' &&
                   'Aquí puedes ver los mensajes enviados desde el formulario de contacto.'}
                 {activeView === 'traffic' &&
