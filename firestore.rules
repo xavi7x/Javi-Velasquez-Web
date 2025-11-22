@@ -40,6 +40,12 @@ service cloud.firestore {
         allow write: if isOwner();
     }
 
+    // About page content is public to read, but only owner can write
+    match /settings/about {
+        allow read: if true;
+        allow write: if isOwner();
+    }
+
     // =============================================
     // Owner-Only Access
     // =============================================
