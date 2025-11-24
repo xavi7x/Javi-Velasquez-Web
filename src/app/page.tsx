@@ -8,6 +8,8 @@ import { ComingSoon } from '@/components/home/ComingSoon';
 import { QuantumLoader } from '@/components/shared/QuantumLoader';
 import type { Project } from '@/lib/project-types';
 
+const OWNER_ID = 'H8PgEUNupRNQhBpfAxiEA3jNVSf2';
+
 function HomePageContent() {
   const firestore = useFirestore();
 
@@ -23,7 +25,7 @@ function HomePageContent() {
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(
-      collection(firestore, 'projects'),
+      collection(firestore, 'clients', OWNER_ID, 'projects'),
       where('isPublic', '==', true),
       orderBy('order', 'asc')
     );

@@ -75,19 +75,17 @@ export function MyWebView() {
 
   const firestore = useFirestore();
 
-  // THIS IS THE CRITICAL CHANGE: The query is now inside the component that uses it.
   const projectsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    // Only fetch projects of type 'portfolio' for this view
-    return query(collection(firestore, 'projects'), orderBy('order', 'asc'));
-  }, [firestore]);
+    if (!firestore || !user) return null;
+    return query(collection(firestore, 'clients', user.uid, 'projects'), orderBy('order', 'asc'));
+  }, [firestore, user]);
 
   const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
 
   const openAddModal = () => {
     setEditingProject({
         ...emptyProject,
-        order: (projects?.length || 0) + 1, // Default order to last
+        order: (projects?.length || 0) + 1,
     });
     setIsEditing(false);
     setIsModalOpen(true);
@@ -162,17 +160,14 @@ export function MyWebView() {
   const handleRemoveGalleryImage = (imageUrl: string) => {
     if(!editingProject) return;
 
-    // Filter out the image to be removed
     const updatedImages = editingProject.images?.filter(img => img !== imageUrl) || [];
     handleFormChange('images', updatedImages);
 
-    // Optional: Delete from Firebase Storage
     const storage = getStorage();
     const imageRef = storageRef(storage, imageUrl);
     deleteObject(imageRef).then(() => {
         toast({ title: 'Imagen eliminada', description: 'La imagen ha sido eliminada de la galería y del almacenamiento.' });
     }).catch(error => {
-        // If it fails, it's not critical, but good to know. The link is removed from Firestore anyway.
         console.error("Error deleting image from Storage:", error);
     });
   }
@@ -181,31 +176,32 @@ export function MyWebView() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!firestore || !editingProject || !editingProject.title) {
+    if (!firestore || !editingProject || !editingProject.title || !user) {
         toast({ variant: "destructive", title: "Error", description: "El título es obligatorio." });
         return;
     }
     
     setIsSubmitting(true);
 
-    const projectData = {
+    const projectData: Partial<Project> = {
         ...editingProject,
+        clientId: user.uid,
         order: Number(editingProject.order || 0),
         type: 'portfolio',
-        isPublic: editingProject.isPublic ?? true, // Ensure isPublic is set
+        isPublic: editingProject.isPublic ?? true,
     };
 
     try {
         if (isEditing && editingProject.id) {
-            const projectRef = doc(firestore, 'projects', editingProject.id);
+            const projectRef = doc(firestore, 'clients', user.uid, 'projects', editingProject.id);
             await setDoc(projectRef, projectData, { merge: true });
             toast({
                 title: "Proyecto actualizado",
                 description: `El proyecto "${projectData.title}" ha sido actualizado.`
             });
         } else {
-            const collectionRef = collection(firestore, 'projects');
-            const docRef = await addDoc(collectionRef, { ...projectData, id: '' });
+            const collectionRef = collection(firestore, 'clients', user.uid, 'projects');
+            const docRef = await addDoc(collectionRef, projectData);
             await updateDoc(docRef, { id: docRef.id });
 
             toast({
@@ -215,7 +211,7 @@ export function MyWebView() {
         }
         closeModal();
     } catch (error: any) {
-        const path = isEditing && editingProject.id ? `projects/${editingProject.id}` : 'projects';
+        const path = isEditing && editingProject.id ? `clients/${user.uid}/projects/${editingProject.id}` : `clients/${user.uid}/projects`;
         const operation = isEditing ? 'update' : 'create';
         const contextualError = new FirestorePermissionError({ path, operation, requestResourceData: projectData });
         errorEmitter.emit('permission-error', contextualError);
@@ -225,15 +221,15 @@ export function MyWebView() {
   };
 
   const handleDeleteProject = async () => {
-    if (!projectToDelete || !firestore) return;
+    if (!projectToDelete || !firestore || !user) return;
     
     try {
-      const projectRef = doc(firestore, 'projects', projectToDelete.id);
+      const projectRef = doc(firestore, 'clients', user.uid, 'projects', projectToDelete.id);
       await deleteDoc(projectRef);
       toast({ title: "Proyecto eliminado", description: `"${projectToDelete.title}" ha sido eliminado.` });
     } catch(error) {
       const contextualError = new FirestorePermissionError({
-          path: `projects/${projectToDelete.id}`,
+          path: `clients/${user.uid}/projects/${projectToDelete.id}`,
           operation: 'delete',
       });
       errorEmitter.emit('permission-error', contextualError);
@@ -243,8 +239,8 @@ export function MyWebView() {
   };
 
   const toggleProjectVisibility = async (project: Project) => {
-    if (!firestore) return;
-    const projectRef = doc(firestore, 'projects', project.id);
+    if (!firestore || !user) return;
+    const projectRef = doc(firestore, 'clients', user.uid, 'projects', project.id);
     const newVisibility = !project.isPublic;
     try {
         await updateDoc(projectRef, { isPublic: newVisibility });

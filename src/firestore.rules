@@ -8,73 +8,47 @@ service cloud.firestore {
     }
 
     function isOwner() {
-      // Check if the user's UID exists in the 'owners' collection.
       return exists(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
 
     function isClient(clientId) {
-      // Check if the signed-in user's UID matches the requested clientId.
       return isSignedIn() && request.auth.uid == clientId;
     }
 
-    // Owners can read and write their own documents.
     match /owners/{ownerId} {
       allow read, write: if isOwner();
     }
 
-    // Owner can create clients.
-    // Owner or the specific client can read/update a client's document.
     match /clients/{clientId} {
       allow create: if isOwner();
       allow read, update: if isOwner() || isClient(clientId);
       
-      // A client can read/write to their own projects subcollection.
-      // The owner can also read/write.
       match /projects/{projectId} {
+        // Public read for individual public projects
+        allow get: if resource.data.isPublic == true;
+        
+        // Owner and the specific client can read the full list and write
         allow read, write: if isOwner() || isClient(clientId);
       }
     }
     
-    // Rules for the top-level 'projects' collection (public portfolio)
-    match /projects/{projectId} {
-        // Allow public listing ONLY IF the query filters for public projects.
-        // This is the key rule to allow the homepage query.
-        allow list: if request.query.where.size() > 0 &&
-                       request.query.where[0].field == 'isPublic' &&
-                       request.query.where[0].op == '==' &&
-                       request.query.where[0].value == true;
-
-        // Allow public read of individual documents if they are public.
-        allow get: if resource.data.isPublic == true;
-
-        // Owner can read (list, get) and write the entire collection.
-        // This gives the owner full access in the admin panel.
-        allow read, write: if isOwner();
-    }
-
-    // Tickets can be read/written by the owner or the client who created it.
     match /tickets/{ticketId} {
       allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
       
-      // Comments can be read/written by owner or the author of the comment.
       match /comments/{commentId} {
         allow read, write: if isOwner() || (isSignedIn() && resource.data.authorId == request.auth.uid);
       }
     }
 
-    // Invoices can be read/written by owner or the associated client.
     match /invoices/{invoiceId} {
       allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
     }
     
-    // Site settings can be read by anyone, but only written by the owner.
     match /settings/{docId} {
       allow read: if true;
       allow write: if isOwner();
     }
 
-    // Contact form submissions can be created by anyone.
-    // Only the owner can read/manage them.
     match /contactFormSubmissions/{submissionId} {
       allow create: if true;
       allow read, update, delete: if isOwner();

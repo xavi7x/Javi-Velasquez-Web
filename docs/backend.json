@@ -57,7 +57,7 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was created." },
         "updatedAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was last updated." }
       },
-      "required": ["id", "title", "order", "type"]
+      "required": ["id", "clientId", "title", "order", "type"]
     },
     "Owner": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -181,7 +181,7 @@
       },
        {
         "path": "/clients/{clientId}/projects/{projectId}",
-        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "A sub-collection to easily query projects for a specific client." }
+        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "Stores all projects, both public (portfolio) and private, within a client's sub-collection. Public projects are identified by the 'isPublic' flag." }
       },
       {
         "path": "/tickets/{ticketId}",
