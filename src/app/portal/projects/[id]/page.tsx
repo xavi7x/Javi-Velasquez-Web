@@ -1,5 +1,6 @@
 'use client';
 
+import { useParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -8,7 +9,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-export default function ProjectDetailPage({ params }: { params: { id: string } }) {
+export default function ProjectDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
+  
   // Mock data - replace with real data from Firestore
   const projectName = 'Diseño de App Móvil';
 
@@ -16,7 +20,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     <div className="flex-1 p-4 sm:p-6 md:p-8">
       <header className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Proyecto: {projectName}</h1>
-        <p className="text-muted-foreground">ID del Proyecto: {params.id}</p>
+        <p className="text-muted-foreground">ID del Proyecto: {id}</p>
       </header>
       <Card>
         <CardHeader>
@@ -32,5 +36,3 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     </div>
   );
 }
-
-    
