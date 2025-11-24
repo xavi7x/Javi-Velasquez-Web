@@ -36,7 +36,7 @@ export function PortfolioGrid({ projects, isLoading }: PortfolioGridProps) {
         </div>
       )}
 
-      {!isLoading && !projects?.length && (
+      {!isLoading && (!projects || projects.length === 0) && (
          <div className="mt-16 h-48 flex flex-col items-center justify-center text-center bg-muted/50 rounded-2xl">
             <h3 className="text-lg font-semibold">Portafolio en Construcción</h3>
             <p className="text-muted-foreground text-sm max-w-sm">
