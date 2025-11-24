@@ -29,6 +29,7 @@ service cloud.firestore {
     }
     
     match /projects/{projectId} {
+      // Public can read, authenticated can write
       allow read: if true;
       allow write: if isSignedIn();
     }
@@ -54,8 +55,7 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if isOwner();
     }
-
-    // Regla general para el resto de documentos (menos segura)
+    
     match /{document=**} {
       allow read, write: if isSignedIn();
     }
