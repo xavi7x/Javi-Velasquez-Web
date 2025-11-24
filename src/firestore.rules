@@ -39,8 +39,11 @@ service cloud.firestore {
     match /projects/{projectId} {
         // Allow public read for individual documents that are public
         allow get: if resource.data.isPublic == true;
-        
-        // Allow the owner to read, create, update, delete any project
+        // Allow public list only if querying for public projects
+        allow list: if request.query.get("where")[0][1] == "isPublic" &&
+                       request.query.get("where")[0][2] == true;
+
+        // Allow owner to do anything
         allow read, write: if isOwner();
     }
 
