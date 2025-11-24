@@ -39,7 +39,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import type { Client } from '@/lib/project-types';
-import { PlusCircle, Trash, Loader2, Copy } from 'lucide-react';
+import { PlusCircle, Trash, Loader2, Copy, Edit } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, setDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from "firebase/functions";
@@ -76,6 +76,13 @@ export function ClientsView() {
     setIsModalOpen(true);
     setNewPassword('');
   };
+  
+  const openEditModal = (client: Client) => {
+    setEditingClient(client);
+    setIsEditing(true);
+    setIsModalOpen(true);
+    setNewPassword('');
+  };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,14 +92,33 @@ export function ClientsView() {
         return;
     }
     
+    setIsSubmitting(true);
+
     if (isEditing) {
-        // TODO: Implement editing logic if needed. For now, we only create.
-        // It would involve a cloud function to update user email, or just updating Firestore data.
+        if (!editingClient.id) return;
+        try {
+            const clientRef = doc(firestore, 'clients', editingClient.id);
+            const clientDataToUpdate = {
+                name: editingClient.name,
+                companyName: editingClient.companyName || '',
+                email: editingClient.email, // email is readonly in form but we pass it
+            };
+            await setDoc(clientRef, clientDataToUpdate, { merge: true });
+            toast({
+                title: "Cliente actualizado",
+                description: `Los datos de ${editingClient.name} han sido actualizados.`
+            });
+            closeModal();
+        } catch (error: any) {
+            console.error("Error updating client:", error);
+            toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message || 'Ocurrió un error inesperado.' });
+        } finally {
+            setIsSubmitting(false);
+        }
         return;
     }
     
-    setIsSubmitting(true);
-    
+    // Logic for creating a new client
     try {
         const functions = getFunctions();
         const createClientUser = httpsCallable(functions, 'createClientUser');
@@ -165,6 +191,8 @@ export function ClientsView() {
   }
 
   const modalTitle = isEditing ? 'Editar Cliente' : 'Añadir Nuevo Cliente';
+  const modalDescription = isEditing ? 'Modifica los datos del cliente. El email no se puede cambiar.' : 'Crea una cuenta para que un nuevo cliente pueda acceder a su portal.';
+
 
   return (
     <div className="space-y-8">
@@ -197,7 +225,10 @@ export function ClientsView() {
                             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                             <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                             <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-48" /></TableCell>
-                            <TableCell className="text-right"><Skeleton className="h-9 w-9 rounded-full inline-block" /></TableCell>
+                            <TableCell className="text-right space-x-2">
+                                <Skeleton className="h-9 w-9 rounded-full inline-block" />
+                                <Skeleton className="h-9 w-9 rounded-full inline-block" />
+                            </TableCell>
                         </TableRow>
                     ))
                 ) : clients?.length === 0 ? (
@@ -214,6 +245,14 @@ export function ClientsView() {
                       {client.companyName || 'N/A'}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
+                       <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => openEditModal(client)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="destructive"
                         size="icon"
@@ -237,7 +276,7 @@ export function ClientsView() {
             <DialogHeader>
               <DialogTitle>{modalTitle}</DialogTitle>
               <DialogDescription>
-                Crea una cuenta para que un nuevo cliente pueda acceder a su portal.
+                {modalDescription}
               </DialogDescription>
             </DialogHeader>
             {newPassword ? (
@@ -259,7 +298,7 @@ export function ClientsView() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" value={editingClient.email || ''} onChange={e => setEditingClient({...editingClient, email: e.target.value})} placeholder="cliente@email.com" disabled={isSubmitting} />
+                        <Input id="email" type="email" value={editingClient.email || ''} onChange={e => setEditingClient({...editingClient, email: e.target.value})} placeholder="cliente@email.com" disabled={isSubmitting || isEditing} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="companyName">Nombre de la Empresa</Label>
@@ -270,12 +309,12 @@ export function ClientsView() {
 
             <DialogFooter>
                 <Button type="button" variant="secondary" onClick={closeModal}>
-                  Cerrar
+                  {newPassword ? 'Cerrar' : 'Cancelar'}
                 </Button>
               {!newPassword && (
                 <Button type="submit" form="client-form" disabled={isSubmitting}>
                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {isSubmitting ? 'Creando...' : 'Crear Cliente'}
+                  {isSubmitting ? (isEditing ? 'Guardando...' : 'Creando...') : (isEditing ? 'Guardar Cambios' : 'Crear Cliente')}
                 </Button>
               )}
             </DialogFooter>
