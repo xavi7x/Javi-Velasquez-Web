@@ -24,14 +24,15 @@ service cloud.firestore {
       allow read, update: if isOwner() || isClient(clientId);
       
       match /projects/{projectId} {
+        // A client can read/write to their own projects subcollection
         allow read, write: if isOwner() || isClient(clientId);
       }
     }
     
     match /projects/{projectId} {
-      // Public can read, authenticated can write
-      allow read: if true;
-      allow write: if isSignedIn();
+      // Public can read portfolio projects, owner can write anything
+      allow read: if resource.data.type == 'portfolio' || isOwner();
+      allow write: if isOwner();
     }
 
     match /tickets/{ticketId} {
@@ -54,10 +55,6 @@ service cloud.firestore {
     match /contactFormSubmissions/{submissionId} {
       allow create: if true;
       allow read, update, delete: if isOwner();
-    }
-    
-    match /{document=**} {
-      allow read, write: if isSignedIn();
     }
   }
 }

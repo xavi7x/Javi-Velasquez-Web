@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import type { Project } from '@/lib/project-types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ export default function ProjectsPage() {
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return collection(firestore, 'clients', user.uid, 'projects');
+    return query(collection(firestore, 'clients', user.uid, 'projects'), orderBy('order', 'asc'));
   }, [firestore, user]);
 
   const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
