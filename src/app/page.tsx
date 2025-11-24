@@ -33,7 +33,7 @@ function HomePageContent() {
 
   const isLoading = isSettingsLoading || areProjectsLoading;
 
-  if (isLoading) {
+  if (isSettingsLoading) {
     return <QuantumLoader />;
   }
 
@@ -41,7 +41,7 @@ function HomePageContent() {
     return <ComingSoon />;
   }
 
-  return <MainContent projects={projectsData} isLoading={isLoading}/>;
+  return <MainContent projects={projectsData} isLoading={areProjectsLoading}/>;
 }
 
 export default function Home() {
