@@ -17,7 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
 import { useAuth, useFirestore } from '@/firebase';
-import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
+import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -98,6 +98,33 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!auth) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Servicio de autenticación no disponible.' });
+        return;
+    }
+    if (!email) {
+        toast({ variant: 'destructive', title: 'Falta correo', description: 'Por favor, ingresa tu correo electrónico para restablecer la contraseña.' });
+        return;
+    }
+    setIsLoading(true);
+    try {
+        await sendPasswordResetEmail(auth, email);
+        toast({
+            title: 'Correo de recuperación enviado',
+            description: 'Revisa tu bandeja de entrada para restablecer tu contraseña.',
+        });
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'No se pudo enviar el correo. Verifica que la dirección sea correcta.',
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <Header />
@@ -174,6 +201,9 @@ export default function LoginPage() {
                     />
                     <Label htmlFor="remember-me">Mantener sesión</Label>
                 </div>
+                <Button variant="link" type="button" className="p-0 h-auto text-sm" onClick={handleForgotPassword} disabled={isLoading}>
+                    Olvidé mi contraseña
+                </Button>
               </div>
               <Button type="submit" className={cn("w-full", "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:brightness-110")} disabled={isLoading}>
                 {isLoading ? 'Iniciando...' : 'Iniciar Sesión'}
