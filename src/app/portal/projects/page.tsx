@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ClientProject } from '@/lib/project-types';
+import { useEffect } from 'react';
 
 const ProjectCardSkeleton = () => (
   <Card>
@@ -50,6 +51,17 @@ const getStatusVariant = (status: ClientProject['status']) => {
 export default function ProjectsPage() {
   const { user } = useUser();
   const { data: projects, isLoading } = useClientProjects({ clientId: user?.uid });
+  
+  // --- DEBUG LOGGING ---
+  useEffect(() => {
+    console.log('--- DEBUG: ProjectsPage ---');
+    console.log('User ID:', user?.uid);
+    console.log('Is Loading:', isLoading);
+    console.log('Projects Data:', projects);
+    console.log('-------------------------');
+  }, [user, isLoading, projects]);
+  // --- END DEBUG LOGGING ---
+
 
   return (
     <div className="flex-1 p-4 sm:p-6 md:p-8">
