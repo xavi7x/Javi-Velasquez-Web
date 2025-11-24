@@ -42,7 +42,9 @@ import type { Client } from '@/lib/project-types';
 import { PlusCircle, Trash, Loader2, Copy, Edit } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, setDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { initializeApp, getApps, getApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { firebaseConfig } from '@/firebase/config';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 
@@ -119,29 +121,27 @@ export function ClientsView() {
     }
     
     // Logic for creating a new client
+    // Create a secondary Firebase app instance to create the user
+    const tempAppName = `temp-client-creation-${Date.now()}`;
+    const tempApp = initializeApp(firebaseConfig, tempAppName);
+    const tempAuth = getAuth(tempApp);
+    
     try {
-        const functions = getFunctions();
-        const createClientUser = httpsCallable(functions, 'createClientUser');
-
         const password = Math.random().toString(36).slice(-8);
-
-        const result = await createClientUser({
-            email: editingClient.email,
-            password: password,
-            displayName: editingClient.name,
-        });
-
-        const { uid } = (result.data as { uid: string });
+        const userCredential = await createUserWithEmailAndPassword(tempAuth, editingClient.email, password);
+        const user = userCredential.user;
+        
+        await signOut(tempAuth); // Sign out the new user from the temporary instance
 
         const clientData = {
-            uid: uid,
-            id: uid,
+            uid: user.uid,
+            id: user.uid,
             name: editingClient.name,
             email: editingClient.email,
             companyName: editingClient.companyName || '',
         };
 
-        const clientRef = doc(firestore, 'clients', uid);
+        const clientRef = doc(firestore, 'clients', user.uid);
         await setDoc(clientRef, clientData);
 
         setNewPassword(password);
@@ -153,8 +153,17 @@ export function ClientsView() {
 
     } catch (error: any) {
         console.error("Error creating client:", error);
-        toast({ variant: 'destructive', title: 'Error al crear cliente', description: error.message || 'Ocurrió un error inesperado.' });
+        let description = 'Ocurrió un error inesperado.';
+        if (error.code === 'auth/email-already-in-use') {
+            description = 'El correo electrónico ya está en uso por otra cuenta.';
+        } else if (error.code === 'auth/invalid-email') {
+            description = 'El formato del correo electrónico no es válido.';
+        }
+        toast({ variant: 'destructive', title: 'Error al crear cliente', description: description });
         setIsSubmitting(false); // only stop submitting on error
+    } finally {
+        // Clean up the temporary app
+        await deleteApp(tempApp);
     }
   };
 
