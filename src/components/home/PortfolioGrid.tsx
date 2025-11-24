@@ -1,13 +1,21 @@
 'use client';
 
+import { useState } from 'react';
+import Image from 'next/image';
+import { useInView } from 'react-intersection-observer';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { useInView } from 'react-intersection-observer';
-import { Loader2 } from 'lucide-react';
 import type { Project } from '@/lib/project-types';
-import Image from 'next/image';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '../ui/skeleton';
 
 interface PortfolioGridProps {
   projects: Project[] | null;
@@ -15,13 +23,33 @@ interface PortfolioGridProps {
 }
 
 export function PortfolioGrid({ projects, isLoading }: PortfolioGridProps) {
-  
+  const { ref: inViewRef, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  const renderSkeletons = () => (
+    [...Array(3)].map((_, i) => (
+       <div key={i} className="space-y-2">
+         <Skeleton className="h-48 w-full rounded-2xl" />
+         <Skeleton className="h-5 w-3/4" />
+         <Skeleton className="h-4 w-1/2" />
+       </div>
+    ))
+  );
+
   return (
     <section
       id="portfolio"
-      className="w-full py-16 md:py-32"
+      ref={inViewRef}
+      className={cn(
+        'w-full py-16 md:py-32 opacity-0 transition-opacity duration-1000',
+        inView && 'animate-fade-in-up opacity-100'
+      )}
     >
-      <div className="mx-auto max-w-5xl text-center mb-16">
+      <div className="mx-auto max-w-5xl text-center">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
             Proyectos Destacados
           </h2>
@@ -29,83 +57,130 @@ export function PortfolioGrid({ projects, isLoading }: PortfolioGridProps) {
             Aquí hay una selección de mis trabajos más recientes.
           </p>
       </div>
-
-       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 md:gap-6">
-          <Skeleton className="h-96 w-full col-span-1 md:col-span-4 md:row-span-2 rounded-2xl" />
-          <Skeleton className="h-48 w-full col-span-1 md:col-span-2 rounded-2xl" />
-          <Skeleton className="h-48 w-full col-span-1 md:col-span-2 rounded-2xl" />
-          <Skeleton className="h-48 w-full col-span-1 md:col-span-3 rounded-2xl" />
-          <Skeleton className="h-48 w-full col-span-1 md:col-span-3 rounded-2xl" />
-        </div>
-      )}
-
-      {!isLoading && (!projects || projects.length === 0) && (
-         <div className="mt-16 h-48 flex flex-col items-center justify-center text-center bg-muted/50 rounded-2xl">
-            <h3 className="text-lg font-semibold">Portafolio en Construcción</h3>
-            <p className="text-muted-foreground text-sm max-w-sm">
-                Aún no hay proyectos públicos para mostrar. ¡Vuelve pronto!
-            </p>
-        </div>
-      )}
-
-      {!isLoading && projects && projects.length > 0 && (
-         <div
-          className="grid grid-cols-1 md:grid-cols-6 gap-4 md:gap-6"
-        >
-          {projects.map((project, index) => {
-            const { ref, inView } = useInView({
-              triggerOnce: true,
-              threshold: 0.1,
-            });
-
-            const thumbnailUrl = project.thumbnail || `https://picsum.photos/seed/${project.id || index}/600/400`;
-
-            return (
-              <div
-                key={project.id}
-                ref={ref}
-                className={cn(
-                  'group relative col-span-1 md:col-span-2',
-                  index === 0 && 'md:col-span-4 md:row-span-2',
-                  index === 3 && 'md:col-span-3',
-                  index === 4 && 'md:col-span-3',
-                  'opacity-0 transition-all duration-700 ease-out',
-                  inView ? 'animate-fade-in-up' : 'opacity-0 translate-y-4'
-                )}
-                style={{ animationDelay: `${Math.min(index * 150, 450)}ms` }}
-              >
-                <Card className="h-full w-full overflow-hidden">
-                  <CardContent className="relative h-full w-full p-0">
-                    <Image
-                      src={thumbnailUrl}
-                      alt={project.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      data-ai-hint="abstract background"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                    <div className="absolute bottom-0 left-0 p-6">
-                      <h3 className="text-2xl font-bold text-white">
-                        {project.title}
-                      </h3>
-                      <p className="text-sm text-white/80">{project.tagline}</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {project.skills && project.skills.slice(0, 3).map(skill => (
-                          <Badge key={skill} variant="secondary" className="bg-white/10 text-white border-white/20">
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
+      <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {isLoading ? renderSkeletons() : (
+            <Dialog>
+              {projects?.map((project) => (
+                <DialogTrigger
+                  asChild
+                  key={project.id}
+                  onClick={() => setSelectedProject(project)}
+                >
+                  <div className="group block cursor-pointer">
+                    <div className="relative">
+                      <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500 to-pink-500 opacity-0 blur-lg transition-all duration-300 group-hover:opacity-25"></div>
+                      <Card className="relative overflow-hidden rounded-2xl transition-all duration-300 h-full">
+                        <Image
+                          src={project.thumbnail || `https://picsum.photos/seed/${project.id}/600/400`}
+                          width={600}
+                          height={400}
+                          alt={project.title}
+                          className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          data-ai-hint="abstract background"
+                        />
+                        <CardContent className="p-4">
+                          <h3 className="text-md font-semibold text-foreground">
+                            {project.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {project.tagline}
+                          </p>
+                        </CardContent>
+                      </Card>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            );
-          })}
+                  </div>
+                </DialogTrigger>
+              ))}
+
+              {!isLoading && (!projects || projects.length === 0) && (
+                <div className="col-span-full mt-8 h-48 flex flex-col items-center justify-center text-center bg-muted/50 rounded-2xl">
+                    <h3 className="text-lg font-semibold">Portafolio en Construcción</h3>
+                    <p className="text-muted-foreground text-sm max-w-sm">
+                        Aún no hay proyectos públicos para mostrar. ¡Vuelve pronto!
+                    </p>
+                </div>
+              )}
+              
+              {selectedProject && (
+                <DialogContent className="max-w-4xl w-[95%] h-[90vh] md:h-[80vh] bg-white/50 dark:bg-white/5 border border-neutral-200/50 dark:border-white/10 backdrop-blur-xl p-0 rounded-2xl">
+                  <ScrollArea className="h-full w-full rounded-2xl">
+                    <div className="p-6 md:p-8">
+                      <DialogHeader className="text-center mb-8">
+                        <DialogTitle className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">
+                          {selectedProject.title}
+                        </DialogTitle>
+                        <p className="mt-2 text-lg text-muted-foreground md:text-xl">{selectedProject.tagline}</p>
+                      </DialogHeader>
+
+                      <article className="space-y-8">
+                        <div className="space-y-4">
+                          <Image
+                            src={selectedProject.thumbnail || `https://picsum.photos/seed/${selectedProject.id}/1200/800`}
+                            width={1200}
+                            height={800}
+                            alt={`Imagen principal del proyecto ${selectedProject.title}`}
+                            className="aspect-[3/2] w-full rounded-3xl object-cover"
+                            data-ai-hint="project screenshot"
+                          />
+                          {selectedProject.images?.map((img, index) => (
+                            <Image
+                              key={index}
+                              src={img}
+                              width={1200}
+                              height={800}
+                              alt={`Imagen del proyecto ${index + 1}`}
+                              className="aspect-[3/2] w-full rounded-3xl object-cover"
+                              data-ai-hint="project screenshot"
+                            />
+                          ))}
+                        </div>
+
+                        <div className="mx-auto max-w-3xl space-y-8">
+                          {selectedProject.description && (
+                            <div className="space-y-6">
+                              <div>
+                                <h2 className="font-headline text-2xl font-bold">El Desafío</h2>
+                                <p className="mt-2 leading-relaxed text-muted-foreground">
+                                  {selectedProject.description.challenge}
+                                </p>
+                              </div>
+                              <div>
+                                <h2 className="font-headline text-2xl font-bold">La Solución</h2>
+                                <p className="mt-2 leading-relaxed text-muted-foreground">
+                                  {selectedProject.description.solution}
+                                </p>
+                              </div>
+                              <div>
+                                <h2 className="font-headline text-2xl font-bold">Los Resultados</h2>
+                                <p className="mt-2 leading-relaxed text-muted-foreground">
+                                  {selectedProject.description.results}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {selectedProject.skills && (
+                             <aside className="space-y-6">
+                                <div>
+                                  <h3 className="font-headline text-xl font-bold">Habilidades y Herramientas</h3>
+                                  <div className="mt-4 flex flex-wrap gap-2">
+                                    {selectedProject.skills.map((skill) => (
+                                      <Badge key={skill} variant="outline" className="bg-accent text-accent-foreground">
+                                        {skill}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                            </aside>
+                          )}
+                        </div>
+                      </article>
+                    </div>
+                  </ScrollArea>
+                </DialogContent>
+              )}
+            </Dialog>
+          )}
         </div>
-      )}
     </section>
   );
 }
