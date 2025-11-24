@@ -1,7 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+# IMPORTANTE: Sin la barra al inicio para que ignore el de /functions también
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -11,14 +12,14 @@
 !.yarn/versions
 
 # testing
-/coverage
+coverage/
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
-/build
+build/
 
 # misc
 .DS_Store
@@ -43,3 +44,14 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+# IMPORTANTE: Ignora la compilación de typescript de las cloud functions
+functions/lib/
+
+# Archivos del entorno de VS Code
+.vscode/
+
+# Directorios de Build/Compilación
+dist/
+
+# Archivos de sistema/logs
+*.log
