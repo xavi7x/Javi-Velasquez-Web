@@ -10,24 +10,20 @@ service cloud.firestore {
     }
 
     function isOwner() {
-      // The user is an owner if a document exists in /owners with their UID
       return exists(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
 
     function isClient(clientId) {
-      // The user is the specified client if their UID matches
       return isSignedIn() && request.auth.uid == clientId;
     }
 
     // Rules for the 'owners' collection
     match /owners/{ownerId} {
-      // Only the owner can read/write to the owners collection
       allow read, write: if isOwner();
     }
 
     // Rules for the 'clients' collection
     match /clients/{clientId} {
-      // Owner can read/write. The client can read their own data.
       allow write: if isOwner();
       allow read: if isOwner() || isClient(clientId);
       
@@ -37,10 +33,12 @@ service cloud.firestore {
       }
     }
 
-    // Rules for the 'projects' collection
+    // Rules for the 'projects' collection (Public Portfolio Projects)
     match /projects/{projectId} {
-      // Only owner can read/write projects directly in this collection
-      allow read, write: if isOwner();
+      // Anyone can read portfolio projects.
+      allow read: if true;
+      // Only owner can create, update, or delete portfolio projects.
+      allow write: if isOwner();
     }
 
     // Rules for tickets
