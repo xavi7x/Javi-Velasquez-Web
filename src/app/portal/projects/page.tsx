@@ -24,7 +24,7 @@ const ProjectCardSkeleton = () => (
       </div>
       <div className="flex items-center justify-between">
         <Skeleton className="h-6 w-20 rounded-full" />
-        <Skeleton className="h-9 w-24 rounded-full" />
+        <Skeleton className="h-9 w-24 rounded-md" />
       </div>
     </CardContent>
   </Card>
