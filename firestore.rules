@@ -1,5 +1,4 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -8,61 +7,77 @@ service cloud.firestore {
     }
 
     function isOwner() {
-      // The user is an owner if their UID exists in the /owners collection.
-      return exists(/databases/$(database)/documents/owners/$(request.auth.uid));
+      return isSignedIn() && 
+        exists(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
-    
+
     function isClient(clientId) {
       return isSignedIn() && request.auth.uid == clientId;
     }
 
-    // Owners: Can read/write their own document.
+    function userOwnsDocument() {
+      return isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    function isProjectOwner() {
+      return isSignedIn() && (
+        isOwner() || 
+        resource.data.clientId == request.auth.uid
+      );
+    }
+
+    // 🔥 PORTFOLIO PÚBLICO (existente - mantener)
+    match /projects/{projectId} {
+      allow read: if true;  // Totalmente público
+      allow write: if isOwner();  // Solo tú
+    }
+
+    // 🔥 NUEVA: PROYECTOS DE CLIENTES (PRIVADOS)
+    match /client-projects/{projectId} {
+      allow read, write: if isProjectOwner();
+      allow create: if isSignedIn() && (
+        isOwner() || 
+        request.auth.uid == request.resource.data.clientId
+      );
+    }
+
+    // 🔥 CLIENTES
+    match /clients/{clientId} {
+      allow read, write: if isOwner() || isClient(clientId);
+      allow create: if isOwner();
+    }
+
+    // 🔥 OWNERS (existente)
     match /owners/{ownerId} {
       allow read, write: if isOwner() && request.auth.uid == ownerId;
     }
 
-    // 💥 REGLAS PARA LA COLECCIÓN DE RAÍZ /projects 💥
-    // (Esta es la colección que quieres que sea tu portafolio público)
-    match /projects/{projectId} {
-      
-      // PERMITE LA LECTURA (GET y LIST) A CUALQUIER PERSONA, AUTENTICADA O NO.
-      allow read: if true; 
-      
-      // La escritura (creación, actualización o eliminación) solo la permitimos al Owner.
-      allow write: if isOwner();
-    }
-    
-    // Clients: Owner can create, Owner or the client themselves can read/update.
-    match /clients/{clientId} {
-      allow create: if isOwner();
-      allow read, update: if isOwner() || isClient(clientId);
+    // 🔥 CONTACT FORM (existente)
+    match /contactFormSubmissions/{submissionId} {
+      allow create: if true;
+      allow read, update, delete: if isOwner();
     }
 
-    // Tickets: Owner or the associated client can read/write.
-    match /tickets/{ticketId} {
-      allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
-      
-      // Comments: Owner or the author can read/write.
-      match /comments/{commentId} {
-        allow read, write: if isOwner() || (isSignedIn() && resource.data.authorId == request.auth.uid);
-      }
-    }
-
-    // Invoices: Owner or the associated client can read/write.
-    match /invoices/{invoiceId} {
-      allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
-    }
-    
-    // Settings: Publicly readable, only owner can write.
+    // 🔥 SETTINGS (existente)
     match /settings/{docId} {
       allow read: if true;
       allow write: if isOwner();
     }
 
-    // Contact Submissions: Anyone can create, only owner can manage.
-    match /contactFormSubmissions/{submissionId} {
-      allow create: if true;
-      allow read, update, delete: if isOwner();
+    // 🔥 TICKETS & INVOICES (existentes)
+    match /tickets/{ticketId} {
+      allow read, write: if isOwner() || 
+        (isSignedIn() && resource.data.clientId == request.auth.uid);
+      
+      match /comments/{commentId} {
+        allow read, write: if isOwner() || 
+          (isSignedIn() && resource.data.authorId == request.auth.uid);
+      }
+    }
+
+    match /invoices/{invoiceId} {
+      allow read, write: if isOwner() || 
+        (isSignedIn() && resource.data.clientId == request.auth.uid);
     }
   }
 }
