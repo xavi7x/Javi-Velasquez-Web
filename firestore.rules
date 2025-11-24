@@ -30,11 +30,17 @@ service cloud.firestore {
       
       // Rules for the 'projects' sub-collection within each client
       match /projects/{projectId} {
+        // ANYONE can LIST projects IF the query filters for public projects.
+        allow list: if request.query.where.size() > 0 &&
+                       request.query.where[0].field == 'isPublic' &&
+                       request.query.where[0].op == '==' &&
+                       request.query.where[0].value == true;
+                       
         // ANYONE can GET an individual project IF it is public.
         allow get: if resource.data.isPublic == true;
 
-        // The Owner or the specific client can do anything else (create, update, delete, and read private projects).
-        allow write, get, list: if isOwner() || isClient(clientId);
+        // The Owner or the specific client can do anything else (create, update, delete, and read/list private projects).
+        allow write, get, list: if isOwner() || isClient(clientId); 
       }
     }
 
@@ -64,15 +70,6 @@ service cloud.firestore {
     match /contactFormSubmissions/{submissionId} {
       allow create: if true;
       allow read, update, delete: if isOwner();
-    }
-
-    // Collection group rule for public project listings
-    match /{path=**}/projects/{projectId} {
-        allow list: if request.auth == null &&
-                     request.query.where.size() > 0 &&
-                     request.query.where[0].field == 'isPublic' &&
-                     request.query.where[0].op == '==' &&
-                     request.query.where[0].value == true;
     }
   }
 }
