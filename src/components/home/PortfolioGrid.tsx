@@ -5,10 +5,11 @@ import { cn } from '@/lib/utils';
 import { useInView } from 'react-intersection-observer';
 import { Loader2 } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import type { Project } from '@/lib/project-types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { useMemo } from 'react';
 
 const ProjectCard = ({ project, index }: { project: Project, index: number }) => {
   const { ref, inView } = useInView({
@@ -57,14 +58,20 @@ export function PortfolioGrid() {
 
   const portfolioQuery = useMemoFirebase(() => {
     if (!firestore) return null;
+    // Remove orderBy to simplify the query and avoid index-related security rule issues.
     return query(
       collection(firestore, 'projects'),
-      where('type', '==', 'portfolio'),
-      orderBy('order', 'asc')
+      where('type', '==', 'portfolio')
     );
   }, [firestore]);
 
-  const { data: projects, isLoading } = useCollection<Project>(portfolioQuery);
+  const { data, isLoading } = useCollection<Project>(portfolioQuery);
+
+  // Sort projects on the client-side after fetching
+  const projects = useMemo(() => {
+    if (!data) return [];
+    return [...data].sort((a, b) => a.order - b.order);
+  }, [data]);
 
   return (
     <section

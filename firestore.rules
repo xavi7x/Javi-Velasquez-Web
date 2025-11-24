@@ -35,8 +35,8 @@ service cloud.firestore {
 
     // Rules for the 'projects' collection (Public Portfolio Projects)
     match /projects/{projectId} {
-      // Anyone can read portfolio projects.
-      allow read: if true;
+      // Anyone can read if it's a portfolio project, owner can read anything.
+      allow read: if resource.data.type == 'portfolio' || isOwner();
       // Only owner can create, update, or delete portfolio projects.
       allow write: if isOwner();
     }
