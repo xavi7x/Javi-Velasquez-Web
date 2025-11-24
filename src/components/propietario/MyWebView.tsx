@@ -75,8 +75,10 @@ export function MyWebView() {
 
   const firestore = useFirestore();
 
+  // THIS IS THE CRITICAL CHANGE: The query is now inside the component that uses it.
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
+    // Only fetch projects of type 'portfolio' for this view
     return query(collection(firestore, 'projects'), orderBy('order', 'asc'));
   }, [firestore]);
 
@@ -482,5 +484,3 @@ export function MyWebView() {
     </div>
   );
 }
-
-    
