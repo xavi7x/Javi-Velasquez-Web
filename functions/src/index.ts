@@ -5,7 +5,7 @@ import * as admin from "firebase-admin";
 admin.initializeApp();
 
 // Esta es la función que tu botón "Crear Cliente" está buscando
-export const createClientUser = functions.https.onCall(async (data: any, context: any) => {  // Obtenemos los datos que envía el frontend
+export const createClientUser = functions.https.onCall(async (data, context) => {
   const { email, password, displayName } = data;
 
   try {
