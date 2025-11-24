@@ -14,7 +14,7 @@ export const usePortfolio = (filters?: {
     if (!firestore) return null;
 
     const constraints: QueryConstraint[] = [
-      where('isPublic', '==', true),
+      // Se elimina `where('isPublic', '==', true)` para evitar error de índice
       orderBy('order', 'asc'),
     ];
   
