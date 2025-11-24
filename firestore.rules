@@ -37,12 +37,19 @@ service cloud.firestore {
     
     // Rules for the top-level 'projects' collection (public portfolio)
     match /projects/{projectId} {
-      // Allow public read for individual documents.
-      allow get: if true;
-      // Allow list (query) only for the owner.
-      allow list: if isOwner();
-      // Allow write only for the owner.
-      allow write: if isOwner();
+        // Allow public listing ONLY IF the query filters for public projects.
+        // This is the key rule to allow the homepage query.
+        allow list: if request.query.where.size() > 0 &&
+                       request.query.where[0].field == 'isPublic' &&
+                       request.query.where[0].op == '==' &&
+                       request.query.where[0].value == true;
+
+        // Allow public read of individual documents if they are public.
+        allow get: if resource.data.isPublic == true;
+
+        // Owner can read (list, get) and write the entire collection.
+        // This gives the owner full access in the admin panel.
+        allow read, write: if isOwner();
     }
 
     // Tickets can be read/written by the owner or the client who created it.
