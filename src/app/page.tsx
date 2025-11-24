@@ -1,12 +1,14 @@
+
 'use client';
 
 import { Suspense } from 'react';
-import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, where, orderBy } from 'firebase/firestore';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, query, where, orderBy } from 'firebase/firestore';
 import { MainContent } from '@/components/home/MainContent';
 import { ComingSoon } from '@/components/home/ComingSoon';
 import { QuantumLoader } from '@/components/shared/QuantumLoader';
 import type { Project } from '@/lib/project-types';
+import { usePublicCollection } from '@/firebase/firestore/use-public-collection';
 
 function HomePageContent() {
   const firestore = useFirestore();
@@ -20,18 +22,10 @@ function HomePageContent() {
     settingsRef
   );
   
-  const projectsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(
-      collection(firestore, 'projects'),
-      where('isPublic', '==', true),
-      orderBy('order', 'asc')
-    );
-  }, [firestore]);
-
-  const { data: projectsData, isLoading: areProjectsLoading } = useCollection<Project>(projectsQuery);
-
-  const isLoading = isSettingsLoading || areProjectsLoading;
+  const { data: projectsData, isLoading: areProjectsLoading } = usePublicCollection<Project>(
+    'projects',
+    [where('isPublic', '==', true), orderBy('order', 'asc')]
+  );
 
   if (isSettingsLoading) {
     return <QuantumLoader />;
