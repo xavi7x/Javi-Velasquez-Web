@@ -30,11 +30,8 @@ export default function ProjectsPage() {
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return query(
-      collection(firestore, 'projects'),
-      where('clientId', '==', user.uid),
-      where('type', '==', 'client')
-    );
+    // Correct Way: Query the sub-collection within the client's own document.
+    return collection(firestore, 'clients', user.uid, 'projects');
   }, [firestore, user]);
 
   const { data: projects, isLoading } = useCollection<Project>(projectsQuery);

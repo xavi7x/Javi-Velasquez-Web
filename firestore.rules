@@ -39,8 +39,8 @@ service cloud.firestore {
 
     // Rules for the 'projects' collection
     match /projects/{projectId} {
-      // Anyone can read any project data. This is a broad rule to resolve permission errors.
-      allow read: if true;
+      // Anyone can read portfolio projects. Owner can read all.
+      allow read: if isOwner() || resource.data.type == 'portfolio';
       // Only the owner can create, update, or delete projects.
       allow write: if isOwner();
     }
