@@ -59,6 +59,8 @@ export function PortfolioGrid({ projects, isLoading }: PortfolioGridProps) {
               threshold: 0.1,
             });
 
+            const thumbnailUrl = project.thumbnail || `https://picsum.photos/seed/${project.id || index}/600/400`;
+
             return (
               <div
                 key={project.id}
@@ -76,7 +78,7 @@ export function PortfolioGrid({ projects, isLoading }: PortfolioGridProps) {
                 <Card className="h-full w-full overflow-hidden">
                   <CardContent className="relative h-full w-full p-0">
                     <Image
-                      src={project.thumbnail}
+                      src={thumbnailUrl}
                       alt={project.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -90,7 +92,7 @@ export function PortfolioGrid({ projects, isLoading }: PortfolioGridProps) {
                       </h3>
                       <p className="text-sm text-white/80">{project.tagline}</p>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {project.skills.slice(0, 3).map(skill => (
+                        {project.skills && project.skills.slice(0, 3).map(skill => (
                           <Badge key={skill} variant="secondary" className="bg-white/10 text-white border-white/20">
                             {skill}
                           </Badge>
