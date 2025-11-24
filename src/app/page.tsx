@@ -24,7 +24,7 @@ function HomePageContent() {
   
   const { data: projectsData, isLoading: areProjectsLoading } = usePublicCollection<Project>(
     'projects',
-    [where('isPublic', '==', true), orderBy('order', 'asc')]
+    [where('isPublic', '==', true)]
   );
 
   if (isSettingsLoading) {
