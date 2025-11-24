@@ -28,10 +28,10 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import type { Client, ClientProject } from '@/types/firestore';
+import type { Client, ClientProject, ProgressUpdate } from '@/types/firestore';
 import { PlusCircle, Loader2, Edit, Trash, Briefcase } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, serverTimestamp, Timestamp, updateDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, serverTimestamp, Timestamp, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 import { useClientProjects } from '@/firebase/firestore/hooks/use-client-projects';
@@ -51,11 +51,14 @@ const emptyProject: Partial<ClientProject> = {
   clientId: '',
   clientName: '',
   progress: 0,
+  progressHistory: [],
 };
 
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Partial<ClientProject> | null>(null);
+  const [progressComment, setProgressComment] = useState('');
+  const [showProgressComment, setShowProgressComment] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
@@ -71,11 +74,15 @@ export function ProjectsView() {
 
   const openAddModal = () => {
     setEditingProject(emptyProject);
+    setProgressComment('');
+    setShowProgressComment(false);
     setIsModalOpen(true);
   };
   
   const openEditModal = (project: ClientProject) => {
     setEditingProject(project);
+    setProgressComment('');
+    setShowProgressComment(false);
     setIsModalOpen(true);
   };
   
@@ -92,6 +99,13 @@ export function ProjectsView() {
      } : null);
   };
 
+  const handleProgressChange = (value: number) => {
+    if (editingProject?.progress !== value) {
+      handleFormChange('progress', value);
+      setShowProgressComment(true);
+    }
+  }
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProject || !editingProject.title || !editingProject.clientId) {
@@ -105,7 +119,7 @@ export function ProjectsView() {
     try {
         if (isEditing) {
             const projectId = editingProject.id!;
-            const updateData: Partial<ClientProject> = {
+            const updateData: Partial<ClientProject> & { progressHistory?: any } = {
                 title: editingProject.title,
                 description: editingProject.description || '',
                 clientId: editingProject.clientId,
@@ -113,20 +127,31 @@ export function ProjectsView() {
                 status: editingProject.status || 'active',
                 progress: editingProject.progress || 0,
             };
+
+            if (showProgressComment && progressComment.trim() !== '') {
+              const newProgressUpdate: ProgressUpdate = {
+                progress: editingProject.progress || 0,
+                comment: progressComment.trim(),
+                date: new Date(),
+              };
+              updateData.progressHistory = arrayUnion(newProgressUpdate);
+            }
+
             await ClientProjectService.updateClientProject(projectId, updateData);
             toast({
               title: 'Proyecto Actualizado',
               description: `El proyecto "${editingProject.title}" ha sido actualizado.`
             });
         } else {
-             const projectData = {
+             const projectData: Omit<ClientProject, 'id' | 'createdAt'> = {
                 title: editingProject.title,
                 description: editingProject.description || '',
                 clientId: editingProject.clientId,
-                clientName: editingProject.clientName,
+                clientName: editingProject.clientName || '',
                 status: editingProject.status || 'active',
                 deadline: editingProject.deadline || new Date(),
                 progress: editingProject.progress || 0,
+                progressHistory: [],
             };
             await ClientProjectService.createClientProject(projectData);
             toast({
@@ -281,9 +306,20 @@ export function ProjectsView() {
                   max={100}
                   step={5}
                   value={[editingProject.progress || 0]}
-                  onValueChange={(value) => handleFormChange('progress', value[0])}
+                  onValueChange={(value) => handleProgressChange(value[0])}
                 />
               </div>
+              {showProgressComment && (
+                <div className="space-y-2">
+                  <Label htmlFor="progress-comment">Comentario sobre el avance</Label>
+                  <Textarea
+                    id="progress-comment"
+                    placeholder="Ej: Se completó la integración de la pasarela de pago."
+                    value={progressComment}
+                    onChange={(e) => setProgressComment(e.target.value)}
+                  />
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="status">Estado</Label>
                 <Select

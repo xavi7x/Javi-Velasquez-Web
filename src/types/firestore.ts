@@ -11,6 +11,12 @@ export interface PortfolioProject {
   [key: string]: any;
 }
 
+export interface ProgressUpdate {
+  progress: number;
+  comment: string;
+  date: Date;
+}
+
 export interface ClientProject {
   id: string;
   title: string;
@@ -22,6 +28,7 @@ export interface ClientProject {
   createdAt: Date;
   clientName?: string;
   progress?: number;
+  progressHistory?: ProgressUpdate[];
   // Para migración gradual
   isLegacy?: boolean;
 }

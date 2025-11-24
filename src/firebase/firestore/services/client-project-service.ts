@@ -15,10 +15,11 @@ export const ClientProjectService = {
     const projectWithMetadata = {
       ...project,
       createdAt: new Date(),
-      status: project.status || 'active'
     };
 
     const docRef = await addDoc(collection(db, 'client-projects'), projectWithMetadata);
+    // After creating, update the document with its own ID.
+    await updateDoc(docRef, { id: docRef.id });
     return { id: docRef.id, ...projectWithMetadata };
   },
 

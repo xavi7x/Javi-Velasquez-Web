@@ -54,7 +54,20 @@
         "previewUrl": { "type": "string", "format": "uri", "description": "URL to the project preview." },
         "credentials": { "type": "string", "description": "Encrypted credentials related to the project." },
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was created." },
-        "updatedAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was last updated." }
+        "updatedAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was last updated." },
+        "progressHistory": {
+          "type": "array",
+          "description": "A log of all progress updates for the project.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "progress": { "type": "number" },
+              "comment": { "type": "string" },
+              "date": { "type": "string", "format": "date-time" }
+            },
+            "required": ["progress", "comment", "date"]
+          }
+        }
       },
       "required": ["id", "title", "order", "type"]
     },
@@ -172,6 +185,10 @@
         "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "Stores all public portfolio projects." }
       },
       {
+        "path": "/client-projects/{projectId}",
+        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "Stores projects that are specific to a client and private." }
+      },
+      {
         "path": "/clients/{clientId}",
         "definition": { "schema": { "$ref": "#/entities/Client" }, "description": "Stores information about a single client." }
       },
@@ -181,7 +198,7 @@
       },
       {
         "path": "/tickets/{ticketId}/comments/{commentId}",
-        "definition": { "schema": { "$ref": "#/entities/Comment" }, "description": "Stores comments for a specific ticket." }
+        "definition": { "schema": { "$ref- "#/entities/Comment" }, "description": "Stores comments for a specific ticket." }
       },
       {
         "path": "/invoices/{invoiceId}",
