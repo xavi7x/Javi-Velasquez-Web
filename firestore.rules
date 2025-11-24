@@ -31,18 +31,23 @@ service cloud.firestore {
       allow read, write: if isOwner();
       allow read: if isClient(clientId);
       
-      // Client can read their own projects subcollection
+      // Client can read/write their own projects subcollection
       match /projects/{projectId} {
-        allow read: if isClient(clientId);
+        allow read, write: if isClient(clientId) || isOwner();
       }
     }
 
     // Rules for the 'projects' collection
     match /projects/{projectId} {
-      // Allow read if:
-      // 1. It's the owner.
-      // 2. The project is a 'portfolio' type.
-      allow read: if isOwner() || resource.data.type == 'portfolio';
+      // Owner can do anything.
+      // Authenticated users (clients) can read projects they are assigned to.
+      // Anyone can read if it's a portfolio piece.
+      allow get: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid) || resource.data.type == 'portfolio';
+      
+      // Allow listing of projects only under specific, secure conditions.
+      // 1. The owner can list everything.
+      // 2. A non-authenticated user can list up to 6 projects IF they are explicitly querying for portfolio items.
+      allow list: if isOwner() || (request.query.limit <= 6 && request.query.where.type == 'portfolio');
       
       // Allow write (create, update, delete) only for the owner
       allow write: if isOwner();
