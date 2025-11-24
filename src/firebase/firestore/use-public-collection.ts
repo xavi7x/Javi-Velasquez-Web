@@ -1,12 +1,8 @@
 'use client';
 
-import {
-  Query,
-  onSnapshot,
-  FirestoreError,
-  QuerySnapshot,
-} from 'firebase/firestore';
+import { collection, query, onSnapshot, QueryConstraint } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
+import { db } from '../config';
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -20,42 +16,40 @@ type WithId<T> = T & { id: string };
  * @returns An object containing the collection data, loading state, and any error.
  */
 export function usePublicCollection<T>(
-  memoizedQuery: Query | null | undefined
+  path: string, 
+  queryConstraints: QueryConstraint[] = []
 ) {
   const [data, setData] = useState<WithId<T>[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<FirestoreError | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!memoizedQuery) {
-      setIsLoading(false);
-      setData(null);
-      setError(null);
-      return;
+    try {
+      const q = query(collection(db, path), ...queryConstraints);
+      
+      const unsubscribe = onSnapshot(q, 
+        (snapshot) => {
+          const items = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as WithId<T>[];
+          setData(items);
+          setLoading(false);
+        },
+        (err) => {
+          console.error(`Error en colección pública ${path}:`, err);
+          setError(err);
+          setLoading(false);
+        }
+      );
+
+      return unsubscribe;
+    } catch (err) {
+      setError(err as Error);
+      setLoading(false);
+      return () => {}; // Función cleanup vacía
     }
+  }, [path, JSON.stringify(queryConstraints)]);
 
-    setIsLoading(true);
-
-    const unsubscribe = onSnapshot(
-      memoizedQuery,
-      (snapshot: QuerySnapshot) => {
-        const items = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() } as WithId<T>)
-        );
-        setData(items);
-        setIsLoading(false);
-        setError(null);
-      },
-      (err: FirestoreError) => {
-        console.error(`Error in public collection listener:`, err);
-        setError(err);
-        setData(null);
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [memoizedQuery]); // The hook now correctly depends on the memoized query object.
-
-  return { data, isLoading, error };
+  return { data, loading, error };
 }

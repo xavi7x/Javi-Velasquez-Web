@@ -2,15 +2,14 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
 import { MainContent } from '@/components/home/MainContent';
 import { ComingSoon } from '@/components/home/ComingSoon';
 import { QuantumLoader } from '@/components/shared/QuantumLoader';
 import type { Project } from '@/lib/project-types';
-import { usePublicCollection } from '@/firebase/firestore/use-public-collection';
 import { useDoc } from '@/firebase/firestore/use-doc';
-import { doc } from 'firebase/firestore';
+import { doc, where, orderBy } from 'firebase/firestore';
+import { useFirestore, useMemoFirebase } from '@/firebase';
+import { usePortfolio } from '@/firebase/firestore/hooks/use-portfolio';
 
 function HomePageContent() {
   const firestore = useFirestore();
@@ -24,15 +23,7 @@ function HomePageContent() {
     settingsRef
   );
   
-  const projectsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    // This query is now safe and will not require a composite index
-    return query(collection(firestore, 'projects'), where('isPublic', '==', true));
-  }, [firestore]);
-  
-  const { data: projectsData, isLoading: areProjectsLoading } = usePublicCollection<Project>(
-    projectsQuery
-  );
+  const { data: projects, loading: areProjectsLoading } = usePortfolio();
 
   if (isSettingsLoading) {
     return <QuantumLoader />;
@@ -42,7 +33,7 @@ function HomePageContent() {
     return <ComingSoon />;
   }
 
-  return <MainContent projects={projectsData} isLoading={areProjectsLoading}/>;
+  return <MainContent projects={projects} isLoading={areProjectsLoading}/>;
 }
 
 export default function Home() {
