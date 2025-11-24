@@ -37,6 +37,7 @@
         "images": { "type": "array", "description": "URLs of the images in the project gallery.", "items": { "type": "string" } },
         "skills": { "type": "array", "description": "List of skills or technologies used.", "items": { "type": "string" } },
         "order": { "type": "number", "description": "The display order of the project." },
+        "isPublic": { "type": "boolean", "description": "Controls if the project is visible in the public portfolio." },
         "progress": { "type": "number", "description": "Overall project completion percentage (0-100)." },
         "estimatedDeliveryDate": { "type": "string", "format": "date", "description": "Estimated delivery date for the project." },
         "stages": {

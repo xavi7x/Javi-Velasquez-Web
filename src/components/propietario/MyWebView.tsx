@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -40,9 +41,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import type { Project } from '@/lib/project-types';
-import { PlusCircle, Trash, Loader2, Edit, Upload, Image as ImageIcon, X } from 'lucide-react';
+import { PlusCircle, Trash, Loader2, Edit, Upload, Image as ImageIcon, X, Eye, EyeOff } from 'lucide-react';
 import { useCollection, useFirestore, useUser, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, updateDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
@@ -57,6 +58,7 @@ const emptyProject: Partial<Project> = {
   images: [],
   order: 0,
   type: 'portfolio',
+  isPublic: true,
 };
 
 export function MyWebView() {
@@ -239,6 +241,26 @@ export function MyWebView() {
     }
   };
 
+  const toggleProjectVisibility = async (project: Project) => {
+    if (!firestore) return;
+    const projectRef = doc(firestore, 'projects', project.id);
+    const newVisibility = !project.isPublic;
+    try {
+        await updateDoc(projectRef, { isPublic: newVisibility });
+        toast({
+            title: 'Visibilidad actualizada',
+            description: `El proyecto "${project.title}" ahora está ${newVisibility ? 'visible' : 'oculto'}.`
+        });
+    } catch (error) {
+        const contextualError = new FirestorePermissionError({
+          path: projectRef.path,
+          operation: 'update',
+          requestResourceData: { isPublic: newVisibility },
+      });
+      errorEmitter.emit('permission-error', contextualError);
+    }
+  };
+
   const modalTitle = isEditing ? 'Editar Proyecto' : 'Añadir Nuevo Proyecto';
   const modalDescription = isEditing ? 'Modifica los datos del proyecto de tu portafolio.' : 'Añade un nuevo proyecto a tu sección pública de portafolio.';
 
@@ -276,6 +298,7 @@ export function MyWebView() {
                             <TableCell className="text-right space-x-2">
                                 <Skeleton className="h-9 w-9 rounded-md inline-block" />
                                 <Skeleton className="h-9 w-9 rounded-md inline-block" />
+                                <Skeleton className="h-9 w-9 rounded-md inline-block" />
                             </TableCell>
                         </TableRow>
                     ))
@@ -286,7 +309,7 @@ export function MyWebView() {
                         </TableCell>
                     </TableRow>
                 ) : projects?.map((project) => (
-                  <TableRow key={project.id}>
+                  <TableRow key={project.id} className={!project.isPublic ? 'bg-muted/50 hover:bg-muted/60' : ''}>
                     <TableCell>
                         <div className="h-10 w-16 rounded-md bg-muted flex items-center justify-center overflow-hidden">
                         {project.thumbnail ? (
@@ -301,6 +324,14 @@ export function MyWebView() {
                       {project.tagline || 'N/A'}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
+                       <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => toggleProjectVisibility(project)}
+                      >
+                        {project.isPublic ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                      </Button>
                        <Button
                         variant="outline"
                         size="icon"
@@ -411,6 +442,14 @@ export function MyWebView() {
                 <div className="space-y-2">
                     <Label htmlFor="skills">Habilidades (separadas por comas)</Label>
                     <Input id="skills" value={Array.isArray(editingProject.skills) ? editingProject.skills.join(', ') : ''} onChange={e => handleFormChange('skills', e.target.value.split(',').map(s => s.trim()))} />
+                </div>
+                 <div className="flex items-center space-x-2">
+                    <Switch
+                        id="isPublic"
+                        checked={editingProject.isPublic}
+                        onCheckedChange={(checked) => handleFormChange('isPublic', checked)}
+                    />
+                    <Label htmlFor="isPublic">Visible en el portafolio público</Label>
                 </div>
             </form>
             <DialogFooter>

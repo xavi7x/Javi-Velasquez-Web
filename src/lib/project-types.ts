@@ -16,6 +16,7 @@ export interface Project {
   };
   skills: string[];
   order: number;
+  isPublic?: boolean;
   progress?: number;
   stages?: { name: string; status: 'Completed' | 'In Progress' | 'Pending' }[];
   createdAt?: Timestamp;
