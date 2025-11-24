@@ -183,10 +183,6 @@
         "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "A sub-collection to easily query projects for a specific client." }
       },
       {
-        "path": "/projects/{projectId}",
-        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "Stores data for individual projects. Publicly readable for portfolio, but write is restricted. Client-specific access is handled in rules." }
-      },
-      {
         "path": "/tickets/{ticketId}",
         "definition": { "schema": { "$ref": "#/entities/Ticket" }, "description": "Stores support or change request tickets." }
       },
