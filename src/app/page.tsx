@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect, useMemo } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import { MainContent } from '@/components/home/MainContent';
@@ -30,17 +30,18 @@ function HomePageContent() {
     settingsRef
   );
   
-    const projectsQuery = useMemoFirebase(() => {
+  const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // Query for portfolio projects and order them
+    // Query for portfolio projects
     return query(
       collection(firestore, 'projects'),
-      where('type', '==', 'portfolio'),
-      orderBy('order', 'asc')
+      where('type', '==', 'portfolio')
     );
   }, [firestore]);
 
-  const { data: projects, isLoading: areProjectsLoading } = useCollection<Project>(projectsQuery);
+  const { data: projectsData, isLoading: areProjectsLoading } = useCollection<Project>(projectsQuery);
+
+  const projects = projectsData ? [...projectsData].sort((a, b) => a.order - b.order) : [];
 
   useEffect(() => {
     // Hide loader only when both timer is up and data is loaded
