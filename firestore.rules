@@ -39,7 +39,7 @@ service cloud.firestore {
     match /projects/{projectId} {
       // Anyone can read portfolio projects.
       // Only the owner can write to portfolio projects.
-      allow read: if resource.data.type == 'portfolio' || isOwner();
+      allow read: if true;
       allow write: if isOwner();
     }
 

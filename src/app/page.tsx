@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, where, orderBy } from 'firebase/firestore';
+import { doc, collection, query, orderBy } from 'firebase/firestore';
 import { MainContent } from '@/components/home/MainContent';
 import { ComingSoon } from '@/components/home/ComingSoon';
 import { QuantumLoader } from '@/components/shared/QuantumLoader';
@@ -33,15 +33,12 @@ function HomePageContent() {
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     // Query for portfolio projects
-    return query(
-      collection(firestore, 'projects'),
-      where('type', '==', 'portfolio')
-    );
+    return query(collection(firestore, 'projects'), orderBy('order', 'asc'));
   }, [firestore]);
 
   const { data: projectsData, isLoading: areProjectsLoading } = useCollection<Project>(projectsQuery);
 
-  const projects = projectsData ? [...projectsData].sort((a, b) => a.order - b.order) : [];
+  const projects = projectsData || [];
 
   useEffect(() => {
     // Hide loader only when both timer is up and data is loaded
