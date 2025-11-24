@@ -271,7 +271,7 @@ export function ClientsView() {
       </Card>
 
       {editingClient && (
-        <Dialog open={isModalOpen} onOpenChange={closeModal}>
+        <Dialog open={isModalOpen} onOpenChange={(isOpen) => !isOpen && closeModal()}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{modalTitle}</DialogTitle>
