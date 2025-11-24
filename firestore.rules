@@ -23,23 +23,17 @@ service cloud.firestore {
       allow read, write: if isOwner();
     }
 
+    // Projects collection is public for reading, but only owner can write.
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+    
     // Owner can create clients.
     // Owner or the specific client can read/update a client's document.
     match /clients/{clientId} {
       allow create: if isOwner();
       allow read, update: if isOwner() || isClient(clientId);
-      
-      // Rules for the 'projects' sub-collection within each client
-      match /projects/{projectId} {
-    
-        // 🔹 Acceso de LECTURA (GET y LIST) - Combinado para evitar conflictos
-        // SOLO PARA DEPURACIÓN TEMPORAL
-        allow read, list: if isClient(clientId);
-
-        // 🔹 Acceso de ESCRITURA (CREATE, UPDATE, DELETE)
-        // Se mantiene simple, solo para el Owner o el Cliente.
-        allow write: if isOwner() || isClient(clientId);
-      }
     }
 
     // Tickets can be read/written by the owner or the client who created it.

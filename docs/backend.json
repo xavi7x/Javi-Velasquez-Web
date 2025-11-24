@@ -20,7 +20,6 @@
       "description": "Represents a project in the portfolio or for a client.",
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the Project entity." },
-        "clientId": { "type": "string", "description": "Identifier for the client this project belongs to." },
         "type": { "type": "string", "enum": ["portfolio", "client"], "description": "The type of project." },
         "title": { "type": "string", "description": "The title of the project." },
         "tagline": { "type": "string", "description": "A short, catchy phrase describing the project." },
@@ -57,7 +56,7 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was created." },
         "updatedAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was last updated." }
       },
-      "required": ["id", "clientId", "title", "order", "type"]
+      "required": ["id", "title", "order", "type"]
     },
     "Owner": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -79,14 +78,7 @@
         "uid": { "type": "string", "description": "The Firebase Auth UID of the client." },
         "name": { "type": "string", "description": "Client's full name." },
         "email": { "type": "string", "format": "email", "description": "Client's contact email." },
-        "companyName": { "type": "string", "description": "Client's company name." },
-        "billingInfo": {
-          "type": "object",
-          "properties": {
-            "address": { "type": "string" },
-            "taxId": { "type": "string" }
-          }
-        }
+        "companyName": { "type": "string", "description": "Client's company name." }
       },
       "required": ["uid", "name", "email"]
     },
@@ -175,13 +167,13 @@
         "path": "/owners/{ownerId}",
         "definition": { "schema": { "$ref": "#/entities/Owner" }, "description": "Stores a record of website owners. The existence of a document with the user's UID as the ID grants owner privileges across the app." }
       },
+       {
+        "path": "/projects/{projectId}",
+        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "Stores all public portfolio projects." }
+      },
       {
         "path": "/clients/{clientId}",
         "definition": { "schema": { "$ref": "#/entities/Client" }, "description": "Stores information about a single client." }
-      },
-       {
-        "path": "/clients/{clientId}/projects/{projectId}",
-        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "Stores all projects, both public (portfolio) and private, within a client's sub-collection. Public projects are identified by the 'isPublic' flag." }
       },
       {
         "path": "/tickets/{ticketId}",

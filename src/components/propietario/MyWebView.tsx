@@ -76,9 +76,9 @@ export function MyWebView() {
   const firestore = useFirestore();
 
   const projectsQuery = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return query(collection(firestore, 'clients', user.uid, 'projects'), orderBy('order', 'asc'));
-  }, [firestore, user]);
+    if (!firestore) return null;
+    return query(collection(firestore, 'projects'), orderBy('order', 'asc'));
+  }, [firestore]);
 
   const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
 
@@ -185,7 +185,6 @@ export function MyWebView() {
 
     const projectData: Partial<Project> = {
         ...editingProject,
-        clientId: user.uid,
         order: Number(editingProject.order || 0),
         type: 'portfolio',
         isPublic: editingProject.isPublic ?? true,
@@ -193,14 +192,14 @@ export function MyWebView() {
 
     try {
         if (isEditing && editingProject.id) {
-            const projectRef = doc(firestore, 'clients', user.uid, 'projects', editingProject.id);
+            const projectRef = doc(firestore, 'projects', editingProject.id);
             await setDoc(projectRef, projectData, { merge: true });
             toast({
                 title: "Proyecto actualizado",
                 description: `El proyecto "${projectData.title}" ha sido actualizado.`
             });
         } else {
-            const collectionRef = collection(firestore, 'clients', user.uid, 'projects');
+            const collectionRef = collection(firestore, 'projects');
             const docRef = await addDoc(collectionRef, projectData);
             await updateDoc(docRef, { id: docRef.id });
 
@@ -211,7 +210,7 @@ export function MyWebView() {
         }
         closeModal();
     } catch (error: any) {
-        const path = isEditing && editingProject.id ? `clients/${user.uid}/projects/${editingProject.id}` : `clients/${user.uid}/projects`;
+        const path = isEditing && editingProject.id ? `projects/${editingProject.id}` : `projects`;
         const operation = isEditing ? 'update' : 'create';
         const contextualError = new FirestorePermissionError({ path, operation, requestResourceData: projectData });
         errorEmitter.emit('permission-error', contextualError);
@@ -221,15 +220,15 @@ export function MyWebView() {
   };
 
   const handleDeleteProject = async () => {
-    if (!projectToDelete || !firestore || !user) return;
+    if (!projectToDelete || !firestore) return;
     
     try {
-      const projectRef = doc(firestore, 'clients', user.uid, 'projects', projectToDelete.id);
+      const projectRef = doc(firestore, 'projects', projectToDelete.id);
       await deleteDoc(projectRef);
       toast({ title: "Proyecto eliminado", description: `"${projectToDelete.title}" ha sido eliminado.` });
     } catch(error) {
       const contextualError = new FirestorePermissionError({
-          path: `clients/${user.uid}/projects/${projectToDelete.id}`,
+          path: `projects/${projectToDelete.id}`,
           operation: 'delete',
       });
       errorEmitter.emit('permission-error', contextualError);
@@ -239,8 +238,8 @@ export function MyWebView() {
   };
 
   const toggleProjectVisibility = async (project: Project) => {
-    if (!firestore || !user) return;
-    const projectRef = doc(firestore, 'clients', user.uid, 'projects', project.id);
+    if (!firestore) return;
+    const projectRef = doc(firestore, 'projects', project.id);
     const newVisibility = !project.isPublic;
     try {
         await updateDoc(projectRef, { isPublic: newVisibility });
