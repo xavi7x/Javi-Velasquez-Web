@@ -4,83 +4,60 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions for security logic reuse
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isOwner() {
-      // The user is an owner if their UID exists as a document ID in the 'owners' collection.
       return exists(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
 
     function isClient(clientId) {
-      // The user is the client they claim to be if their UID matches the clientId parameter.
       return isSignedIn() && request.auth.uid == clientId;
     }
 
-    // Rules for the 'owners' collection
     match /owners/{ownerId} {
-      // Only an existing owner can read or write to the owners collection.
       allow read, write: if isOwner();
     }
 
-    // Rules for the 'clients' collection
     match /clients/{clientId} {
-      // Only the owner can create a client document.
       allow create: if isOwner();
-      // An owner can update any client. A client can only update their own document.
-      allow update: if isOwner() || isClient(clientId);
-      // An owner can read any client doc. A client can only read their own.
-      allow read: if isOwner() || isClient(clientId);
-
-      // Rules for the 'projects' sub-collection within a client document
+      allow read, update: if isOwner() || isClient(clientId);
+      
+      // Allow clients to read their own projects, and owners to do anything.
       match /projects/{projectId} {
-        // Only the owner or the specific client can read or write to the projects in this sub-collection.
         allow read, write: if isOwner() || isClient(clientId);
       }
     }
     
-    // Rules for the public 'projects' collection (Portfolio)
     match /projects/{projectId} {
-       // ANYONE can read a project document IF it is of type 'portfolio'. This is for the public homepage.
+       // ANYONE can read a project if it is a portfolio piece.
       allow get: if resource.data.type == 'portfolio';
-      // ANYONE can list projects IF the query is exclusively filtering for portfolio pieces.
+      // ANYONE can list projects IF they are only querying for portfolio pieces.
       allow list: if request.query.where.type == 'portfolio';
-      // ONLY the owner can create, update, or delete projects in the root projects collection.
+      // ONLY the owner can create, update, or delete projects in the root collection.
       allow write: if isOwner();
     }
 
-    // Rules for tickets and their comments
     match /tickets/{ticketId} {
-      // An owner can read/write any ticket. A signed-in user can R/W a ticket if their UID matches the ticket's clientId.
       allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
       
       match /comments/{commentId} {
-         // An owner can R/W any comment. A signed-in user can R/W a comment if their UID matches the comment's authorId.
         allow read, write: if isOwner() || (isSignedIn() && resource.data.authorId == request.auth.uid);
       }
     }
 
-    // Rules for invoices
     match /invoices/{invoiceId} {
-       // An owner can R/W any invoice. A signed-in user can R/W an invoice if their UID matches the invoice's clientId.
       allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
     }
     
-    // Rules for settings documents
     match /settings/{docId} {
-      // Anyone can read any document in the settings collection (e.g., 'site' settings, 'about' page content).
       allow read: if true;
-      // Only the owner can write to the settings collection.
       allow write: if isOwner();
     }
 
-    // Rules for contact form submissions
     match /contactFormSubmissions/{submissionId} {
-      // Anyone can create a submission (i.e., submit the contact form).
       allow create: if true;
-      // Only the owner can read, update, or delete submissions.
       allow read, update, delete: if isOwner();
     }
   }

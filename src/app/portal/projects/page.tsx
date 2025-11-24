@@ -28,11 +28,8 @@ export default function ProjectsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  // CORRECTED: Query the client-specific sub-collection for projects.
-  // This is more secure and aligns with Firestore's recommended data modeling for user-specific data.
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    // The query now targets '/clients/{userId}/projects' instead of the global '/projects' collection.
     return collection(firestore, 'clients', user.uid, 'projects');
   }, [firestore, user]);
 
