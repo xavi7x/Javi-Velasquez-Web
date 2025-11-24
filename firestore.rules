@@ -32,6 +32,19 @@ service cloud.firestore {
         allow read, write: if isClient(clientId) || isOwner();
       }
     }
+    
+    // PUBLIC PORTFOLIO PROJECTS
+    match /projects/{projectId} {
+      // ANYONE can read a project if the query is filtering for portfolio pieces.
+      // This is for the public homepage.
+      allow list: if request.query.where.type == 'portfolio';
+      
+      // ANYONE can read a single document if it's a portfolio piece.
+      allow get: if resource.data.type == 'portfolio';
+      
+      // ONLY the owner can create, update, or delete projects in this collection.
+      allow write: if isOwner();
+    }
 
     // Rules for tickets
     match /tickets/{ticketId} {

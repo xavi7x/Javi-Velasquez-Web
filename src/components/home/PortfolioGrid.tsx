@@ -5,13 +5,33 @@ import { cn } from '@/lib/utils';
 import { useInView } from 'react-intersection-observer';
 import { Loader2 } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Project } from '@/lib/project-types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { useMemo } from 'react';
 
 export function PortfolioGrid() {
+  const firestore = useFirestore();
+
+  const projectsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    // DEBUG: Logging right before the query is created.
+    console.log('DEBUG: PortfolioGrid - Creating Firestore query for public projects.');
+    return query(
+      collection(firestore, 'projects'),
+      where('type', '==', 'portfolio'),
+      orderBy('order', 'asc')
+    );
+  }, [firestore]);
+
+  const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
+
+  const sortedProjects = useMemo(() => {
+    if (!projects) return [];
+    // The query now includes orderBy, so this client-side sort might be redundant but is safe to keep.
+    return [...projects].sort((a, b) => a.order - b.order);
+  }, [projects]);
   
   return (
     <section
@@ -27,12 +47,76 @@ export function PortfolioGrid() {
           </p>
       </div>
 
-        <div className="mt-16 h-48 flex flex-col items-center justify-center text-center bg-muted/50 rounded-2xl">
+       {isLoading && (
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+          <p className="mt-2 text-muted-foreground">Cargando proyectos...</p>
+        </div>
+      )}
+
+      {!isLoading && !projects?.length && (
+         <div className="mt-16 h-48 flex flex-col items-center justify-center text-center bg-muted/50 rounded-2xl">
             <h3 className="text-lg font-semibold">Portafolio en Construcción</h3>
             <p className="text-muted-foreground text-sm max-w-sm">
-                Esta sección está temporalmente en mantenimiento. ¡Vuelve pronto para ver mi trabajo!
+                Aún no hay proyectos públicos para mostrar. ¡Vuelve pronto!
             </p>
         </div>
+      )}
+
+      {!isLoading && sortedProjects && sortedProjects.length > 0 && (
+         <div
+          className="grid grid-cols-1 md:grid-cols-6 gap-4 md:gap-6"
+        >
+          {sortedProjects.map((project, index) => {
+            const { ref, inView } = useInView({
+              triggerOnce: true,
+              threshold: 0.1,
+            });
+
+            return (
+              <div
+                key={project.id}
+                ref={ref}
+                className={cn(
+                  'group relative col-span-1 md:col-span-2',
+                  index === 0 && 'md:col-span-4 md:row-span-2',
+                  index === 3 && 'md:col-span-3',
+                  index === 4 && 'md:col-span-3',
+                  'opacity-0 transition-all duration-700 ease-out',
+                  inView ? 'animate-fade-in-up' : 'opacity-0 translate-y-4'
+                )}
+                style={{ animationDelay: `${Math.min(index * 150, 450)}ms` }}
+              >
+                <Card className="h-full w-full overflow-hidden">
+                  <CardContent className="relative h-full w-full p-0">
+                    <Image
+                      src={project.thumbnail}
+                      alt={project.title}
+                      fill
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      data-ai-hint="abstract background"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                    <div className="absolute bottom-0 left-0 p-6">
+                      <h3 className="text-2xl font-bold text-white">
+                        {project.title}
+                      </h3>
+                      <p className="text-sm text-white/80">{project.tagline}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {project.skills.slice(0, 3).map(skill => (
+                          <Badge key={skill} variant="secondary" className="bg-white/10 text-white border-white/20">
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
