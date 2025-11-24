@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, ChangeEvent } from 'react';
 import {
   Table,
   TableBody,
@@ -40,9 +40,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import type { Project } from '@/lib/project-types';
-import { PlusCircle, Trash, Loader2, Edit, Image as ImageIcon } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { PlusCircle, Trash, Loader2, Edit, Upload, Image as ImageIcon, X } from 'lucide-react';
+import { useCollection, useFirestore, useUser, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy } from 'firebase/firestore';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 import Image from 'next/image';
@@ -65,6 +66,10 @@ export function MyWebView() {
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const { user } = useUser();
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const firestore = useFirestore();
 
@@ -76,7 +81,10 @@ export function MyWebView() {
   const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
 
   const openAddModal = () => {
-    setEditingProject(emptyProject);
+    setEditingProject({
+        ...emptyProject,
+        order: (projects?.length || 0) + 1, // Default order to last
+    });
     setIsEditing(false);
     setIsModalOpen(true);
   };
@@ -91,6 +99,7 @@ export function MyWebView() {
     setIsModalOpen(false);
     setEditingProject(null);
     setIsSubmitting(false);
+    setIsUploading(false);
   }
 
   const handleFormChange = (field: keyof Project, value: any) => {
@@ -106,6 +115,64 @@ export function MyWebView() {
         } 
     } : null);
   };
+
+  const handleImageUpload = async (file: File, isThumbnail: boolean) => {
+    if (!file || !user) return;
+
+    setIsUploading(true);
+    try {
+        const storage = getStorage();
+        const projectId = editingProject?.id || Date.now().toString();
+        const path = `projects/${projectId}/${isThumbnail ? 'thumbnail' : `gallery_${Date.now()}`}_${file.name}`;
+        const fileRef = storageRef(storage, path);
+        const snapshot = await uploadBytes(fileRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+
+        if (isThumbnail) {
+            handleFormChange('thumbnail', downloadURL);
+        } else {
+            handleFormChange('images', [...(editingProject?.images || []), downloadURL]);
+        }
+        toast({ title: 'Imagen subida', description: 'La imagen se ha subido y añadido al proyecto.' });
+
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        toast({ variant: 'destructive', title: 'Error de carga', description: 'No se pudo subir la imagen.' });
+    } finally {
+        setIsUploading(false);
+    }
+  };
+
+  const handleFileSelected = (e: ChangeEvent<HTMLInputElement>, isThumbnail: boolean) => {
+    const files = e.target.files;
+    if (files) {
+        if (isThumbnail && files[0]) {
+            handleImageUpload(files[0], true);
+        } else {
+            Array.from(files).forEach(file => handleImageUpload(file, false));
+        }
+    }
+    e.target.value = ''; // Reset file input
+  }
+  
+  const handleRemoveGalleryImage = (imageUrl: string) => {
+    if(!editingProject) return;
+
+    // Filter out the image to be removed
+    const updatedImages = editingProject.images?.filter(img => img !== imageUrl) || [];
+    handleFormChange('images', updatedImages);
+
+    // Optional: Delete from Firebase Storage
+    const storage = getStorage();
+    const imageRef = storageRef(storage, imageUrl);
+    deleteObject(imageRef).then(() => {
+        toast({ title: 'Imagen eliminada', description: 'La imagen ha sido eliminada de la galería y del almacenamiento.' });
+    }).catch(error => {
+        // If it fails, it's not critical, but good to know. The link is removed from Firestore anyway.
+        console.error("Error deleting image from Storage:", error);
+    });
+  }
+
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,8 +200,11 @@ export function MyWebView() {
             });
         } else {
             const collectionRef = collection(firestore, 'projects');
-            const newDocRef = await addDoc(collectionRef, projectData);
-            // No need to set the ID back, the collection will re-fetch
+            // Firestore will generate the ID, we'll get it from the ref
+            const docRef = await addDoc(collectionRef, projectData);
+            // Now update the doc with its own ID.
+            await setDoc(docRef, { id: docRef.id }, { merge: true });
+
             toast({
                 title: "Proyecto creado",
                 description: `El proyecto "${projectData.title}" ha sido añadido a tu portafolio.`
@@ -279,8 +349,52 @@ export function MyWebView() {
                     <Input id="tagline" value={editingProject.tagline} onChange={e => handleFormChange('tagline', e.target.value)} />
                 </div>
                  <div className="space-y-2">
-                    <Label htmlFor="thumbnail">URL de la Imagen Principal (Thumbnail)</Label>
-                    <Input id="thumbnail" value={editingProject.thumbnail} onChange={e => handleFormChange('thumbnail', e.target.value)} placeholder="https://..." />
+                    <Label>Imagen Principal (Thumbnail)</Label>
+                    <div className="flex items-center gap-4">
+                        <div className="relative w-48 h-32 rounded-lg overflow-hidden bg-muted border flex items-center justify-center">
+                            {editingProject.thumbnail ? (
+                                <Image src={editingProject.thumbnail} alt="Thumbnail" layout="fill" objectFit="cover" />
+                            ) : (
+                                <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                            )}
+                        </div>
+                        <div>
+                            <input type="file" ref={thumbnailInputRef} onChange={(e) => handleFileSelected(e, true)} accept="image/*" className="hidden" />
+                            <Button type="button" onClick={() => thumbnailInputRef.current?.click()} disabled={isUploading || isSubmitting} variant="outline">
+                                {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                                Cambiar
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+                 <div className="space-y-2">
+                    <Label>Galería de Imágenes</Label>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                        {editingProject.images?.map((imageUrl) => (
+                            <div key={imageUrl} className="relative group aspect-square">
+                                <Image src={imageUrl} alt="Gallery image" layout="fill" objectFit="cover" className="rounded-md" />
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => handleRemoveGalleryImage(imageUrl)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                         <button
+                            type="button"
+                            onClick={() => galleryInputRef.current?.click()}
+                            disabled={isUploading || isSubmitting}
+                            className="aspect-square rounded-md border-2 border-dashed border-muted-foreground/50 flex flex-col items-center justify-center text-muted-foreground hover:bg-muted hover:border-muted-foreground transition-colors"
+                        >
+                            {isUploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <PlusCircle className="h-6 w-6" />}
+                            <span className="text-xs mt-1">Añadir</span>
+                        </button>
+                         <input type="file" ref={galleryInputRef} onChange={(e) => handleFileSelected(e, false)} accept="image/*" multiple className="hidden" />
+                    </div>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="description-challenge">Descripción: El Desafío</Label>
@@ -300,9 +414,9 @@ export function MyWebView() {
                 </div>
             </form>
             <DialogFooter>
-                <DialogClose asChild><Button type="button" variant="secondary">Cancelar</Button></DialogClose>
-                <Button type="submit" form="project-form" disabled={isSubmitting}>
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <DialogClose asChild><Button type="button" variant="secondary" disabled={isUploading || isSubmitting}>Cancelar</Button></DialogClose>
+                <Button type="submit" form="project-form" disabled={isUploading || isSubmitting}>
+                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isSubmitting ? 'Guardando...' : 'Guardar Proyecto'}
                 </Button>
             </DialogFooter>
