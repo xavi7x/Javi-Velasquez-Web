@@ -21,6 +21,7 @@ export interface ClientProject {
   budget?: number;
   createdAt: Date;
   clientName?: string;
+  progress?: number;
   // Para migración gradual
   isLegacy?: boolean;
 }
