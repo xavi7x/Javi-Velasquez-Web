@@ -41,7 +41,6 @@ function HomePageContent() {
     return <ComingSoon />;
   }
 
-  // Pass the loaded projects and loading state down to the main content
   return <MainContent projects={projectsData} isLoading={isLoading}/>;
 }
 
