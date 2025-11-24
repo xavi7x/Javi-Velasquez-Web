@@ -189,7 +189,8 @@ export function MyWebView() {
     const projectData = {
         ...editingProject,
         order: Number(editingProject.order || 0),
-        type: 'portfolio'
+        type: 'portfolio',
+        isPublic: editingProject.isPublic ?? true, // Ensure isPublic is set
     };
 
     try {
@@ -202,10 +203,8 @@ export function MyWebView() {
             });
         } else {
             const collectionRef = collection(firestore, 'projects');
-            // Firestore will generate the ID, we'll get it from the ref
-            const docRef = await addDoc(collectionRef, projectData);
-            // Now update the doc with its own ID.
-            await setDoc(docRef, { id: docRef.id }, { merge: true });
+            const docRef = await addDoc(collectionRef, { ...projectData, id: '' });
+            await updateDoc(docRef, { id: docRef.id });
 
             toast({
                 title: "Proyecto creado",
@@ -483,3 +482,5 @@ export function MyWebView() {
     </div>
   );
 }
+
+    

@@ -10,15 +10,6 @@ import type { Project } from '@/lib/project-types';
 
 function HomePageContent() {
   const firestore = useFirestore();
-  const [showLoader, setShowLoader] = useState(true);
-
-  // This timer is just for aesthetics, to ensure the loader is visible for a minimum duration.
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoader(false);
-    }, 2000); 
-    return () => clearTimeout(timer);
-  }, []);
 
   const settingsRef = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -31,7 +22,6 @@ function HomePageContent() {
   
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // This query is now robust. It only runs on this page and is protected by rules.
     return query(
       collection(firestore, 'projects'),
       where('isPublic', '==', true),
@@ -41,18 +31,14 @@ function HomePageContent() {
 
   const { data: projectsData, isLoading: areProjectsLoading } = useCollection<Project>(projectsQuery);
 
-  const isLoading = showLoader || isSettingsLoading || areProjectsLoading;
-
-  if (isLoading) {
-    return <QuantumLoader />;
-  }
+  const isLoading = isSettingsLoading || areProjectsLoading;
 
   if (settings?.isMaintenanceMode) {
     return <ComingSoon />;
   }
 
   // Pass the loaded projects and loading state down to the main content
-  return <MainContent projects={projectsData} isLoading={areProjectsLoading}/>;
+  return <MainContent projects={projectsData} isLoading={isLoading}/>;
 }
 
 export default function Home() {
@@ -62,3 +48,5 @@ export default function Home() {
     </Suspense>
   );
 }
+
+    

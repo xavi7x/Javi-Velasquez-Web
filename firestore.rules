@@ -38,7 +38,10 @@ service cloud.firestore {
     // Rules for the top-level 'projects' collection (public portfolio)
     match /projects/{projectId} {
       // Anyone can read portfolio projects that are public.
-      allow read: if resource.data.isPublic == true;
+      // The owner can read all projects regardless of isPublic status.
+      allow get: if resource.data.isPublic == true || isOwner();
+      allow list: if isOwner(); // Only owner can list the whole collection
+      
       // Only the owner can create, update, or delete projects.
       allow write: if isOwner();
     }
@@ -72,3 +75,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
