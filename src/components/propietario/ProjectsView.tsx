@@ -64,7 +64,7 @@ const emptyProject: Partial<Project> = {
   order: 0,
   progress: 0,
   stages: [],
-  type: 'portfolio'
+  type: 'client'
 };
 
 
@@ -76,7 +76,7 @@ export function ProjectsView() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [activeTab, setActiveTab] = useState<'portfolio' | 'client'>('portfolio');
+  const [activeTab, setActiveTab] = useState<'client' | 'portfolio'>('client');
 
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -108,7 +108,8 @@ export function ProjectsView() {
   const clientProjects = useMemo(() => projects.filter(p => p.type === 'client').sort((a,b) => (a.order ?? 0) - (b.order ?? 0)), [projects]);
 
   const openAddModal = () => {
-    const maxOrder = projects.reduce((max, p) => Math.max(p.order ?? 0, max), -1);
+    const projectList = activeTab === 'portfolio' ? portfolioProjects : clientProjects;
+    const maxOrder = projectList.reduce((max, p) => Math.max(p.order ?? 0, max), -1);
     setEditingProject({...emptyProject, order: maxOrder + 1, type: activeTab });
     setIsEditing(false);
     setIsModalOpen(true);
@@ -305,17 +306,72 @@ export function ProjectsView() {
 
   return (
     <div className="space-y-8">
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'portfolio' | 'client')} className="w-full">
-        <div className="flex justify-between items-center mb-4">
-            <TabsList>
-                <TabsTrigger value="portfolio">Portafolio Público</TabsTrigger>
-                <TabsTrigger value="client">Proyectos de Clientes</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'client' | 'portfolio')} className="w-full">
+        <div className="flex items-center gap-4 mb-4">
+            <TabsList className="flex-1">
+                <TabsTrigger value="client" className="flex-1">Proyectos de Clientes</TabsTrigger>
+                <TabsTrigger value="portfolio" className="flex-1">Portafolio Público</TabsTrigger>
             </TabsList>
              <Button onClick={openAddModal}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Añadir Proyecto
             </Button>
         </div>
+        <TabsContent value="client">
+             <Card>
+                <CardContent className="p-0">
+                    <div className="relative w-full overflow-auto">
+                        <Table>
+                        <TableHeader>
+                            <TableRow>
+                            <TableHead>Proyecto</TableHead>
+                            <TableHead>Cliente</TableHead>
+                            <TableHead>Progreso</TableHead>
+                            <TableHead className="hidden lg:table-cell">Modificado</TableHead>
+                            <TableHead className="text-right">Acciones</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center h-24">
+                                <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                                </TableCell>
+                            </TableRow>
+                            ) : clientProjects.map((project, index) => (
+                            <TableRow key={project.id}>
+                                <TableCell className="font-medium max-w-xs truncate">{project.title}</TableCell>
+                                <TableCell className="text-muted-foreground">{getClientName(project.clientId)}</TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Progress value={project.progress || 0} className="w-24"/>
+                                    <span className="text-muted-foreground text-sm">{project.progress || 0}%</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-muted-foreground text-nowrap hidden lg:table-cell">
+                                  {project.updatedAt ? format(project.updatedAt.toDate(), 'dd MMM yyyy, HH:mm', { locale: es }) : 'N/A'}
+                                </TableCell>
+                                <TableCell className="text-right space-x-2">
+                                <Button variant="outline" size="sm" onClick={() => openEditModal(project)}>
+                                    Editar
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    className="h-9 w-9"
+                                    onClick={() => setProjectToDelete(project)}
+                                >
+                                    <Trash className="h-4 w-4" />
+                                </Button>
+                                </TableCell>
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                        </Table>
+                    </div>
+                </CardContent>
+            </Card>
+        </TabsContent>
         <TabsContent value="portfolio">
             <Card>
                 <CardContent className="p-0">
@@ -367,61 +423,6 @@ export function ProjectsView() {
                                 </TableCell>
                                 <TableCell className="text-muted-foreground text-nowrap hidden lg:table-cell">
                                 {project.updatedAt ? format(project.updatedAt.toDate(), 'dd MMM yyyy, HH:mm', { locale: es }) : 'N/A'}
-                                </TableCell>
-                                <TableCell className="text-right space-x-2">
-                                <Button variant="outline" size="sm" onClick={() => openEditModal(project)}>
-                                    Editar
-                                </Button>
-                                <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    className="h-9 w-9"
-                                    onClick={() => setProjectToDelete(project)}
-                                >
-                                    <Trash className="h-4 w-4" />
-                                </Button>
-                                </TableCell>
-                            </TableRow>
-                            ))}
-                        </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
-        </TabsContent>
-        <TabsContent value="client">
-             <Card>
-                <CardContent className="p-0">
-                    <div className="relative w-full overflow-auto">
-                        <Table>
-                        <TableHeader>
-                            <TableRow>
-                            <TableHead>Proyecto</TableHead>
-                            <TableHead>Cliente</TableHead>
-                            <TableHead>Progreso</TableHead>
-                            <TableHead className="hidden lg:table-cell">Modificado</TableHead>
-                            <TableHead className="text-right">Acciones</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center h-24">
-                                <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-                                </TableCell>
-                            </TableRow>
-                            ) : clientProjects.map((project, index) => (
-                            <TableRow key={project.id}>
-                                <TableCell className="font-medium max-w-xs truncate">{project.title}</TableCell>
-                                <TableCell className="text-muted-foreground">{getClientName(project.clientId)}</TableCell>
-                                <TableCell>
-                                  <div className="flex items-center gap-2">
-                                    <Progress value={project.progress || 0} className="w-24"/>
-                                    <span className="text-muted-foreground text-sm">{project.progress || 0}%</span>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="text-muted-foreground text-nowrap hidden lg:table-cell">
-                                  {project.updatedAt ? format(project.updatedAt.toDate(), 'dd MMM yyyy, HH:mm', { locale: es }) : 'N/A'}
                                 </TableCell>
                                 <TableCell className="text-right space-x-2">
                                 <Button variant="outline" size="sm" onClick={() => openEditModal(project)}>
