@@ -28,8 +28,13 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import type { Client, ClientProject, ProgressUpdate } from '@/types/firestore';
-import { PlusCircle, Loader2, Edit, Trash, Briefcase } from 'lucide-react';
+import { PlusCircle, Loader2, Edit, ChevronDown, History, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, serverTimestamp, Timestamp, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -43,6 +48,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Progress } from '../ui/progress';
 import { Slider } from '../ui/slider';
+import { cn } from '@/lib/utils';
 
 const emptyProject: Partial<ClientProject> = {
   title: '',
@@ -53,6 +59,87 @@ const emptyProject: Partial<ClientProject> = {
   progress: 0,
   progressHistory: [],
 };
+
+const ITEMS_PER_PAGE = 5;
+
+const ProjectHistory = ({ history }: { history: ProgressUpdate[] }) => {
+  const [currentPage, setCurrentPage] = useState(0);
+  const totalPages = Math.ceil(history.length / ITEMS_PER_PAGE);
+  
+  const sortedHistory = [...history].sort((a, b) => {
+    const dateA = a.date instanceof Timestamp ? a.date.toMillis() : new Date(a.date).getTime();
+    const dateB = b.date instanceof Timestamp ? b.date.toMillis() : new Date(b.date).getTime();
+    return dateB - dateA;
+  });
+
+  const paginatedHistory = sortedHistory.slice(
+    currentPage * ITEMS_PER_PAGE,
+    (currentPage + 1) * ITEMS_PER_PAGE
+  );
+
+  if (history.length === 0) {
+    return (
+      <div className="text-center text-sm text-muted-foreground py-4">
+        No hay historial de progreso para este proyecto.
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-4">
+      <h4 className="font-semibold flex items-center gap-2">
+        <History className="h-4 w-4" />
+        Historial de Avances
+      </h4>
+      <ul className="space-y-4">
+        {paginatedHistory.map((item, index) => {
+          const itemDate = item.date instanceof Timestamp ? item.date.toDate() : new Date(item.date);
+          return (
+            <li key={index} className="flex gap-4">
+              <div className="flex flex-col items-center">
+                <div className="w-px flex-grow bg-border" />
+                <div className="h-3 w-3 rounded-full bg-primary/50" />
+                <div className="w-px flex-grow bg-border" />
+              </div>
+              <div className="pb-4 flex-1">
+                <p className="text-xs text-muted-foreground">
+                  {format(itemDate, "dd 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })}
+                </p>
+                <p className="text-sm font-medium">Progreso actualizado al {item.progress}%</p>
+                <p className="text-sm text-muted-foreground italic mt-1">"{item.comment}"</p>
+              </div>
+            </li>
+        )})}
+      </ul>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => p - 1)}
+            disabled={currentPage === 0}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Anterior
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Página {currentPage + 1} de {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => p + 1)}
+            disabled={currentPage >= totalPages - 1}
+          >
+            Siguiente
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -200,7 +287,7 @@ export function ProjectsView() {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="relative w-full overflow-auto">
+          <div className="relative w-full overflow-auto border rounded-lg">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -235,26 +322,42 @@ export function ProjectsView() {
                     </TableCell>
                   </TableRow>
                 ) : projects?.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell className="font-medium max-w-[200px] truncate">{project.title}</TableCell>
-                    <TableCell className="text-muted-foreground">{project.clientName}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Progress value={project.progress || 0} className="w-[60%]" />
-                        <span className="text-xs text-muted-foreground">{project.progress || 0}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Badge variant={getStatusVariant(project.status)}>
-                        {getStatusLabel(project.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => openEditModal(project)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                  <Collapsible asChild key={project.id}>
+                    <>
+                      <CollapsibleTrigger asChild>
+                        <TableRow className="cursor-pointer group">
+                          <TableCell className="font-medium max-w-[200px] truncate">{project.title}</TableCell>
+                          <TableCell className="text-muted-foreground">{project.clientName}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Progress value={project.progress || 0} className="w-[60%]" />
+                              <span className="text-xs text-muted-foreground">{project.progress || 0}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <Badge variant={getStatusVariant(project.status)}>
+                              {getStatusLabel(project.status)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                             <div className="flex items-center justify-end gap-2">
+                                <Button variant="outline" size="icon" className="h-9 w-9" onClick={(e) => {e.stopPropagation(); openEditModal(project); }}>
+                                    <Edit className="h-4 w-4" />
+                                </Button>
+                               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent asChild>
+                        <tr>
+                            <td colSpan={5} className='p-0'>
+                               <ProjectHistory history={project.progressHistory || []} />
+                            </td>
+                        </tr>
+                      </CollapsibleContent>
+                    </>
+                  </Collapsible>
                 ))}
               </TableBody>
             </Table>
