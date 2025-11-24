@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import type { Project } from '@/lib/project-types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,9 +28,11 @@ export default function ProjectsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  // CORRECTED: Query the client-specific sub-collection for projects.
+  // This is more secure and aligns with Firestore's recommended data modeling for user-specific data.
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    // Correct Way: Query the sub-collection within the client's own document.
+    // The query now targets '/clients/{userId}/projects' instead of the global '/projects' collection.
     return collection(firestore, 'clients', user.uid, 'projects');
   }, [firestore, user]);
 
