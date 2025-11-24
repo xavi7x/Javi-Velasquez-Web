@@ -31,12 +31,19 @@ service cloud.firestore {
       
       // Rules for the 'projects' sub-collection within each client
       match /projects/{projectId} {
-                       
-        // ANYONE can GET an individual project IF it is public.
-        allow get: if resource.data.isPublic == true;
+    
+        // 🔹 Acceso de LECTURA (GET y LIST) - Combinado para evitar conflictos
+        allow read: if isOwner() ||                                 // 1. Acceso total para el propietario
+                             isClient(clientId) ||                          // 2. Acceso total para el cliente (es dueño de la colección)
+                             (resource != null && resource.data.isPublic == true) ||              // 3. Acceso GET si el documento es público
+                             (request.query.where.size() > 0 &&             // 4. Acceso LIST si se consulta por isPublic (para portafolio)
+                              request.query.where[0].field == 'isPublic' &&
+                              request.query.where[0].op == '==' &&
+                              request.query.where[0].value == true);
 
-        // The Owner or the specific client can do anything else (create, update, delete, and read/list private projects).
-        allow write, get, list: if debug({ "isOwner": isOwner(), "isClient": isClient(clientId), "clientId": clientId, "request.auth.uid": request.auth.uid }) && (isOwner() || isClient(clientId)); 
+        // 🔹 Acceso de ESCRITURA (CREATE, UPDATE, DELETE)
+        // Se mantiene simple, solo para el Owner o el Cliente.
+        allow write: if isOwner() || isClient(clientId);
       }
     }
 
