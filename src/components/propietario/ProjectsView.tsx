@@ -64,6 +64,13 @@ const ITEMS_PER_PAGE = 5;
 
 const ProjectHistory = ({ history }: { history: ProgressUpdate[] }) => {
   const [currentPage, setCurrentPage] = useState(0);
+  if (!history || history.length === 0) {
+    return (
+      <div className="text-center text-sm text-muted-foreground py-4">
+        No hay historial de progreso para este proyecto.
+      </div>
+    );
+  }
   const totalPages = Math.ceil(history.length / ITEMS_PER_PAGE);
   
   const sortedHistory = [...history].sort((a, b) => {
@@ -77,13 +84,6 @@ const ProjectHistory = ({ history }: { history: ProgressUpdate[] }) => {
     (currentPage + 1) * ITEMS_PER_PAGE
   );
 
-  if (history.length === 0) {
-    return (
-      <div className="text-center text-sm text-muted-foreground py-4">
-        No hay historial de progreso para este proyecto.
-      </div>
-    );
-  }
 
   return (
     <div className="p-4 space-y-4">
@@ -195,7 +195,7 @@ export function ProjectsView() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingProject || !editingProject.title || !editingProject.clientId) {
+    if (!firestore || !editingProject || !editingProject.title || !editingProject.clientId) {
       toast({ variant: 'destructive', title: 'Campos requeridos', description: 'El título y el cliente son obligatorios.' });
       return;
     }
@@ -224,7 +224,7 @@ export function ProjectsView() {
               updateData.progressHistory = arrayUnion(newProgressUpdate);
             }
 
-            await ClientProjectService.updateClientProject(projectId, updateData);
+            await ClientProjectService.updateClientProject(firestore, projectId, updateData);
             toast({
               title: 'Proyecto Actualizado',
               description: `El proyecto "${editingProject.title}" ha sido actualizado.`
@@ -240,7 +240,7 @@ export function ProjectsView() {
                 progress: editingProject.progress || 0,
                 progressHistory: [],
             };
-            await ClientProjectService.createClientProject(projectData);
+            await ClientProjectService.createClientProject(firestore, projectData);
             toast({
                 title: 'Proyecto Creado',
                 description: `El proyecto "${projectData.title}" ha sido creado.`
@@ -313,7 +313,7 @@ export function ProjectsView() {
                       </TableRow>
                     ))}
                   </TableBody>
-                ) : projects?.length === 0 ? (
+                ) : !projects || projects.length === 0 ? (
                   <TableBody>
                     <TableRow>
                       <TableCell colSpan={5} className="h-48 text-center">
@@ -326,7 +326,7 @@ export function ProjectsView() {
                     </TableRow>
                   </TableBody>
                 ) : (
-                  projects?.map((project) => (
+                  projects.map((project) => (
                   <Collapsible asChild key={project.id}>
                     <tbody className="w-full">
                       <CollapsibleTrigger asChild>
@@ -432,7 +432,7 @@ export function ProjectsView() {
                 <Label htmlFor="status">Estado</Label>
                 <Select
                   value={editingProject.status}
-                  onValueChange={(value) => handleFormChange('status', value)}
+                  onValueChange={(value) => handleFormChange('status', value as ClientProject['status'])}
                 >
                   <SelectTrigger id="status">
                     <SelectValue placeholder="Selecciona un estado..." />

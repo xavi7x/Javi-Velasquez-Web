@@ -1,3 +1,4 @@
+'use client';
 
 import { 
   collection, 
@@ -5,14 +6,15 @@ import {
   updateDoc, 
   deleteDoc, 
   doc,
-  Timestamp
+  Timestamp,
+  Firestore
 } from 'firebase/firestore';
-import { db } from '../../config';
+import { useFirestore } from '@/firebase';
 import type { ClientProject } from '@/lib/project-types';
 
 export const ClientProjectService = {
   // Crear nuevo proyecto de cliente
-  createClientProject: async (project: Omit<ClientProject, 'id' | 'createdAt'>) => {
+  createClientProject: async (db: Firestore, project: Omit<ClientProject, 'id' | 'createdAt'>) => {
     const projectWithMetadata = {
       ...project,
       createdAt: Timestamp.now(),
@@ -25,17 +27,17 @@ export const ClientProjectService = {
   },
 
   // Actualizar proyecto existente
-  updateClientProject: async (projectId: string, updates: Partial<ClientProject>) => {
+  updateClientProject: async (db: Firestore, projectId: string, updates: Partial<ClientProject>) => {
     await updateDoc(doc(db, 'client-projects', projectId), updates);
   },
 
   // Eliminar proyecto
-  deleteClientProject: async (projectId: string) => {
+  deleteClientProject: async (db: Firestore, projectId: string) => {
     await deleteDoc(doc(db, 'client-projects', projectId));
   },
 
   // Migrar proyecto existente del portfolio a client-projects
-  migrateToClientProject: async (portfolioProjectId: string, clientId: string) => {
+  migrateToClientProject: async (db: Firestore, portfolioProjectId: string, clientId: string) => {
     // Esto lo implementaremos después
   }
 };
