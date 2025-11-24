@@ -1,3 +1,4 @@
+'use client';
 
 import { collection, query, orderBy, where, QueryConstraint } from 'firebase/firestore';
 import { useCollection } from '../use-collection';
@@ -14,7 +15,7 @@ export const useClientProjects = (options?: {
     if (!firestore) return null;
 
     const queryConstraints: QueryConstraint[] = [
-      orderBy('createdAt', 'desc')
+      orderBy('title', 'asc') // Changed from 'createdAt' to 'title'
     ];
   
     if (options?.clientId) {

@@ -9,7 +9,6 @@ import {
   Timestamp,
   Firestore
 } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
 import type { ClientProject } from '@/lib/project-types';
 
 export const ClientProjectService = {
@@ -17,7 +16,7 @@ export const ClientProjectService = {
   createClientProject: async (db: Firestore, project: Omit<ClientProject, 'id' | 'createdAt'>) => {
     const projectWithMetadata = {
       ...project,
-      createdAt: Timestamp.now(),
+      createdAt: Timestamp.now(), // Ensure createdAt is added
     };
 
     const docRef = await addDoc(collection(db, 'client-projects'), projectWithMetadata);
@@ -28,7 +27,8 @@ export const ClientProjectService = {
 
   // Actualizar proyecto existente
   updateClientProject: async (db: Firestore, projectId: string, updates: Partial<ClientProject>) => {
-    await updateDoc(doc(db, 'client-projects', projectId), updates);
+    const docRef = doc(db, 'client-projects', projectId);
+    await updateDoc(docRef, updates);
   },
 
   // Eliminar proyecto
