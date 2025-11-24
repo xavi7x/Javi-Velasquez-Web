@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense } from 'react';
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import { MainContent } from '@/components/home/MainContent';
@@ -33,6 +33,10 @@ function HomePageContent() {
 
   const isLoading = isSettingsLoading || areProjectsLoading;
 
+  if (isLoading) {
+    return <QuantumLoader />;
+  }
+
   if (settings?.isMaintenanceMode) {
     return <ComingSoon />;
   }
@@ -48,5 +52,3 @@ export default function Home() {
     </Suspense>
   );
 }
-
-    
