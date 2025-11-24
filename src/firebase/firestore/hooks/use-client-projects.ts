@@ -1,7 +1,7 @@
 
 import { collection, query, orderBy, where, QueryConstraint } from 'firebase/firestore';
 import { useCollection } from '../use-collection';
-import { ClientProject } from '@/types/firestore';
+import { ClientProject } from '@/lib/project-types';
 import { useFirestore, useMemoFirebase } from '@/firebase';
 
 export const useClientProjects = (options?: {
@@ -27,7 +27,7 @@ export const useClientProjects = (options?: {
 
     return query(collection(firestore, 'client-projects'), ...queryConstraints);
 
-  }, [firestore, options]);
+  }, [firestore, options?.clientId, options?.status]);
 
 
   return useCollection<ClientProject>(clientProjectsQuery);

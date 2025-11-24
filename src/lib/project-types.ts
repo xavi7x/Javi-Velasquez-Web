@@ -1,5 +1,11 @@
 import type { Timestamp } from 'firebase/firestore';
 
+export interface ProjectDescription {
+  challenge: string;
+  solution: string;
+  results: string;
+}
+
 export interface Project {
   id: string;
   clientId?: string;
@@ -9,11 +15,7 @@ export interface Project {
   tagline: string;
   thumbnail: string;
   images: string[];
-  description: {
-    challenge: string;
-    solution: string;
-    results: string;
-  };
+  description: ProjectDescription;
   skills: string[];
   order: number;
   isPublic?: boolean;
@@ -21,6 +23,25 @@ export interface Project {
   stages?: { name: string; status: 'Completed' | 'In Progress' | 'Pending' }[];
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
+}
+
+export interface ProgressUpdate {
+  progress: number;
+  comment: string;
+  date: Date | Timestamp;
+}
+
+export interface ClientProject {
+  id: string;
+  title: string;
+  description: string;
+  clientId: string;
+  clientName?: string;
+  status: 'active' | 'completed' | 'on-hold';
+  deadline: Date | Timestamp;
+  progress?: number;
+  progressHistory?: ProgressUpdate[];
+  createdAt?: Timestamp;
 }
 
 export interface Client {

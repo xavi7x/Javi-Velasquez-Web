@@ -4,8 +4,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, where } from 'firebase/firestore';
-import type { Client, ClientProject, Invoice } from '@/types/firestore';
+import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
+import type { Client, ClientProject, Invoice } from '@/lib/project-types';
 import { useClientProjects } from '@/firebase/firestore/hooks/use-client-projects';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Briefcase, IndianRupee } from 'lucide-react';
@@ -40,6 +40,12 @@ export default function ClientDashboardPage() {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
+  }
+
+  const getDeadline = (project: ClientProject) => {
+    if (!project.deadline) return 'No definida';
+    const date = project.deadline instanceof Timestamp ? project.deadline.toDate() : new Date(project.deadline);
+    return format(date, 'dd MMM, yyyy');
   }
 
   return (
@@ -112,7 +118,7 @@ export default function ClientDashboardPage() {
             <CardContent>
                 <div className="flex justify-between items-center">
                     <span className="text-lg font-semibold">
-                    {activeProject?.deadline ? format(activeProject.deadline instanceof Date ? activeProject.deadline : activeProject.deadline.toDate(), 'dd MMM, yyyy') : 'No definida'}
+                      {activeProject ? getDeadline(activeProject) : 'No definida'}
                     </span>
                     <Button asChild variant="secondary" size="sm" disabled={!activeProject}>
                         <Link href={`/portal/projects/${activeProject?.id || ''}`}>Ver Cronograma</Link>

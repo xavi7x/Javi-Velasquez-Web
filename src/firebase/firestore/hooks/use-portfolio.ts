@@ -1,7 +1,7 @@
 
 import { collection, query, orderBy, where, QueryConstraint, Firestore } from 'firebase/firestore';
 import { usePublicCollection } from '../use-public-collection';
-import { PortfolioProject } from '@/types/firestore';
+import { Project } from '@/lib/project-types';
 import { useFirestore, useMemoFirebase } from '@/firebase';
 
 export const usePortfolio = (filters?: {
@@ -31,5 +31,5 @@ export const usePortfolio = (filters?: {
   }, [firestore, filters]);
 
 
-  return usePublicCollection<PortfolioProject>(portfolioQuery);
+  return usePublicCollection<Project>(portfolioQuery);
 };

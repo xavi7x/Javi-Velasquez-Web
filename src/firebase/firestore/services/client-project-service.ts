@@ -4,17 +4,18 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc, 
-  doc 
+  doc,
+  Timestamp
 } from 'firebase/firestore';
 import { db } from '../../config';
-import { ClientProject } from '@/types/firestore';
+import type { ClientProject } from '@/lib/project-types';
 
 export const ClientProjectService = {
   // Crear nuevo proyecto de cliente
   createClientProject: async (project: Omit<ClientProject, 'id' | 'createdAt'>) => {
     const projectWithMetadata = {
       ...project,
-      createdAt: new Date(),
+      createdAt: Timestamp.now(),
     };
 
     const docRef = await addDoc(collection(db, 'client-projects'), projectWithMetadata);

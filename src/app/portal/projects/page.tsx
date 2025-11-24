@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { ClientProject } from '@/types/firestore';
+import type { ClientProject } from '@/lib/project-types';
 
 const ProjectCardSkeleton = () => (
   <Card>

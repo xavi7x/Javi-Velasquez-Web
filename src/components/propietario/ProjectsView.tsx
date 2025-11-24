@@ -33,8 +33,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import type { ProgressUpdate } from '@/lib/project-types';
-import type { Client, ClientProject } from '@/types/firestore';
+import type { ProgressUpdate, ClientProject, Client } from '@/lib/project-types';
 import { PlusCircle, Loader2, Edit, ChevronDown, History, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, serverTimestamp, Timestamp, updateDoc, arrayUnion } from 'firebase/firestore';
@@ -329,7 +328,7 @@ export function ProjectsView() {
                 ) : (
                   projects?.map((project) => (
                   <Collapsible asChild key={project.id}>
-                    <TableBody>
+                    <tbody className="w-full">
                       <CollapsibleTrigger asChild>
                         <TableRow className="cursor-pointer group">
                           <TableCell className="font-medium max-w-[200px] truncate">{project.title}</TableCell>
@@ -362,7 +361,7 @@ export function ProjectsView() {
                             </td>
                         </tr>
                       </CollapsibleContent>
-                    </TableBody>
+                    </tbody>
                   </Collapsible>
                 ))
               )}
