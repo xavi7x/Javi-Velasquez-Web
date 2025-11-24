@@ -1,98 +1,64 @@
 'use client';
 
-import { collection, query, onSnapshot, QueryConstraint, where } from 'firebase/firestore';
+import { onSnapshot, Query, FirestoreError } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
-import { db, auth } from '../config';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { useUser } from '@/firebase';
 
-interface UseCollectionOptions {
-  requireAuth?: boolean;
-  userFilter?: boolean;
-}
+/** Utility type to add an 'id' field to a given type T. */
+type WithId<T> = T & { id: string };
 
-// Para datos que REQUIEREN autenticación
-export const useCollection = <T>(
-  path: string, 
-  queryConstraints: QueryConstraint[] = [],
-  options: UseCollectionOptions = {}
-) => {
-  const [data, setData] = useState<T[]>([]);
+/**
+ * React hook to subscribe to a Firestore collection in real-time, gated by authentication.
+ * Handles nullable queries gracefully.
+ *
+ * @template T - The type of the documents in the collection.
+ * @param {Query | null | undefined} memoizedQuery - The memoized Firestore Query object. Hook execution will wait if it's null or undefined.
+ * @returns An object containing the collection data, loading state, and any error.
+ */
+export function useCollection<T>(
+  memoizedQuery: Query | null | undefined
+) {
+  const [data, setData] = useState<WithId<T>[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-
-  const { requireAuth = true, userFilter = false } = options;
+  const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    // Si no requiere auth, consulta directamente (para compatibilidad)
-    if (!requireAuth) {
-      const q = query(collection(db, path), ...queryConstraints);
-      const unsubscribe = onSnapshot(q, 
-        (snapshot) => {
-          const items = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          })) as T[];
-          setData(items);
-          setLoading(false);
-        },
-        (err) => {
-          console.error(`Error en colección ${path}:`, err);
-          setError(err);
-          setLoading(false);
-        }
-      );
-      return unsubscribe;
+    // Don't run if the user state is still loading or if the query is not ready
+    if (isUserLoading || !memoizedQuery) {
+      setLoading(isUserLoading); // Set loading to true while user is loading
+      setData(null);
+      return;
     }
+    
+    // If there's no authenticated user, we don't proceed.
+    if (!user) {
+      setData(null);
+      setLoading(false);
+      setError(new Error("Authentication required."));
+      return;
+    }
+    
+    setLoading(true);
 
-    // Si requiere auth, espera al usuario
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      
-      if (currentUser) {
-        let finalConstraints = [...queryConstraints];
-        
-        // Filtra por usuario si es necesario
-        if (userFilter) {
-          finalConstraints = [...finalConstraints, where('userId', '==', currentUser.uid)];
-        }
-        
-        try {
-          const q = query(collection(db, path), ...finalConstraints);
-          const unsubscribeFirestore = onSnapshot(q, 
-            (snapshot) => {
-              const items = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-              })) as T[];
-              setData(items);
-              setLoading(false);
-            },
-            (err) => {
-              console.error(`Error en colección autenticada ${path}:`, err);
-              setError(err);
-              setLoading(false);
-            }
-          );
-          
-          return unsubscribeFirestore;
-        } catch (err) {
-          console.error(`Error creando query para ${path}:`, err);
-          setError(err as Error);
-          setLoading(false);
-        }
-      } else {
-        // No hay usuario autenticado
-        setData([]);
+    const unsubscribe = onSnapshot(memoizedQuery, 
+      (snapshot) => {
+        const items = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as WithId<T>[];
+        setData(items);
         setLoading(false);
-        if (requireAuth) {
-          setError(new Error('Authentication required'));
-        }
+      },
+      (err: FirestoreError) => {
+        console.error(`Error in authenticated collection listener for path: ${memoizedQuery.path}:`, err);
+        setError(err);
+        setLoading(false);
       }
-    });
+    );
 
-    return () => unsubscribeAuth();
-  }, [path, requireAuth, userFilter, JSON.stringify(queryConstraints)]);
+    return () => unsubscribe();
+  }, [memoizedQuery, user, isUserLoading]);
 
-  return { data, loading, error, user };
+  return { data, loading, error };
 };

@@ -25,6 +25,7 @@ export interface Project {
 
 export interface Client {
     id: string; // Corresponds to Firebase Auth UID
+    uid: string;
     name: string;
     email: string;
     companyName: string;
@@ -41,4 +42,15 @@ export interface Invoice {
   dueDate: string;   // ISO Date String
   status: 'Pending' | 'Paid' | 'Overdue';
   pdfUrl?: string;
+}
+
+export interface Message {
+  id: string;
+  name: string;
+  phone: string;
+  message: string;
+  submissionDate: string; // ISO string
+  status: 'new' | 'read' | 'archived';
+  attachmentUrl?: string;
+  url?: string;
 }

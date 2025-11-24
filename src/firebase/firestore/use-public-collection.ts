@@ -1,8 +1,7 @@
 'use client';
 
-import { collection, query, onSnapshot, QueryConstraint } from 'firebase/firestore';
+import { onSnapshot, Query, FirestoreError } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
-import { db } from '../config';
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -16,40 +15,39 @@ type WithId<T> = T & { id: string };
  * @returns An object containing the collection data, loading state, and any error.
  */
 export function usePublicCollection<T>(
-  path: string, 
-  queryConstraints: QueryConstraint[] = []
+  memoizedQuery: Query | null | undefined
 ) {
   const [data, setData] = useState<WithId<T>[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    try {
-      const q = query(collection(db, path), ...queryConstraints);
-      
-      const unsubscribe = onSnapshot(q, 
-        (snapshot) => {
-          const items = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          })) as WithId<T>[];
-          setData(items);
-          setLoading(false);
-        },
-        (err) => {
-          console.error(`Error en colección pública ${path}:`, err);
-          setError(err);
-          setLoading(false);
-        }
-      );
-
-      return unsubscribe;
-    } catch (err) {
-      setError(err as Error);
+    if (!memoizedQuery) {
+      setData(null);
       setLoading(false);
-      return () => {}; // Función cleanup vacía
+      return;
     }
-  }, [path, JSON.stringify(queryConstraints)]);
+    
+    setLoading(true);
+    
+    const unsubscribe = onSnapshot(memoizedQuery, 
+      (snapshot) => {
+        const items = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as WithId<T>[];
+        setData(items);
+        setLoading(false);
+      },
+      (err: FirestoreError) => {
+        console.error(`Error in public collection listener for path: ${memoizedQuery.path}:`, err);
+        setError(err);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [memoizedQuery]);
 
   return { data, loading, error };
 }

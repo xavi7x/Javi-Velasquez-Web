@@ -172,7 +172,8 @@ export function FinancesView() {
       }
       
       const docRef = await addDoc(invoicesCollection, invoiceData);
-      await addDoc(collection(firestore, `clients/${newInvoice.clientId}/invoices`), { invoiceId: docRef.id });
+      // This part might need adjustment based on final data structure
+      // await addDoc(collection(firestore, `clients/${newInvoice.clientId}/invoices`), { invoiceId: docRef.id });
 
       toast({
         title: 'Factura Creada',

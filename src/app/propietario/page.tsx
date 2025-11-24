@@ -15,7 +15,6 @@ import {
   Globe,
 } from 'lucide-react';
 import { DashboardView } from '@/components/propietario/DashboardView';
-import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { MyWebView } from '@/components/propietario/MyWebView';
 import { ClientsView } from '@/components/propietario/ClientsView';
 import { ProfileView } from '@/components/propietario/ProfileView';
@@ -25,6 +24,7 @@ import {
 } from '@/components/propietario/MessagesView';
 import { AnalyticsView } from '@/components/propietario/AnalyticsView';
 import { FinancesView } from '@/components/propietario/FinancesView';
+import { ProjectsView } from '@/components/propietario/ProjectsView';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -102,7 +102,7 @@ export default function OwnerDashboard() {
 
   const {
     data: messages,
-    isLoading,
+    loading: isLoading,
     error,
   } = useCollection<Message>(messagesQuery);
 

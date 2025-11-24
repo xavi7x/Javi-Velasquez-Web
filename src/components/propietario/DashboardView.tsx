@@ -20,7 +20,7 @@ import {
 import { getAnalyticsData, type AnalyticsDataOutput } from '@/ai/flows/get-analytics-data';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
-import type { Invoice } from '@/lib/project-types';
+import type { Invoice, Message } from '@/lib/project-types';
 import { Skeleton } from '../ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -74,7 +74,7 @@ export function DashboardView({
       orderBy('submissionDate', 'desc')
     );
   }, [firestore]);
-  const { data: messages } = useCollection(messagesQuery);
+  const { data: messages } = useCollection<Message>(messagesQuery);
   const unreadMessagesCount = messages?.filter(msg => msg.status === 'new').length || 0;
 
 

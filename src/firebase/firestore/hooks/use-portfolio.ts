@@ -1,24 +1,35 @@
 
-import { orderBy, where, QueryConstraint } from 'firebase/firestore';
+import { collection, query, orderBy, where, QueryConstraint, Firestore } from 'firebase/firestore';
 import { usePublicCollection } from '../use-public-collection';
 import { PortfolioProject } from '@/types/firestore';
+import { useFirestore, useMemoFirebase } from '@/firebase';
 
 export const usePortfolio = (filters?: {
   category?: string;
   featured?: boolean;
 }) => {
-  const queryConstraints: QueryConstraint[] = [
-    orderBy('createdAt', 'desc'),
-    where('published', '==', true)
-  ];
+  const firestore = useFirestore();
 
-  if (filters?.category) {
-    queryConstraints.push(where('category', '==', filters.category));
-  }
+  const portfolioQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
 
-  if (filters?.featured) {
-    queryConstraints.push(where('featured', '==', true));
-  }
+    const constraints: QueryConstraint[] = [
+      where('isPublic', '==', true),
+      orderBy('order', 'asc'),
+    ];
+  
+    if (filters?.category) {
+      constraints.push(where('category', '==', filters.category));
+    }
+  
+    if (filters?.featured) {
+      constraints.push(where('featured', '==', true));
+    }
+    
+    return query(collection(firestore, 'projects'), ...constraints);
 
-  return usePublicCollection<PortfolioProject>('projects', queryConstraints);
+  }, [firestore, filters]);
+
+
+  return usePublicCollection<PortfolioProject>(portfolioQuery);
 };

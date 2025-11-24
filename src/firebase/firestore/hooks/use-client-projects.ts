@@ -1,26 +1,34 @@
 
-import { orderBy, where, QueryConstraint } from 'firebase/firestore';
+import { collection, query, orderBy, where, QueryConstraint } from 'firebase/firestore';
 import { useCollection } from '../use-collection';
 import { ClientProject } from '@/types/firestore';
+import { useFirestore, useMemoFirebase } from '@/firebase';
 
 export const useClientProjects = (options?: {
   clientId?: string;
   status?: 'active' | 'completed' | 'on-hold';
 }) => {
-  const queryConstraints: QueryConstraint[] = [
-    orderBy('createdAt', 'desc')
-  ];
+  const firestore = useFirestore();
 
-  if (options?.clientId) {
-    queryConstraints.push(where('clientId', '==', options.clientId));
-  }
+  const clientProjectsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
 
-  if (options?.status) {
-    queryConstraints.push(where('status', '==', options.status));
-  }
+    const queryConstraints: QueryConstraint[] = [
+      orderBy('createdAt', 'desc')
+    ];
+  
+    if (options?.clientId) {
+      queryConstraints.push(where('clientId', '==', options.clientId));
+    }
+  
+    if (options?.status) {
+      queryConstraints.push(where('status', '==', options.status));
+    }
 
-  return useCollection<ClientProject>('client-projects', queryConstraints, {
-    requireAuth: true,
-    userFilter: !options?.clientId // Filtra por usuario si no se especifica clientId
-  });
+    return query(collection(firestore, 'client-projects'), ...queryConstraints);
+
+  }, [firestore, options]);
+
+
+  return useCollection<ClientProject>(clientProjectsQuery);
 };

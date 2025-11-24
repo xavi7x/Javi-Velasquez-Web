@@ -401,5 +401,3 @@ export function ClientsView() {
     </div>
   );
 }
-
-    

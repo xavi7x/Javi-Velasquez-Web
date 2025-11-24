@@ -5,11 +5,11 @@ import { Suspense } from 'react';
 import { MainContent } from '@/components/home/MainContent';
 import { ComingSoon } from '@/components/home/ComingSoon';
 import { QuantumLoader } from '@/components/shared/QuantumLoader';
-import type { Project } from '@/lib/project-types';
 import { useDoc } from '@/firebase/firestore/use-doc';
-import { doc, where, orderBy } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { useFirestore, useMemoFirebase } from '@/firebase';
 import { usePortfolio } from '@/firebase/firestore/hooks/use-portfolio';
+import type { Project } from '@/lib/project-types';
 
 function HomePageContent() {
   const firestore = useFirestore();
@@ -33,7 +33,7 @@ function HomePageContent() {
     return <ComingSoon />;
   }
 
-  return <MainContent projects={projects} isLoading={areProjectsLoading}/>;
+  return <MainContent projects={projects as Project[] | null} isLoading={areProjectsLoading}/>;
 }
 
 export default function Home() {
