@@ -1,53 +1,55 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Funciones de ayuda para la reutilización de lógica de seguridad
+    // Helper functions for security logic reuse
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isOwner() {
-      // El usuario es propietario si existe un documento en /owners con su UID
+      // The user is an owner if a document exists in /owners with their UID
       return exists(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
 
     function isClient(clientId) {
-      // El usuario es el cliente especificado si su UID coincide
+      // The user is the specified client if their UID matches
       return request.auth.uid == clientId;
     }
 
-    // Reglas para la colección 'owners'
+    // Rules for the 'owners' collection
     match /owners/{ownerId} {
-      // Solo el propietario puede leer/escribir en la colección de propietarios
+      // Only the owner can read/write to the owners collection
       allow read, write: if isOwner();
     }
 
-    // Reglas para la colección 'clients'
+    // Rules for the 'clients' collection
     match /clients/{clientId} {
-      // El propietario puede leer/escribir. El cliente puede leer sus propios datos.
+      // Owner can read/write. The client can read their own data.
       allow read: if isOwner() || isClient(clientId);
       allow write: if isOwner();
     }
 
-    // Reglas para la colección 'projects'
+    // Rules for the 'projects' collection
     match /projects/{projectId} {
-      // Permitir lectura si:
-      // 1. Es el propietario.
-      // 2. El proyecto es del tipo 'portfolio'.
-      // 3. El usuario es el cliente al que está asignado el proyecto.
+      // Allow read if:
+      // 1. It's the owner.
+      // 2. The project is a 'portfolio' type.
+      // 3. The user is the client assigned to the project.
       allow read: if isOwner() || resource.data.type == 'portfolio' || (resource.data.clientId != null && isClient(resource.data.clientId));
       
-      // Permitir escritura (crear, actualizar, eliminar) solo al propietario
+      // Allow write (create, update, delete) only for the owner
       allow write: if isOwner();
     }
     
+    // Sub-collection for client projects
     match /clients/{clientId}/projects/{projectId} {
         allow read, write: if isOwner() || isClient(clientId);
     }
 
-    // Reglas para los tickets
+    // Rules for tickets
     match /tickets/{ticketId} {
       allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
       match /comments/{commentId} {
@@ -55,23 +57,23 @@ service cloud.firestore {
       }
     }
 
-    // Reglas para las facturas
+    // Rules for invoices
     match /invoices/{invoiceId} {
       allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
     }
     
-    // Reglas para la configuración
+    // Rules for settings
     match /settings/{docId} {
-      // Cualquiera puede leer la configuración del sitio o de "about". Solo el propietario puede escribir.
+      // Anyone can read site or about settings. Only owner can write.
       allow read: if true;
       allow write: if isOwner();
     }
 
-    // Reglas para los envíos del formulario de contacto
+    // Rules for contact form submissions
     match /contactFormSubmissions/{submissionId} {
-      // Cualquiera puede crear (enviar el formulario)
+      // Anyone can create (submit the form)
       allow create: if true;
-      // Solo el propietario puede leer, actualizar o eliminar envíos
+      // Only owner can read, update, or delete submissions
       allow read, update, delete: if isOwner();
     }
   }

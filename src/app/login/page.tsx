@@ -55,12 +55,12 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Special logic for the owner
+      // Special logic for the owner: ensure owner document exists
       if (user.email === ownerEmail) {
         const ownerDocRef = doc(firestore, 'owners', user.uid);
         const ownerDoc = await getDoc(ownerDocRef);
         if (!ownerDoc.exists()) {
-          // This is the first login for the owner, create the owner document
+          // This is the first login for the owner or the doc is missing, create it.
           await setDoc(ownerDocRef, {
             uid: user.uid,
             email: user.email,
