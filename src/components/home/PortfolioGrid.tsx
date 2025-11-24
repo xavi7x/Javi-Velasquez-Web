@@ -4,34 +4,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useInView } from 'react-intersection-observer';
 import { Loader2 } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Project } from '@/lib/project-types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { useMemo } from 'react';
 
-export function PortfolioGrid() {
-  const firestore = useFirestore();
+interface PortfolioGridProps {
+  projects: Project[] | null;
+  isLoading: boolean;
+}
 
-  const projectsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    // DEBUG: Logging right before the query is created.
-    console.log('DEBUG: PortfolioGrid - Creating Firestore query for public projects.');
-    return query(
-      collection(firestore, 'projects'),
-      where('type', '==', 'portfolio'),
-      orderBy('order', 'asc')
-    );
-  }, [firestore]);
-
-  const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
-
-  const sortedProjects = useMemo(() => {
-    if (!projects) return [];
-    // The query now includes orderBy, so this client-side sort might be redundant but is safe to keep.
-    return [...projects].sort((a, b) => a.order - b.order);
-  }, [projects]);
+export function PortfolioGrid({ projects, isLoading }: PortfolioGridProps) {
   
   return (
     <section
@@ -63,11 +45,11 @@ export function PortfolioGrid() {
         </div>
       )}
 
-      {!isLoading && sortedProjects && sortedProjects.length > 0 && (
+      {!isLoading && projects && projects.length > 0 && (
          <div
           className="grid grid-cols-1 md:grid-cols-6 gap-4 md:gap-6"
         >
-          {sortedProjects.map((project, index) => {
+          {projects.map((project, index) => {
             const { ref, inView } = useInView({
               triggerOnce: true,
               threshold: 0.1,

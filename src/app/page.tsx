@@ -1,11 +1,12 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { Suspense, useState, useEffect, useMemo } from 'react';
+import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, collection, query, where } from 'firebase/firestore';
 import { MainContent } from '@/components/home/MainContent';
 import { ComingSoon } from '@/components/home/ComingSoon';
 import { QuantumLoader } from '@/components/shared/QuantumLoader';
+import type { Project } from '@/lib/project-types';
 
 function HomePageContent() {
   const firestore = useFirestore();
@@ -29,12 +30,28 @@ function HomePageContent() {
     settingsRef
   );
   
+    const projectsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(
+      collection(firestore, 'projects'),
+      where('type', '==', 'portfolio')
+    );
+  }, [firestore]);
+
+  const { data: projects, isLoading: areProjectsLoading } = useCollection<Project>(projectsQuery);
+
+  const sortedProjects = useMemo(() => {
+    if (!projects) return [];
+    return [...projects].sort((a, b) => a.order - b.order);
+  }, [projects]);
+
+
   useEffect(() => {
     // Hide loader only when both timer is up and data is loaded
-    if (isTimerElapsed && !isSettingsLoading) {
+    if (isTimerElapsed && !isSettingsLoading && !areProjectsLoading) {
       setShowLoader(false);
     }
-  }, [isTimerElapsed, isSettingsLoading]);
+  }, [isTimerElapsed, isSettingsLoading, areProjectsLoading]);
 
 
   if (showLoader) {
@@ -45,7 +62,7 @@ function HomePageContent() {
     return <ComingSoon />;
   }
 
-  return <MainContent />;
+  return <MainContent projects={sortedProjects} isLoading={areProjectsLoading}/>;
 }
 
 export default function Home() {
