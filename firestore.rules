@@ -8,13 +8,14 @@ service cloud.firestore {
     }
 
     function isOwner() {
-      // Check if the user's UID exists in the 'owners' collection.
-      return exists(/databases/$(database)/documents/owners/$(request.auth.uid));
+      let uid = request.auth.uid;
+      let isOwnerResult = exists(/databases/$(database)/documents/owners/$(uid));
+      return isOwnerResult;
     }
 
     function isClient(clientId) {
-      // Check if the signed-in user's UID matches the requested clientId.
-      return isSignedIn() && request.auth.uid == clientId;
+      let isClientResult = isSignedIn() && request.auth.uid == clientId;
+      return isClientResult;
     }
 
     // Owners can read and write their own documents.
@@ -30,17 +31,12 @@ service cloud.firestore {
       
       // Rules for the 'projects' sub-collection within each client
       match /projects/{projectId} {
-        // ANYONE can LIST projects IF the query filters for public projects.
-        allow list: if request.query.where.size() > 0 &&
-                       request.query.where[0].field == 'isPublic' &&
-                       request.query.where[0].op == '==' &&
-                       request.query.where[0].value == true;
                        
         // ANYONE can GET an individual project IF it is public.
         allow get: if resource.data.isPublic == true;
 
         // The Owner or the specific client can do anything else (create, update, delete, and read/list private projects).
-        allow write, get, list: if isOwner() || isClient(clientId); 
+        allow write, get, list: if debug({ "isOwner": isOwner(), "isClient": isClient(clientId), "clientId": clientId, "request.auth.uid": request.auth.uid }) && (isOwner() || isClient(clientId)); 
       }
     }
 
