@@ -21,9 +21,14 @@ service cloud.firestore {
       allow read, write: if isOwner() && request.auth.uid == ownerId;
     }
 
-    // Projects: Publicly readable, only owner can write.
+    // 💥 REGLAS PARA LA COLECCIÓN DE RAÍZ /projects 💥
+    // (Esta es la colección que quieres que sea tu portafolio público)
     match /projects/{projectId} {
-      allow read: if true;
+      
+      // PERMITE LA LECTURA (GET y LIST) A CUALQUIER PERSONA, AUTENTICADA O NO.
+      allow read: if true; 
+      
+      // La escritura (creación, actualización o eliminación) solo la permitimos al Owner.
       allow write: if isOwner();
     }
     
