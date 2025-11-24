@@ -39,18 +39,13 @@ service cloud.firestore {
 
     // Rules for the 'projects' collection
     match /projects/{projectId} {
-      // Owner can do anything.
-      // Authenticated users (clients) can read projects they are assigned to.
-      // Anyone can read if it's a portfolio piece.
-      allow get: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid) || resource.data.type == 'portfolio';
+      // Anyone can read a single portfolio project.
+      allow get: if resource.data.type == 'portfolio';
+      // Anyone can list portfolio projects if they query correctly.
+      allow list: if request.query.where.type == 'portfolio' && request.query.limit <= 6;
       
-      // Allow listing of projects only under specific, secure conditions.
-      // 1. The owner can list everything.
-      // 2. A non-authenticated user can list up to 6 projects IF they are explicitly querying for portfolio items.
-      allow list: if isOwner() || (request.query.limit <= 6 && request.query.where.type == 'portfolio');
-      
-      // Allow write (create, update, delete) only for the owner
-      allow write: if isOwner();
+      // Owner has full read/write access to all projects.
+      allow read, write: if isOwner();
     }
 
     // Rules for tickets
