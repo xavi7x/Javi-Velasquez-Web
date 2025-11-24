@@ -11,16 +11,15 @@ import type { Project } from '@/lib/project-types';
 function HomePageContent() {
   const firestore = useFirestore();
   const [showLoader, setShowLoader] = useState(true);
-  const [isTimerElapsed, setIsTimerElapsed] = useState(false);
 
-  // Timer to ensure loader shows for at least 2.5 seconds
+  // This timer is just for aesthetics, to ensure the loader is visible for a minimum duration.
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsTimerElapsed(true);
-    }, 2500);
+      setShowLoader(false);
+    }, 2000); 
     return () => clearTimeout(timer);
   }, []);
-  
+
   const settingsRef = useMemoFirebase(() => {
     if (!firestore) return null;
     return doc(firestore, 'settings', 'site');
@@ -32,7 +31,7 @@ function HomePageContent() {
   
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // Query for portfolio projects that are explicitly public
+    // This query is now robust. It only runs on this page and is protected by rules.
     return query(
       collection(firestore, 'projects'),
       where('isPublic', '==', true),
@@ -42,17 +41,9 @@ function HomePageContent() {
 
   const { data: projectsData, isLoading: areProjectsLoading } = useCollection<Project>(projectsQuery);
 
-  const projects = projectsData || [];
+  const isLoading = showLoader || isSettingsLoading || areProjectsLoading;
 
-  useEffect(() => {
-    // Hide loader only when both timer is up and data is loaded
-    if (isTimerElapsed && !isSettingsLoading && !areProjectsLoading) {
-      setShowLoader(false);
-    }
-  }, [isTimerElapsed, isSettingsLoading, areProjectsLoading]);
-
-
-  if (showLoader) {
+  if (isLoading) {
     return <QuantumLoader />;
   }
 
@@ -60,10 +51,14 @@ function HomePageContent() {
     return <ComingSoon />;
   }
 
-  return <MainContent projects={projects} isLoading={areProjectsLoading}/>;
+  // Pass the loaded projects and loading state down to the main content
+  return <MainContent projects={projectsData} isLoading={areProjectsLoading}/>;
 }
 
 export default function Home() {
-  // Suspense is still useful for other parts of the app during navigation
-  return <HomePageContent />;
+  return (
+    <Suspense fallback={<QuantumLoader />}>
+      <HomePageContent />
+    </Suspense>
+  );
 }
