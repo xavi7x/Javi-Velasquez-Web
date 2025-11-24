@@ -16,7 +16,7 @@ service cloud.firestore {
 
     function isClient(clientId) {
       // The user is the specified client if their UID matches
-      return request.auth.uid == clientId;
+      return isSignedIn() && request.auth.uid == clientId;
     }
 
     // Rules for the 'owners' collection
@@ -28,8 +28,13 @@ service cloud.firestore {
     // Rules for the 'clients' collection
     match /clients/{clientId} {
       // Owner can read/write. The client can read their own data.
-      allow read: if isOwner() || isClient(clientId);
-      allow write: if isOwner();
+      allow read, write: if isOwner();
+      allow read: if isClient(clientId);
+      
+      // Client can read their own projects subcollection
+      match /projects/{projectId} {
+        allow read: if isClient(clientId);
+      }
     }
 
     // Rules for the 'projects' collection
@@ -37,16 +42,10 @@ service cloud.firestore {
       // Allow read if:
       // 1. It's the owner.
       // 2. The project is a 'portfolio' type.
-      // 3. The user is the client assigned to the project.
-      allow read: if isOwner() || resource.data.type == 'portfolio' || (resource.data.clientId != null && isClient(resource.data.clientId));
+      allow read: if isOwner() || resource.data.type == 'portfolio';
       
       // Allow write (create, update, delete) only for the owner
       allow write: if isOwner();
-    }
-    
-    // Sub-collection for client projects
-    match /clients/{clientId}/projects/{projectId} {
-        allow read, write: if isOwner() || isClient(clientId);
     }
 
     // Rules for tickets

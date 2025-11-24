@@ -39,7 +39,7 @@ import {
 import type { Project, Client } from '@/lib/project-types';
 import { PlusCircle, Upload, Trash, Loader2, Paperclip, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError, useUser } from '@/firebase';
-import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, addDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy, updateDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -77,17 +77,13 @@ export function ProjectsView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeTab, setActiveTab] = useState<'client' | 'portfolio'>('client');
+  const [isLoading, setIsLoading] = useState(true);
 
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const firestore = useFirestore();
   const { user } = useUser();
-
-  const projectsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'projects'), orderBy('order', 'asc'));
-  }, [firestore]);
   
   const clientsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -95,14 +91,52 @@ export function ProjectsView() {
   }, [firestore]);
 
 
-  const { data: projectsData, isLoading } = useCollection<Project>(projectsQuery);
   const { data: clients } = useCollection<Client>(clientsQuery);
   
  useEffect(() => {
-    if (projectsData) {
-      setProjects(projectsData);
-    }
-  }, [projectsData]);
+    if (!firestore) return;
+
+    const fetchProjects = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch portfolio projects
+        const portfolioQuery = query(
+          collection(firestore, 'projects'),
+          where('type', '==', 'portfolio')
+        );
+        const portfolioSnapshot = await getDocs(portfolioQuery);
+        const portfolioProjects = portfolioSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+
+        // Fetch client projects from subcollections
+        const clientProjectsPromises: Promise<Project[]>[] = [];
+        if (clients) {
+          clients.forEach(client => {
+            const projectsSubcollectionQuery = query(collection(firestore, `clients/${client.id}/projects`));
+            const promise = getDocs(projectsSubcollectionQuery).then(snapshot => 
+              snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project))
+            );
+            clientProjectsPromises.push(promise as Promise<Project[]>);
+          });
+        }
+        
+        const clientProjectsArrays = await Promise.all(clientProjectsPromises);
+        const allClientProjects = clientProjectsArrays.flat();
+
+        setProjects([...portfolioProjects, ...allClientProjects]);
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+        toast({
+          variant: "destructive",
+          title: "Error al cargar proyectos",
+          description: "No se pudieron obtener los datos de los proyectos.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [firestore, clients, toast]);
 
   const portfolioProjects = useMemo(() => projects.filter(p => p.type === 'portfolio' || !p.type).sort((a,b) => (a.order ?? 0) - (b.order ?? 0)), [projects]);
   const clientProjects = useMemo(() => projects.filter(p => p.type === 'client').sort((a,b) => (a.order ?? 0) - (b.order ?? 0)), [projects]);
@@ -181,6 +215,10 @@ export function ProjectsView() {
         toast({ variant: "destructive", title: "Error", description: "El título del proyecto es obligatorio." });
         return;
     }
+    if (activeTab === 'client' && !editingProject.clientId) {
+      toast({ variant: "destructive", title: "Error", description: "Debes asignar un cliente al proyecto." });
+      return;
+    }
 
     setIsSubmitting(true);
     const projectData: Partial<Project> = { 
@@ -190,26 +228,34 @@ export function ProjectsView() {
     
     try {
         const isNewProject = !isEditing;
-        const currentProjectList = activeTab === 'portfolio' ? portfolioProjects : clientProjects;
-        
-        if (isNewProject) {
-            const maxOrder = currentProjectList.reduce((max, p) => Math.max(p.order ?? 0, max), -1);
-            projectData.order = maxOrder + 1;
-        }
         
         const projectId = projectData.id || doc(collection(firestore, 'projects')).id;
         projectData.id = projectId;
 
         projectData.updatedAt = serverTimestamp() as any;
         
-        const projectRef = doc(firestore, 'projects', projectId);
+        const batch = writeBatch(firestore);
+        
+        const mainProjectRef = doc(firestore, 'projects', projectId);
 
         if (isNewProject) {
             projectData.createdAt = serverTimestamp() as any;
-            await setDoc(projectRef, projectData);
+            batch.set(mainProjectRef, projectData);
         } else {
-            await updateDoc(projectRef, projectData);
+            batch.update(mainProjectRef, projectData);
         }
+
+        // If it's a client project, also write to the client's subcollection
+        if (projectData.type === 'client' && projectData.clientId) {
+          const clientProjectRef = doc(firestore, `clients/${projectData.clientId}/projects`, projectId);
+          if (isNewProject) {
+            batch.set(clientProjectRef, projectData);
+          } else {
+            batch.update(clientProjectRef, projectData);
+          }
+        }
+
+        await batch.commit();
 
         toast({
             title: isEditing ? "Proyecto actualizado" : "Proyecto añadido",
@@ -234,7 +280,16 @@ export function ProjectsView() {
   const handleDeleteProject = async () => {
     if (!projectToDelete || !firestore) return;
     try {
-      await deleteDoc(doc(firestore, 'projects', projectToDelete.id));
+      const batch = writeBatch(firestore);
+      const mainProjectRef = doc(firestore, 'projects', projectToDelete.id);
+      batch.delete(mainProjectRef);
+      
+      if (projectToDelete.type === 'client' && projectToDelete.clientId) {
+        const clientProjectRef = doc(firestore, `clients/${projectToDelete.clientId}/projects`, projectToDelete.id);
+        batch.delete(clientProjectRef);
+      }
+      
+      await batch.commit();
       
       toast({ title: "Proyecto eliminado", description: `"${projectToDelete.title}" ha sido eliminado.` });
     } catch(error) {
