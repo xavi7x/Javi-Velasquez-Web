@@ -31,7 +31,7 @@ import {
 import type { Client, ClientProject } from '@/types/firestore';
 import { PlusCircle, Loader2, Edit, Trash, Briefcase } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 import { useClientProjects } from '@/firebase/firestore/hooks/use-client-projects';
@@ -191,7 +191,7 @@ export function ProjectsView() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground hidden md:table-cell">
-                      {project.createdAt ? format(project.createdAt, 'dd MMM yyyy', { locale: es }) : 'N/A'}
+                      {project.createdAt ? format((project.createdAt as unknown as Timestamp).toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="icon" className="h-9 w-9" disabled>
