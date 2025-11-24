@@ -48,6 +48,7 @@ import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Progress } from '../ui/progress';
+import { Slider } from '../ui/slider';
 
 const emptyProject: Partial<Project> = {
   title: '',
@@ -103,7 +104,7 @@ export function ProjectsView() {
     }
   }, [projectsData]);
 
-  const portfolioProjects = useMemo(() => projects.filter(p => p.type === 'portfolio').sort((a,b) => (a.order ?? 0) - (b.order ?? 0)), [projects]);
+  const portfolioProjects = useMemo(() => projects.filter(p => p.type === 'portfolio' || !p.type).sort((a,b) => (a.order ?? 0) - (b.order ?? 0)), [projects]);
   const clientProjects = useMemo(() => projects.filter(p => p.type === 'client').sort((a,b) => (a.order ?? 0) - (b.order ?? 0)), [projects]);
 
   const openAddModal = () => {
@@ -248,7 +249,7 @@ export function ProjectsView() {
   
   const moveProject = async (project: Project, direction: 'up' | 'down') => {
     if (!firestore) return;
-    const projectList = project.type === 'portfolio' ? portfolioProjects : clientProjects;
+    const projectList = project.type === 'portfolio' || !project.type ? portfolioProjects : clientProjects;
     const currentIndex = projectList.findIndex(p => p.id === project.id);
 
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
