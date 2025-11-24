@@ -1,16 +1,16 @@
 'use client';
 
+import { useEffect } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase } from 'lucide-react';
 import { useClientProjects } from '@/firebase/firestore/hooks/use-client-projects';
 import { useUser } from '@/firebase';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ClientProject } from '@/lib/project-types';
-import { useEffect } from 'react';
 
 const ProjectCardSkeleton = () => (
   <Card>
