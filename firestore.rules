@@ -28,30 +28,23 @@ service cloud.firestore {
       allow create: if isOwner();
       allow read, update: if isOwner() || isClient(clientId);
       
-      // A client can read/write to their own projects subcollection.
-      // The owner can also read/write.
+      // Rules for the 'projects' sub-collection within each client
       match /projects/{projectId} {
-        allow read, write: if isOwner() || isClient(clientId);
-      }
-    }
-    
-    // Rules for the top-level 'projects' collection (public portfolio)
-    match /projects/{projectId} {
-        // Allow public listing ONLY IF the query filters for public projects.
-        // This is the key rule to allow the homepage query.
+        // ANYONE can LIST projects IF the query filters for public projects.
+        // This is the key rule for the public homepage portfolio.
         allow list: if request.query.where.size() > 0 &&
                        request.query.where[0].field == 'isPublic' &&
                        request.query.where[0].op == '==' &&
                        request.query.where[0].value == true;
-
-        // Allow public read of individual documents if they are public.
+                       
+        // ANYONE can GET an individual project IF it is public.
         allow get: if resource.data.isPublic == true;
 
-        // Owner can read (list, get) and write the entire collection.
-        // This gives the owner full access in the admin panel.
-        allow read, write: if isOwner();
+        // The Owner or the specific client can do anything else (create, update, delete, and read private projects).
+        allow write, get: if isOwner() || isClient(clientId);
+      }
     }
-
+    
     // Tickets can be read/written by the owner or the client who created it.
     match /tickets/{ticketId} {
       allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
