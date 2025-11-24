@@ -13,12 +13,21 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+} from '@/components/ui/sheet';
 import Image from 'next/image';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { doc } from 'firebase/firestore';
+import type { Client } from '@/lib/project-types';
+import { ThemeSwitcher } from '../shared/ThemeSwitcher';
+import { Skeleton } from '../ui/skeleton';
 
 const navItems = [
   { href: '/portal/dashboard', label: 'Dashboard', icon: Home },
@@ -33,9 +42,17 @@ export function PortalSidebar() {
   const router = useRouter();
   const auth = useAuth();
   const { user } = useUser();
+  const firestore = useFirestore();
   const logoUrl =
     'https://firebasestorage.googleapis.com/v0/b/velsquez-digital.firebasestorage.app/o/Private%2Flogo-javier.svg?alt=media&token=7d179ca6-55ad-4a5f-9cf6-e6050f004630';
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const clientDocRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'clients', user.uid);
+  }, [firestore, user]);
+
+  const { data: clientData, isLoading: isClientLoading } = useDoc<Client>(clientDocRef);
 
   const handleLogout = async () => {
     if (auth) {
@@ -47,7 +64,10 @@ export function PortalSidebar() {
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       <div className="flex h-20 items-center border-b px-6">
-        <Link href="/portal/dashboard" className="flex items-center gap-2 font-semibold">
+        <Link
+          href="/portal/dashboard"
+          className="flex items-center gap-2 font-semibold"
+        >
           <Image src={logoUrl} alt="Logo" width={28} height={28} />
           <span className="">Portal Cliente</span>
         </Link>
@@ -70,10 +90,30 @@ export function PortalSidebar() {
       </nav>
       <div className="mt-auto border-t p-4">
         <div className="mb-4 rounded-lg bg-muted p-4">
-            <p className="text-sm font-semibold truncate">{user?.displayName || user?.email}</p>
-            <p className="text-xs text-muted-foreground">Cliente</p>
+          {isClientLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center">
+                <p className="text-sm font-semibold truncate">
+                  {clientData?.companyName || 'Empresa'}
+                </p>
+                <ThemeSwitcher />
+              </div>
+              <p className="text-xs text-muted-foreground truncate">
+                {clientData?.name || user?.email}
+              </p>
+            </>
+          )}
         </div>
-        <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={handleLogout}
+        >
           <LogOut className="mr-3 h-5 w-5" />
           Cerrar Sesión
         </Button>
@@ -86,7 +126,7 @@ export function PortalSidebar() {
       <aside className="hidden md:block w-72 flex-shrink-0 border-r bg-background">
         <SidebarContent />
       </aside>
-       <header className="md:hidden sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-20 sm:px-6 w-full">
+      <header className="md:hidden sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-20 sm:px-6 w-full z-10">
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="shrink-0">
@@ -94,13 +134,19 @@ export function PortalSidebar() {
               <span className="sr-only">Abrir menú de navegación</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="flex flex-col p-0 w-full max-w-sm">
-             <SidebarContent />
+          <SheetContent
+            side="left"
+            className="flex flex-col p-0 w-full max-w-sm"
+          >
+            <SidebarContent />
           </SheetContent>
         </Sheet>
-        <Link href="/portal/dashboard" className="flex items-center gap-2 font-semibold">
-            <Image src={logoUrl} alt="Logo" width={24} height={24} />
-            <span>Portal Cliente</span>
+        <Link
+          href="/portal/dashboard"
+          className="flex items-center gap-2 font-semibold"
+        >
+          <Image src={logoUrl} alt="Logo" width={24} height={24} />
+          <span>Portal Cliente</span>
         </Link>
       </header>
     </>

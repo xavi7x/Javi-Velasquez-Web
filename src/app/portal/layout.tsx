@@ -12,12 +12,10 @@ export default function PortalLayout({
     <AuthGuard>
       <div className="flex min-h-screen bg-muted/40">
         <PortalSidebar />
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col w-full overflow-x-hidden">
           {children}
         </main>
       </div>
     </AuthGuard>
   );
 }
-
-    
