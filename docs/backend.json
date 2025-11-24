@@ -17,10 +17,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Project",
       "type": "object",
-      "description": "Represents a project in the portfolio.",
+      "description": "Represents a project in the portfolio or for a client.",
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the Project entity." },
         "clientId": { "type": "string", "description": "Identifier for the client this project belongs to." },
+        "type": { "type": "string", "enum": ["portfolio", "client"], "description": "The type of project." },
         "title": { "type": "string", "description": "The title of the project." },
         "tagline": { "type": "string", "description": "A short, catchy phrase describing the project." },
         "description": {
@@ -55,7 +56,7 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was created." },
         "updatedAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was last updated." }
       },
-      "required": ["id", "clientId", "title", "description", "order", "progress", "stages"]
+      "required": ["id", "title", "order", "type"]
     },
     "Owner": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -176,6 +177,10 @@
       {
         "path": "/clients/{clientId}",
         "definition": { "schema": { "$ref": "#/entities/Client" }, "description": "Stores information about a single client." }
+      },
+       {
+        "path": "/clients/{clientId}/projects/{projectId}",
+        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "A sub-collection to easily query projects for a specific client." }
       },
       {
         "path": "/projects/{projectId}",

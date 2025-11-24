@@ -3,6 +3,7 @@ import type { Timestamp } from 'firebase/firestore';
 export interface Project {
   id: string;
   clientId?: string;
+  type: 'portfolio' | 'client';
   slug?: string;
   title: string;
   tagline: string;
@@ -15,6 +16,8 @@ export interface Project {
   };
   skills: string[];
   order: number;
+  progress?: number;
+  stages?: { name: string; status: 'Completed' | 'In Progress' | 'Pending' }[];
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
