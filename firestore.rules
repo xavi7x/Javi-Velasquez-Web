@@ -23,14 +23,14 @@ service cloud.firestore {
       allow create: if isOwner();
       allow read, update: if isOwner() || isClient(clientId);
       
+      // A client can read/write to their own projects subcollection
       match /projects/{projectId} {
-        // A client can read/write to their own projects subcollection
         allow read, write: if isOwner() || isClient(clientId);
       }
     }
     
     match /projects/{projectId} {
-      // Public can read portfolio projects, owner can write anything
+      // Public can read portfolio projects, owner can do anything.
       allow read: if resource.data.type == 'portfolio' || isOwner();
       allow write: if isOwner();
     }

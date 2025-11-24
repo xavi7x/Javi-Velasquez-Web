@@ -30,6 +30,7 @@ export default function ProjectsPage() {
 
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
+    // CORRECTED: Query the client-specific sub-collection
     return query(collection(firestore, 'clients', user.uid, 'projects'), orderBy('order', 'asc'));
   }, [firestore, user]);
 
