@@ -1,93 +1,71 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Funciones de Acceso ---
-
     function isSignedIn() {
-      // Verifica si hay un usuario autenticado.
       return request.auth != null;
     }
 
     function isOwner() {
-      // Verifica si el UID del usuario existe en la colección de 'owners' (acceso de administrador).
-      // Requiere un documento en /owners/{uid}.
+      // The user is an owner if their UID exists in the /owners collection.
       return exists(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
-
+    
     function isClient(clientId) {
-      // Verifica si el UID del usuario autenticado coincide con el ID del documento 'clientId' del match.
       return isSignedIn() && request.auth.uid == clientId;
     }
 
-    // --- Reglas de Colecciones ---
-    
-    // 1. Owners
-    match /owners/{ownerId} {
-      // Solo el propietario puede leer y escribir su propio documento (lo necesita para que isOwner() funcione correctamente).
-      allow read, write: if isOwner();
-    }
-
-    // 2. Clients y Subcolección Projects
-    match /clients/{clientId} {
-      // El Owner puede crear nuevos clientes.
-      allow create: if isOwner();
-      // El Owner o el cliente específico pueden leer y actualizar el documento de cliente.
-      allow read, update: if isOwner() || isClient(clientId);
-      
-      // Reglas para la sub-colección 'projects' dentro de cada cliente
-      match /projects/{projectId} {
-        
-        // 🔹 ACCESO PÚBLICO (Para el portafolio)
-        
-        // CUALQUIER PERSONA puede LISTAR (consultar) proyectos SI la consulta está filtrada por isPublic == true.
-        // Esto permite la consulta Collection Group si la implementas, o la consulta normal si accedes cliente por cliente.
-        // NOTA: Esta regla puede ser muy estricta, considera solo el filtro si estás seguro de que siempre se usará.
-        allow list: if request.query.where.size() > 0 &&
-                       request.query.where[0].field == 'isPublic' &&
-                       request.query.where[0].op == '==' &&
-                       request.query.where[0].value == true;
-                       
-        // CUALQUIER PERSONA puede LEER (obtener individualmente) un proyecto SI el campo isPublic es verdadero.
-        allow get: if resource.data.isPublic == true;
-
-        // 🔹 ACCESO PRIVADO (Corrección Implementada)
-        
-        // El Owner o el Cliente pueden hacer 'write' (create, update, delete), 'get' (lectura individual) y 'list' (consultas).
-        // ✅ CORRECCIÓN: Se añadió 'list' para habilitar consultas privadas (ej. cliente viendo todos sus proyectos).
-        allow write, get, list: if isOwner() || isClient(clientId);
-      }
-    }
-    
-    // 3. Tickets y Comentarios
-    match /tickets/{ticketId} {
-      // Solo el Owner o el cliente asociado al ticket pueden leer/escribir.
-      allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
-      
-      // Comentarios
-      match /comments/{commentId} {
-        // Solo el Owner o el autor del comentario pueden leer/escribir.
-        allow read, write: if isOwner() || (isSignedIn() && resource.data.authorId == request.auth.uid);
-      }
-    }
-
-    // 4. Invoices
-    match /invoices/{invoiceId} {
-      // Solo el Owner o el cliente asociado a la factura pueden leer/escribir.
-      allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
-    }
-    
-    // 5. Settings
-    match /settings/{docId} {
-      // Cualquiera puede leer la configuración del sitio, solo el Owner puede escribir.
+    // 🔥 NUEVA REGLA PARA NETTING - Lectura pública
+    match /netting/{document} {
       allow read: if true;
       allow write: if isOwner();
     }
 
-    // 6. Contact Form Submissions
+    // Owners: Can read/write their own document.
+    match /owners/{ownerId} {
+      allow read, write: if isOwner() && request.auth.uid == ownerId;
+    }
+
+    // 💥 REGLAS PARA LA COLECCIÓN DE RAÍZ /projects 💥
+    // (Esta es la colección que quieres que sea tu portafolio público)
+    match /projects/{projectId} {
+      
+      // PERMITE LA LECTURA (GET y LIST) A CUALQUIER PERSONA, AUTENTICADA O NO.
+      allow read: if true; 
+      
+      // La escritura (creación, actualización o eliminación) solo la permitimos al Owner.
+      allow write: if isOwner();
+    }
+    
+    // Clients: Owner can create, Owner or the client themselves can read/update.
+    match /clients/{clientId} {
+      allow create: if isOwner();
+      allow read, update: if isOwner() || isClient(clientId);
+    }
+
+    // Tickets: Owner or the associated client can read/write.
+    match /tickets/{ticketId} {
+      allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
+      
+      // Comments: Owner or the author can read/write.
+      match /comments/{commentId} {
+        allow read, write: if isOwner() || (isSignedIn() && resource.data.authorId == request.auth.uid);
+      }
+    }
+
+    // Invoices: Owner or the associated client can read/write.
+    match /invoices/{invoiceId} {
+      allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
+    }
+    
+    // Settings: Publicly readable, only owner can write.
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // Contact Submissions: Anyone can create, only owner can manage.
     match /contactFormSubmissions/{submissionId} {
-      // Cualquiera puede crear una solicitud, solo el Owner puede leer/administrar.
       allow create: if true;
       allow read, update, delete: if isOwner();
     }
