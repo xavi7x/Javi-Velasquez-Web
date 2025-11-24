@@ -39,11 +39,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import type { Client } from '@/lib/project-types';
-import { PlusCircle, Trash, Loader2, Copy, Edit } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { PlusCircle, Trash, Loader2, Copy, Edit, KeyRound } from 'lucide-react';
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError, useAuth } from '@/firebase';
 import { collection, doc, setDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { initializeApp, getApps, getApp, deleteApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { firebaseConfig } from '@/firebase/config';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
@@ -64,6 +64,7 @@ export function ClientsView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const firestore = useFirestore();
+  const auth = useAuth();
 
   const clientsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -97,7 +98,11 @@ export function ClientsView() {
     setIsSubmitting(true);
 
     if (isEditing) {
-        if (!editingClient.id) return;
+        if (!editingClient.id) {
+          setIsSubmitting(false);
+          return;
+        };
+
         try {
             const clientRef = doc(firestore, 'clients', editingClient.id);
             const clientDataToUpdate = {
@@ -113,7 +118,12 @@ export function ClientsView() {
             closeModal();
         } catch (error: any) {
             console.error("Error updating client:", error);
-            toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message || 'Ocurrió un error inesperado.' });
+            const contextualError = new FirestorePermissionError({
+                path: `clients/${editingClient.id}`,
+                operation: 'update',
+                requestResourceData: { name: editingClient.name, companyName: editingClient.companyName },
+            });
+            errorEmitter.emit('permission-error', contextualError);
         } finally {
             setIsSubmitting(false);
         }
@@ -166,6 +176,37 @@ export function ClientsView() {
         await deleteApp(tempApp);
     }
   };
+
+  const handlePasswordReset = async () => {
+    if (!auth || !editingClient || !editingClient.email) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se puede reiniciar la contraseña sin un correo electrónico de cliente.',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await sendPasswordResetEmail(auth, editingClient.email);
+      toast({
+        title: 'Correo enviado',
+        description: `Se ha enviado un correo de reinicio de contraseña a ${editingClient.email}.`,
+      });
+      closeModal();
+    } catch (error: any) {
+      console.error("Error sending password reset email:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error al enviar correo',
+        description: error.message || 'Ocurrió un error inesperado.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
 
   const handleDeleteClient = async () => {
     if (!clientToDelete || !firestore) return;
@@ -316,16 +357,24 @@ export function ClientsView() {
                 </form>
             )}
 
-            <DialogFooter>
-                <Button type="button" variant="secondary" onClick={closeModal}>
+            <DialogFooter className="sm:justify-between">
+              {isEditing && (
+                 <Button type="button" variant="outline" onClick={handlePasswordReset} disabled={isSubmitting}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Reiniciar Contraseña
+                 </Button>
+              )}
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="secondary" onClick={closeModal} className={isEditing ? 'hidden' : ''}>
                   {newPassword ? 'Cerrar' : 'Cancelar'}
                 </Button>
-              {!newPassword && (
-                <Button type="submit" form="client-form" disabled={isSubmitting}>
-                  {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {isSubmitting ? (isEditing ? 'Guardando...' : 'Creando...') : (isEditing ? 'Guardar Cambios' : 'Crear Cliente')}
-                </Button>
-              )}
+                {!newPassword && (
+                  <Button type="submit" form="client-form" disabled={isSubmitting}>
+                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isSubmitting ? (isEditing ? 'Guardando...' : 'Creando...') : (isEditing ? 'Guardar Cambios' : 'Crear Cliente')}
+                  </Button>
+                )}
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -352,3 +401,5 @@ export function ClientsView() {
     </div>
   );
 }
+
+    
