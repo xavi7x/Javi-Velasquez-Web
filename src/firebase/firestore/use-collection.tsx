@@ -2,7 +2,7 @@
 
 import { onSnapshot, Query, FirestoreError } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
-import { useUser } from '@/firebase';
+import { useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -51,9 +51,16 @@ export function useCollection<T>(
         setLoading(false);
       },
       (err: FirestoreError) => {
-        console.error(`Error in authenticated collection listener for path: ${memoizedQuery.path}:`, err);
-        setError(err);
+        // Create a rich, contextual error for better debugging
+        const permissionError = new FirestorePermissionError({
+          path: memoizedQuery.path,
+          operation: 'list',
+        });
+        setError(permissionError);
         setLoading(false);
+
+        // Emit the error for the global listener to catch and display
+        errorEmitter.emit('permission-error', permissionError);
       }
     );
 
