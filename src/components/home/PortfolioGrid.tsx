@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import type { Project } from '@/lib/project-types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '../ui/skeleton';
 
 interface PortfolioGridProps {
   projects: Project[] | null;
@@ -30,9 +31,12 @@ export function PortfolioGrid({ projects, isLoading }: PortfolioGridProps) {
       </div>
 
        {isLoading && (
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-          <p className="mt-2 text-muted-foreground">Cargando proyectos...</p>
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 md:gap-6">
+          <Skeleton className="h-96 w-full col-span-1 md:col-span-4 md:row-span-2 rounded-2xl" />
+          <Skeleton className="h-48 w-full col-span-1 md:col-span-2 rounded-2xl" />
+          <Skeleton className="h-48 w-full col-span-1 md:col-span-2 rounded-2xl" />
+          <Skeleton className="h-48 w-full col-span-1 md:col-span-3 rounded-2xl" />
+          <Skeleton className="h-48 w-full col-span-1 md:col-span-3 rounded-2xl" />
         </div>
       )}
 
@@ -75,6 +79,7 @@ export function PortfolioGrid({ projects, isLoading }: PortfolioGridProps) {
                       src={project.thumbnail}
                       alt={project.title}
                       fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       data-ai-hint="abstract background"
                     />
