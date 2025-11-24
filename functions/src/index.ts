@@ -12,6 +12,7 @@ if (admin.apps.length === 0) {
  * Se invoca desde el panel de propietario para registrar nuevos clientes.
  */
 export const createClientUser = functions.https.onCall(async (data, context) => {
+  // Desestructuramos el objeto 'data' para obtener las variables.
   const { email, password, displayName } = data;
 
   // Validación de entrada de datos
