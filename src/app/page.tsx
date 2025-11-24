@@ -2,13 +2,15 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, query, where, orderBy } from 'firebase/firestore';
+import { useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import { MainContent } from '@/components/home/MainContent';
 import { ComingSoon } from '@/components/home/ComingSoon';
 import { QuantumLoader } from '@/components/shared/QuantumLoader';
 import type { Project } from '@/lib/project-types';
 import { usePublicCollection } from '@/firebase/firestore/use-public-collection';
+import { useDoc } from '@/firebase/firestore/use-doc';
+import { doc } from 'firebase/firestore';
 
 function HomePageContent() {
   const firestore = useFirestore();
@@ -22,9 +24,14 @@ function HomePageContent() {
     settingsRef
   );
   
+  const projectsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    // This query is now safe and will not require a composite index
+    return query(collection(firestore, 'projects'), where('isPublic', '==', true));
+  }, [firestore]);
+  
   const { data: projectsData, isLoading: areProjectsLoading } = usePublicCollection<Project>(
-    'projects',
-    [where('isPublic', '==', true)]
+    projectsQuery
   );
 
   if (isSettingsLoading) {
