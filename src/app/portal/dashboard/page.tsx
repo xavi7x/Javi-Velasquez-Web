@@ -22,7 +22,7 @@ export default function ClientDashboardPage() {
   }, [firestore, user]);
   const { data: clientData, isLoading: isClientLoading } = useDoc<Client>(clientDocRef);
 
-  // Fetch active project
+  // Fetch active project - CRITICAL: Only call hook when user.uid is available
   const { data: projects, isLoading: areProjectsLoading } = useClientProjects({ 
     clientId: user?.uid
   });
