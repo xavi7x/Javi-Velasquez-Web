@@ -53,6 +53,7 @@ export default function ProjectsPage() {
   const { data: projects, isLoading } = useClientProjects({ clientId: user?.uid });
   
   useEffect(() => {
+    // Log para depuración, se puede eliminar después
     console.log('--- Client Portal: ProjectsPage ---');
     console.log('User UID:', user?.uid);
     console.log('Is Loading Projects:', isLoading);
