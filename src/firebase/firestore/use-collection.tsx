@@ -24,10 +24,9 @@ export function useCollection<T>(
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    // Don't run if the user state is still loading or if the query is not ready
-    if (isUserLoading || !memoizedQuery) {
-      setLoading(isUserLoading); // Set loading to true while user is loading
-      setData(null);
+    // If the query is not ready, or the user is still loading, do nothing.
+    if (!memoizedQuery || isUserLoading) {
+      setLoading(true); // Explicitly set loading to true while waiting
       return;
     }
     
@@ -35,7 +34,9 @@ export function useCollection<T>(
     if (!user) {
       setData(null);
       setLoading(false);
-      setError(new Error("Authentication required."));
+      // It's not a "real" error, but an expected state.
+      // You could set an error if unauthenticated access is truly an error condition.
+      // setError(new Error("Authentication required.")); 
       return;
     }
     
@@ -49,6 +50,7 @@ export function useCollection<T>(
         })) as WithId<T>[];
         setData(items);
         setLoading(false);
+        setError(null); // Clear previous errors
       },
       (err: FirestoreError) => {
         // Create a rich, contextual error for better debugging
