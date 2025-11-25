@@ -16,8 +16,8 @@ export const useClientProjects = (options?: {
       return null;
     }
     
-    // If a clientId is a filter option, it must be a valid string.
-    // If it's undefined (still loading) or an empty string, we should wait.
+    // If a clientId is provided as a filter, it must be a valid non-empty string.
+    // If it's undefined (still loading) or an empty string, we must return null to prevent an invalid query.
     if (options && 'clientId' in options && !options.clientId) {
       return null;
     }
