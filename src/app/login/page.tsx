@@ -82,7 +82,7 @@ export default function LoginPage() {
               title: '¡Bienvenido de vuelta!',
               description: 'Has iniciado sesión en tu portal.',
           });
-          router.push('/portal/dashboard');
+          router.push(`/portal/${user.uid}`);
       } else {
           // If user exists in Auth but not in owners or clients collection
           setError('No tienes un rol asignado. Contacta al administrador.');

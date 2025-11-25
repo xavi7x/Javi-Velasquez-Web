@@ -1,7 +1,10 @@
+
 'use client';
 
 import { AuthGuard } from '@/components/auth/AuthGuard';
-import { PortalSidebar } from '@/components/portal/PortalSidebar';
+import { Footer } from '@/components/shared/Footer';
+import { Header } from '@/components/shared/Header';
+import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
 
 export default function ClientPortalLayout({
   children,
@@ -10,12 +13,13 @@ export default function ClientPortalLayout({
 }) {
   return (
     <AuthGuard>
-      <div className="flex h-dvh overflow-hidden bg-muted">
-        <PortalSidebar />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
-      </div>
+      <CursorGradientWrapper>
+        <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+        <Footer />
+      </CursorGradientWrapper>
     </AuthGuard>
   );
 }
