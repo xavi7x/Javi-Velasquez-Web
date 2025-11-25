@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
-import type { Client, ClientProject, Invoice } from '@/lib/project-types';
+import type { Client, Project, Invoice } from '@/lib/project-types';
 import { useClientProjects } from '@/firebase/firestore/hooks/use-client-projects';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Briefcase, IndianRupee } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ClientDashboardPage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
   // Fetch client data
@@ -24,10 +24,11 @@ export default function ClientDashboardPage() {
 
   // Fetch active project
   const { data: projects, isLoading: areProjectsLoading } = useClientProjects({ 
-    clientId: user?.uid, 
-    status: 'active' 
+    clientId: user?.uid
   });
-  const activeProject = projects?.[0]; // Get the most recent active project
+  
+  const activeProjects = projects?.filter(p => p.progress !== undefined && p.progress < 100);
+  const activeProject = activeProjects?.[0]; // Get the most recent active project
 
   // Fetch invoices to calculate pending payments
   const invoicesQuery = useMemoFirebase(() => {
@@ -42,23 +43,25 @@ export default function ClientDashboardPage() {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
   }
 
-  const getDeadline = (project: ClientProject) => {
-    if (!project.deadline) return 'No definida';
-    const date = project.deadline instanceof Timestamp ? project.deadline.toDate() : new Date(project.deadline);
+  const getDeadline = (project: Project) => {
+    if (!project.estimatedDeliveryDate) return 'No definida';
+    const date = project.estimatedDeliveryDate instanceof Timestamp ? project.estimatedDeliveryDate.toDate() : new Date(project.estimatedDeliveryDate);
     return format(date, 'dd MMM, yyyy');
   }
+  
+  const isLoading = isUserLoading || isClientLoading || areProjectsLoading || areInvoicesLoading;
 
   return (
     <div className="flex-1 p-4 sm:p-6 md:p-8">
       <header className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">
-          {isClientLoading ? <Skeleton className="h-9 w-48" /> : `Hola, ${clientData?.name || 'Cliente'}`}
+          {isLoading ? <Skeleton className="h-9 w-48" /> : `Hola, ${clientData?.name || 'Cliente'}`}
         </h1>
         <p className="text-muted-foreground">Bienvenido a tu portal de cliente.</p>
       </header>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {areProjectsLoading ? (
+        {isLoading ? (
             <Card><CardHeader><Skeleton className="h-5 w-24" /></CardHeader><CardContent><Skeleton className="h-8 w-full" /></CardContent></Card>
         ) : activeProject ? (
             <Card>
@@ -82,13 +85,13 @@ export default function ClientDashboardPage() {
                 <CardHeader>
                     <CardTitle>Proyecto Activo</CardTitle>
                 </CardHeader>
-                <CardContent className="text-center text-muted-foreground text-sm">
+                <CardContent className="text-center text-muted-foreground text-sm pt-6">
                     No tienes proyectos activos en este momento.
                 </CardContent>
             </Card>
         )}
         
-        {areInvoicesLoading ? (
+        {isLoading ? (
              <Card><CardHeader><Skeleton className="h-5 w-24" /></CardHeader><CardContent><Skeleton className="h-8 w-full" /></CardContent></Card>
         ) : (
             <Card>
@@ -107,7 +110,7 @@ export default function ClientDashboardPage() {
             </Card>
         )}
 
-        {areProjectsLoading ? (
+        {isLoading ? (
             <Card><CardHeader><Skeleton className="h-5 w-24" /></CardHeader><CardContent><Skeleton className="h-8 w-full" /></CardContent></Card>
         ) : (
             <Card>
