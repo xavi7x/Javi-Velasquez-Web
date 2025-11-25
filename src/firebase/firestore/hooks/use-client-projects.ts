@@ -12,8 +12,11 @@ export const useClientProjects = (options?: {
   const firestore = useFirestore();
 
   const clientProjectsQuery = useMemoFirebase(() => {
-    // Si no hay firestore o no se ha proporcionado un clientId, no devolvemos ninguna query.
-    if (!firestore || !options?.clientId) return null;
+    // CONDICIÓN REFORZADA: No construir la consulta a menos que clientId sea una cadena válida.
+    // Esto previene el error "undefined" de forma definitiva.
+    if (!firestore || typeof options?.clientId !== 'string' || !options.clientId) {
+      return null;
+    }
 
     const queryConstraints: QueryConstraint[] = [
       where('clientId', '==', options.clientId),
