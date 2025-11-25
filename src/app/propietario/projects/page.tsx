@@ -3,20 +3,13 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 
 export default function RequestsPage() {
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Mis Solicitudes</h1>
-        <p className="text-muted-foreground">
-          Aquí puedes ver el estado de todos tus requerimientos.
-        </p>
-      </header>
+    <div className="flex-1 space-y-8">
       <Card>
         <CardHeader>
           <CardTitle>Tablero de Solicitudes</CardTitle>
@@ -28,5 +21,3 @@ export default function RequestsPage() {
     </div>
   );
 }
-
-    
