@@ -55,7 +55,7 @@ export default function ClientDashboardPage() {
     <div className="flex-1 p-4 sm:p-6 md:p-8">
       <header className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">
-          {isLoading ? <Skeleton className="h-9 w-48" /> : `Hola, ${clientData?.name || 'Cliente'}`}
+          {isUserLoading || isClientLoading ? <Skeleton className="h-9 w-48" /> : `Hola, ${clientData?.name || 'Cliente'}`}
         </h1>
         <p className="text-muted-foreground">Bienvenido a tu portal de cliente.</p>
       </header>
