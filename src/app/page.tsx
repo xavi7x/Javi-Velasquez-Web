@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense } from 'react';
@@ -25,7 +24,7 @@ function HomePageContent() {
   
   const { data: projects, loading: areProjectsLoading } = usePortfolio();
 
-  if (isSettingsLoading) {
+  if (isSettingsLoading || areProjectsLoading) {
     return <QuantumLoader />;
   }
 
