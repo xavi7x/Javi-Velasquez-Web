@@ -28,7 +28,7 @@ function StatCard({ title, value, icon, isLoading }: { title: string; value: str
     )
 }
 
-export default function ClientPortalPage() {
+export default function ClientDashboardPage() {
   const params = useParams();
   const clientId = params.clientId as string;
   
@@ -97,7 +97,7 @@ export default function ClientPortalPage() {
 
 
   return (
-    <div className="container mx-auto px-4 py-16 md:px-6 md:py-24 space-y-12">
+    <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 space-y-8">
       <header>
         {isLoading ? (
             <>
@@ -106,7 +106,7 @@ export default function ClientPortalPage() {
             </>
         ): (
             <>
-                <h1 className="text-3xl font-bold tracking-tight">Portal de Cliente: {client?.name}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Dashboard de {client?.name}</h1>
                 <p className="text-muted-foreground">Bienvenido a tu centro de control de proyectos.</p>
             </>
         )}
