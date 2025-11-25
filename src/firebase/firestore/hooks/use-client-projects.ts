@@ -12,7 +12,7 @@ export const useClientProjects = (options?: {
   const firestore = useFirestore();
 
   const clientProjectsQuery = useMemoFirebase(() => {
-    // Si no hay firestore o no se ha proporcionado un clientId (y se requiere), no devolvemos ninguna query.
+    // Si no hay firestore o no se ha proporcionado un clientId, no devolvemos ninguna query.
     if (!firestore || !options?.clientId) return null;
 
     const queryConstraints: QueryConstraint[] = [
