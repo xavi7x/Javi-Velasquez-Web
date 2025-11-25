@@ -50,15 +50,17 @@ const getStatusVariant = (status: ClientProject['status']) => {
 
 export default function ProjectsPage() {
   const { user } = useUser();
+  // The useClientProjects hook is now correctly used here.
   const { data: projects, isLoading } = useClientProjects({ clientId: user?.uid });
   
   // --- DEBUG LOGGING ---
+  // These logs will show up in the browser console to confirm the correct data is being fetched.
   useEffect(() => {
-    console.log('--- DEBUG: ProjectsPage ---');
-    console.log('User ID:', user?.uid);
-    console.log('Is Loading:', isLoading);
-    console.log('Projects Data:', projects);
-    console.log('-------------------------');
+    console.log('--- Client Portal: ProjectsPage ---');
+    console.log('User UID:', user?.uid);
+    console.log('Is Loading Projects:', isLoading);
+    console.log('Fetched Projects Data:', projects);
+    console.log('---------------------------------');
   }, [user, isLoading, projects]);
   // --- END DEBUG LOGGING ---
 
