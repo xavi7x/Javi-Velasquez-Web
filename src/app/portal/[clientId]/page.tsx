@@ -45,7 +45,7 @@ export default function ClientDashboardPage() {
   // Fetch Client Projects
   const projectsQuery = useMemoFirebase(() => {
     if (!firestore || !clientId) return null;
-    return query(collection(firestore, 'projects'), where('clientId', '==', clientId), where('type', '==', 'client'));
+    return query(collection(firestore, 'client-projects'), where('clientId', '==', clientId));
   }, [firestore, clientId]);
   const { data: projects, isLoading: areProjectsLoading } = useCollection<Project>(projectsQuery);
 

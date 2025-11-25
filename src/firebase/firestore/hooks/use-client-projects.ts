@@ -14,12 +14,13 @@ export const useClientProjects = (options?: {
   const clientProjectsQuery = useMemoFirebase(() => {
     // The query can only be constructed if firestore is available.
     // If an options object is provided, we MUST have a valid clientId string.
-    if (!firestore || (options?.clientId && typeof options.clientId !== 'string')) {
+    if (!firestore || !options?.clientId) {
       return null;
     }
     
     const queryConstraints: QueryConstraint[] = [
       where('type', '==', 'client'),
+      where('clientId', '==', options.clientId)
     ];
     
     // If filtering by a specific client, ensure the ID is valid before adding the constraint.
@@ -27,7 +28,6 @@ export const useClientProjects = (options?: {
       if (options.clientId.trim() === '') {
         return null; // Don't create the query if clientId is invalid.
       }
-      queryConstraints.push(where('clientId', '==', options.clientId));
     }
     
     queryConstraints.push(orderBy('createdAt', 'desc'));
