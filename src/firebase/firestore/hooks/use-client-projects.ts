@@ -7,6 +7,7 @@ import { useFirestore, useMemoFirebase } from '@/firebase';
 
 export const useClientProjects = (options?: {
   clientId?: string;
+  status?: 'active' | 'completed' | 'on-hold';
 }) => {
   const firestore = useFirestore();
 
@@ -17,19 +18,24 @@ export const useClientProjects = (options?: {
     
     const queryConstraints: QueryConstraint[] = [
       where('type', '==', 'client'),
-      orderBy('createdAt', 'desc')
     ];
     
+    // For owner's panel, no clientId is provided, so we fetch all client projects.
     if (options?.clientId) {
-      // This case is for the client portal, fetching only their own projects.
+      // For client portal, we MUST have a clientId to query.
+      if (typeof options.clientId !== 'string' || options.clientId.length === 0) {
+        return null; // Return null if clientId is not a valid string, preventing the bad query.
+      }
       queryConstraints.push(where('clientId', '==', options.clientId));
     }
-    // If no clientId is provided, the hook will fetch ALL client projects,
-    // which is the desired behavior for the owner's panel.
+    
+    // Always add an order by constraint.
+    queryConstraints.push(orderBy('createdAt', 'desc'));
+
 
     return query(collection(firestore, 'projects'), ...queryConstraints);
 
-  }, [firestore, options?.clientId]);
+  }, [firestore, options?.clientId, options?.status]);
 
 
   return useCollection<Project>(clientProjectsQuery);
