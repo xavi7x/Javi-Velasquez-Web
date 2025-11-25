@@ -12,9 +12,9 @@ export const useClientProjects = (options?: {
   const firestore = useFirestore();
 
   const clientProjectsQuery = useMemoFirebase(() => {
-    // CONDICIÓN REFORZADA: No construir la consulta a menos que clientId sea una cadena válida.
-    // Esto previene el error "undefined" de forma definitiva.
-    if (!firestore || typeof options?.clientId !== 'string' || !options.clientId) {
+    // Definitive fix: Do not build the query unless clientId is a valid, non-empty string.
+    // This prevents the 'undefined' path error.
+    if (!firestore || typeof options?.clientId !== 'string' || options.clientId.trim() === '') {
       return null;
     }
 
