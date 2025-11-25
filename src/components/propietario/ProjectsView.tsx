@@ -299,9 +299,9 @@ export function ProjectsView() {
                 </TableRow>
               </TableHeader>
               
-              {isLoadingProjects ? (
-                  <TableBody>
-                    {[...Array(3)].map((_, i) => (
+              <TableBody>
+                {isLoadingProjects ? (
+                    [...Array(3)].map((_, i) => (
                       <TableRow key={i}>
                         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -311,20 +311,17 @@ export function ProjectsView() {
                           <Skeleton className="h-9 w-9 rounded-md inline-block" />
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
+                    ))
                 ) : !projects || projects.length === 0 ? (
-                  <TableBody>
                     <TableRow>
                       <TableCell colSpan={5} className="h-48 text-center">
                           <div className="flex flex-col items-center gap-4">
                               <Briefcase className="h-12 w-12 text-muted-foreground" />
                               <h3 className="font-semibold">No hay proyectos de clientes</h3>
-                              <p className="text-muted-foreground">Empieza creando uno nuevo.</p>
+                              <p className="text-muted-foreground text-sm">Empieza creando uno nuevo.</p>
                           </div>
                       </TableCell>
                     </TableRow>
-                  </TableBody>
                 ) : (
                   projects.map((project) => (
                   <Collapsible asChild key={project.id}>
@@ -365,6 +362,7 @@ export function ProjectsView() {
                   </Collapsible>
                 ))
               )}
+              </TableBody>
             </Table>
           </div>
         </CardContent>
