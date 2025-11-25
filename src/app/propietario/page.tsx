@@ -141,6 +141,10 @@ export default function OwnerDashboard() {
             setIsMaintenanceMode={setIsMaintenanceMode}
           />
         );
+      case 'traffic':
+        return <AnalyticsView />;
+      case 'messages':
+        return <MessagesView messages={messages} isLoading={isLoading} error={error} />;
       case 'projects':
         return <ProjectsView />;
       case 'requests':
@@ -183,6 +187,27 @@ export default function OwnerDashboard() {
         >
           <LayoutDashboard className="h-4 w-4" />
           <span>Dashboard</span>
+        </Button>
+        <Button
+          variant={activeView === 'traffic' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('traffic')}
+        >
+          <AreaChart className="h-4 w-4" />
+          <span>Tráfico</span>
+        </Button>
+        <Button
+          variant={activeView === 'messages' ? 'default' : 'ghost'}
+          className="justify-start gap-3 relative"
+          onClick={() => handleViewChange('messages')}
+        >
+          <MessageSquare className="h-4 w-4" />
+          <span>Mensajes</span>
+          {newMessagesCount > 0 && (
+            <Badge className="absolute right-3 top-1/2 -translate-y-1/2 h-5">
+              {newMessagesCount}
+            </Badge>
+          )}
         </Button>
         <Button
           variant={activeView === 'projects' ? 'default' : 'ghost'}
@@ -278,6 +303,8 @@ export default function OwnerDashboard() {
             <div>
               <h1 className="text-xl md:text-3xl font-bold tracking-tight">
                 {activeView === 'dashboard' && 'Dashboard'}
+                {activeView === 'traffic' && 'Análisis de Tráfico'}
+                {activeView === 'messages' && 'Bandeja de Entrada'}
                 {activeView === 'projects' && 'Gestión de Proyectos'}
                 {activeView === 'requests' && 'Gestión de Solicitudes'}
                 {activeView === 'finance' && 'Gestión Financiera'}
@@ -285,6 +312,8 @@ export default function OwnerDashboard() {
               </h1>
               <p className="text-muted-foreground text-sm md:text-base">
                 {activeView === 'dashboard' && 'Una vista general de toda tu actividad.'}
+                {activeView === 'traffic' && 'Métricas de visitantes de tu sitio web.'}
+                {activeView === 'messages' && 'Mensajes recibidos desde tu formulario de contacto.'}
                 {activeView === 'projects' && 'Añade, edita y gestiona los proyectos de tus clientes.'}
                 {activeView === 'requests' && 'Visualiza y gestiona las solicitudes de tus clientes.'}
                 {activeView === 'finance' && 'Visualiza el estado de las facturas y pagos.'}
