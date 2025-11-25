@@ -23,9 +23,9 @@ export default function ClientDashboardPage() {
   const { data: clientData, isLoading: isClientLoading } = useDoc<Client>(clientDocRef);
 
   // Fetch active project - CRITICAL: Only call hook when user.uid is available
-  const { data: projects, isLoading: areProjectsLoading } = useClientProjects({ 
-    clientId: user?.uid
-  });
+  const { data: projects, isLoading: areProjectsLoading } = useClientProjects(
+    user?.uid ? { clientId: user.uid } : undefined
+  );
   
   const activeProjects = projects?.filter(p => p.progress !== undefined && p.progress < 100);
   const activeProject = activeProjects?.[0]; // Get the most recent active project

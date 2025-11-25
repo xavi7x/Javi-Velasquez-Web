@@ -21,9 +21,9 @@ import { Progress } from '@/components/ui/progress';
 
 export default function ProjectsPage() {
   const { user } = useUser();
-  const { data: projects, isLoading: areProjectsLoading } = useClientProjects({
-    clientId: user?.uid,
-  });
+  const { data: projects, isLoading: areProjectsLoading } = useClientProjects(
+    user?.uid ? { clientId: user.uid } : undefined
+  );
 
   return (
     <div className="flex-1 p-4 sm:p-6 md:p-8">
