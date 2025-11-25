@@ -14,7 +14,7 @@ export const useClientProjects = (options?: {
   const clientProjectsQuery = useMemoFirebase(() => {
     // Definitive fix: Do not build the query unless clientId is a valid, non-empty string.
     // This prevents the 'undefined' path error.
-    if (!firestore || typeof options?.clientId !== 'string' || options.clientId.trim() === '') {
+    if (!firestore || typeof options?.clientId !== 'string' || !options.clientId) {
       return null;
     }
 
