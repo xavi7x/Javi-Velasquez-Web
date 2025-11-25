@@ -141,7 +141,7 @@ const ProjectHistory = ({ history }: { history: ProgressUpdate[] }) => {
 };
 
 
-export function ProjectsView() {
+export function ClientProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
   const [progressComment, setProgressComment] = useState('');

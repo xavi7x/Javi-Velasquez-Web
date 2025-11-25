@@ -8,17 +8,14 @@ import {
   AreaChart,
   ExternalLink,
   Menu,
-  Users,
   CreditCard,
   LayoutDashboard,
   User,
   Globe,
   FileText,
-  Settings,
 } from 'lucide-react';
 import { DashboardView } from '@/components/propietario/DashboardView';
 import { MyWebView } from '@/components/propietario/MyWebView';
-import { ClientsView } from '@/components/propietario/ClientsView';
 import { ProfileView } from '@/components/propietario/ProfileView';
 import {
   MessagesView,
@@ -26,7 +23,7 @@ import {
 } from '@/components/propietario/MessagesView';
 import { AnalyticsView } from '@/components/propietario/AnalyticsView';
 import { FinancesView } from '@/components/propietario/FinancesView';
-import { ProjectsView } from '@/components/propietario/ProjectsView';
+import { ClientProjectsView } from '@/components/propietario/ClientProjectsView';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -45,8 +42,6 @@ import Image from 'next/image';
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useAvailability } from '@/hooks/use-availability';
 import {
   Sheet,
@@ -55,9 +50,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
 import RequestsPage from './projects/page';
-import ProfilePage from './invoices/page';
 
 
 export default function OwnerDashboard() {
@@ -145,14 +138,16 @@ export default function OwnerDashboard() {
         return <AnalyticsView />;
       case 'messages':
         return <MessagesView messages={messages} isLoading={isLoading} error={error} />;
+      case 'my-web':
+        return <MyWebView />;
       case 'projects':
-        return <ProjectsView />;
+        return <ClientProjectsView />;
       case 'requests':
         return <RequestsPage />;
       case 'finance':
         return <FinancesView />;
       case 'profile':
-        return <ProfilePage />;
+        return <ProfileView />;
       default:
         return (
           <DashboardView
@@ -208,6 +203,14 @@ export default function OwnerDashboard() {
               {newMessagesCount}
             </Badge>
           )}
+        </Button>
+        <Button
+          variant={activeView === 'my-web' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('my-web')}
+        >
+          <Globe className="h-4 w-4" />
+          <span>Mi Web</span>
         </Button>
         <Button
           variant={activeView === 'projects' ? 'default' : 'ghost'}
@@ -305,7 +308,8 @@ export default function OwnerDashboard() {
                 {activeView === 'dashboard' && 'Dashboard'}
                 {activeView === 'traffic' && 'Análisis de Tráfico'}
                 {activeView === 'messages' && 'Bandeja de Entrada'}
-                {activeView === 'projects' && 'Gestión de Proyectos'}
+                {activeView === 'my-web' && 'Gestión de Mi Web'}
+                {activeView === 'projects' && 'Gestión de Proyectos de Clientes'}
                 {activeView === 'requests' && 'Gestión de Solicitudes'}
                 {activeView === 'finance' && 'Gestión Financiera'}
                 {activeView === 'profile' && 'Mi Perfil'}
@@ -314,6 +318,7 @@ export default function OwnerDashboard() {
                 {activeView === 'dashboard' && 'Una vista general de toda tu actividad.'}
                 {activeView === 'traffic' && 'Métricas de visitantes de tu sitio web.'}
                 {activeView === 'messages' && 'Mensajes recibidos desde tu formulario de contacto.'}
+                {activeView === 'my-web' && 'Gestiona los proyectos de tu portafolio y tu página "Sobre mí".'}
                 {activeView === 'projects' && 'Añade, edita y gestiona los proyectos de tus clientes.'}
                 {activeView === 'requests' && 'Visualiza y gestiona las solicitudes de tus clientes.'}
                 {activeView === 'finance' && 'Visualiza el estado de las facturas y pagos.'}
