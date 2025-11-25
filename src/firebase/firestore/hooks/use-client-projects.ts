@@ -15,10 +15,16 @@ export const useClientProjects = (options?: {
     if (!firestore) {
       return null;
     }
-  
+    // If a clientId is expected but not provided, wait.
+    if (options?.clientId === undefined) {
+      return null;
+    }
+
     const queryConstraints: QueryConstraint[] = [orderBy('title', 'asc')];
     
-    if (options?.clientId) {
+    // Only add the where clause if a valid clientId is provided.
+    // If no clientId is provided, it fetches all projects (for owner view).
+    if (typeof options.clientId === 'string' && options.clientId.length > 0) {
       queryConstraints.push(where('clientId', '==', options.clientId));
     }
   
