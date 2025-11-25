@@ -12,15 +12,13 @@ export const useClientProjects = (options?: {
   const firestore = useFirestore();
 
   const clientProjectsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    // Si no hay firestore o no se ha proporcionado un clientId (y se requiere), no devolvemos ninguna query.
+    if (!firestore || !options?.clientId) return null;
 
     const queryConstraints: QueryConstraint[] = [
-      orderBy('title', 'asc') // Changed from 'createdAt' to 'title'
+      where('clientId', '==', options.clientId),
+      orderBy('title', 'asc')
     ];
-  
-    if (options?.clientId) {
-      queryConstraints.push(where('clientId', '==', options.clientId));
-    }
   
     if (options?.status) {
       queryConstraints.push(where('status', '==', options.status));
