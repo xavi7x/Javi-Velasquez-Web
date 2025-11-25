@@ -1,5 +1,5 @@
 
-import { collection, query, orderBy, where, QueryConstraint, Firestore } from 'firebase/firestore';
+import { collection, query, orderBy, where, QueryConstraint } from 'firebase/firestore';
 import { usePublicCollection } from '../use-public-collection';
 import { Project } from '@/lib/project-types';
 import { useFirestore, useMemoFirebase } from '@/firebase';
@@ -14,7 +14,7 @@ export const usePortfolio = (filters?: {
     if (!firestore) return null;
 
     const constraints: QueryConstraint[] = [
-      // Se elimina `where('isPublic', '==', true)` para evitar error de índice
+      where('isPublic', '==', true),
       orderBy('order', 'asc'),
     ];
   

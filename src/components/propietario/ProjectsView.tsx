@@ -33,14 +33,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import type { ProgressUpdate, ClientProject, Client } from '@/lib/project-types';
+import type { ProgressUpdate, Project, Client } from '@/lib/project-types';
 import { PlusCircle, Loader2, Edit, ChevronDown, History, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, serverTimestamp, Timestamp, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, doc, setDoc, addDoc, query, orderBy, Timestamp, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 import { useClientProjects } from '@/firebase/firestore/hooks/use-client-projects';
-import { ClientProjectService } from '@/firebase/firestore/services/client-project-service';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '../ui/badge';
@@ -48,17 +47,17 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Progress } from '../ui/progress';
 import { Slider } from '../ui/slider';
-import { cn } from '@/lib/utils';
 import React from 'react';
 
-const emptyProject: Partial<ClientProject> = {
+const emptyProject: Partial<Project> = {
   title: '',
-  description: '',
-  status: 'active',
+  description: { challenge: '', solution: '', results: '' },
+  type: 'client',
   clientId: '',
   clientName: '',
   progress: 0,
   progressHistory: [],
+  isPublic: false,
 };
 
 const ITEMS_PER_PAGE = 5;
@@ -144,7 +143,7 @@ const ProjectHistory = ({ history }: { history: ProgressUpdate[] }) => {
 
 export function ProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<Partial<ClientProject> | null>(null);
+  const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
   const [progressComment, setProgressComment] = useState('');
   const [showProgressComment, setShowProgressComment] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -167,14 +166,14 @@ export function ProjectsView() {
     setIsModalOpen(true);
   };
   
-  const openEditModal = (project: ClientProject) => {
+  const openEditModal = (project: Project) => {
     setEditingProject(project);
     setProgressComment('');
     setShowProgressComment(false);
     setIsModalOpen(true);
   };
   
-  const handleFormChange = (field: keyof ClientProject, value: any) => {
+  const handleFormChange = (field: keyof Project, value: any) => {
     setEditingProject(prev => prev ? { ...prev, [field]: value } : null);
   };
   
@@ -205,14 +204,14 @@ export function ProjectsView() {
     const isEditing = !!editingProject.id;
     
     try {
+        const collectionRef = collection(firestore, 'projects');
         if (isEditing) {
             const projectId = editingProject.id!;
-            const updateData: Partial<ClientProject> & { progressHistory?: any } = {
+            const projectRef = doc(collectionRef, projectId);
+
+            const updateData: Partial<Project> & { progressHistory?: any } = {
                 title: editingProject.title,
-                description: editingProject.description || '',
-                clientId: editingProject.clientId,
                 clientName: editingProject.clientName,
-                status: editingProject.status || 'active',
                 progress: editingProject.progress || 0,
             };
 
@@ -225,55 +224,40 @@ export function ProjectsView() {
               updateData.progressHistory = arrayUnion(newProgressUpdate);
             }
 
-            await ClientProjectService.updateClientProject(firestore, projectId, updateData);
+            await updateDoc(projectRef, updateData);
             toast({
               title: 'Proyecto Actualizado',
               description: `El proyecto "${editingProject.title}" ha sido actualizado.`
             });
         } else {
-             const projectData: Omit<ClientProject, 'id' | 'createdAt'> = {
-                title: editingProject.title,
-                description: editingProject.description || '',
-                clientId: editingProject.clientId,
-                clientName: editingProject.clientName || '',
-                status: editingProject.status || 'active',
-                deadline: editingProject.deadline || new Date(),
-                progress: editingProject.progress || 0,
-                progressHistory: [],
-            };
-            await ClientProjectService.createClientProject(firestore, projectData);
+             const newProject: Partial<Project> = {
+                ...editingProject,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+             };
+            const docRef = await addDoc(collectionRef, newProject);
+            await updateDoc(docRef, { id: docRef.id });
             toast({
                 title: 'Proyecto Creado',
-                description: `El proyecto "${projectData.title}" ha sido creado.`
+                description: `El proyecto "${newProject.title}" ha sido creado.`
             });
         }
       setIsModalOpen(false);
       setEditingProject(null);
     } catch (error: any) {
-      console.error("Error saving client project:", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'No se pudo guardar el proyecto.' });
+        const path = isEditing && editingProject.id ? `projects/${editingProject.id}` : 'projects';
+        const operation = isEditing ? 'update' : 'create';
+        const contextualError = new FirestorePermissionError({
+            path,
+            operation,
+            requestResourceData: editingProject,
+        });
+        errorEmitter.emit('permission-error', contextualError);
     } finally {
       setIsSubmitting(false);
     }
   };
   
-   const getStatusVariant = (status: ClientProject['status']) => {
-    switch (status) {
-        case 'active': return 'default';
-        case 'completed': return 'secondary';
-        case 'on-hold': return 'outline';
-        default: return 'outline';
-    }
-  }
-   const getStatusLabel = (status: ClientProject['status']) => {
-    switch (status) {
-        case 'active': return 'Activo';
-        case 'completed': return 'Completado';
-        case 'on-hold': return 'En Pausa';
-        default: return status;
-    }
-  }
-
   return (
     <div className="space-y-8">
       <Card>
@@ -295,41 +279,35 @@ export function ProjectsView() {
                   <TableHead>Título del Proyecto</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead className="w-[180px]">Progreso</TableHead>
-                  <TableHead className="hidden md:table-cell">Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
-              
+              <TableBody>
               {isLoadingProjects ? (
-                  <TableBody>
-                    {[...Array(3)].map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-full" /></TableCell>
-                        <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <Skeleton className="h-9 w-9 rounded-md inline-block" />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-              ) : !projects || projects.length === 0 ? (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell colSpan={5} className="h-48 text-center">
-                          <div className="flex flex-col items-center gap-4">
-                              <Briefcase className="h-12 w-12 text-muted-foreground" />
-                              <h3 className="font-semibold">No hay proyectos de clientes</h3>
-                              <p className="text-muted-foreground text-sm">Empieza creando uno nuevo.</p>
-                          </div>
+                  [...Array(3)].map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Skeleton className="h-9 w-9 rounded-md inline-block" />
                       </TableCell>
                     </TableRow>
-                  </TableBody>
+                  ))
+              ) : !projects || projects.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-48 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                            <Briefcase className="h-12 w-12 text-muted-foreground" />
+                            <h3 className="font-semibold">No hay proyectos de clientes</h3>
+                            <p className="text-muted-foreground text-sm">Empieza creando uno nuevo.</p>
+                        </div>
+                    </TableCell>
+                  </TableRow>
               ) : (
                 projects.map((project) => (
                   <Collapsible asChild key={project.id}>
-                    <tbody className="w-full">
+                    <>
                       <CollapsibleTrigger asChild>
                         <TableRow className="cursor-pointer group">
                           <TableCell className="font-medium max-w-[200px] truncate">{project.title}</TableCell>
@@ -339,11 +317,6 @@ export function ProjectsView() {
                               <Progress value={project.progress || 0} className="w-[60%]" />
                               <span className="text-xs text-muted-foreground">{project.progress || 0}%</span>
                             </div>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            <Badge variant={getStatusVariant(project.status)}>
-                              {getStatusLabel(project.status)}
-                            </Badge>
                           </TableCell>
                           <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-2">
@@ -362,10 +335,11 @@ export function ProjectsView() {
                             </TableCell>
                         </TableRow>
                       </CollapsibleContent>
-                    </tbody>
+                    </>
                   </Collapsible>
                 ))
               )}
+              </TableBody>
             </Table>
           </div>
         </CardContent>
@@ -404,10 +378,6 @@ export function ProjectsView() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Descripción Corta</Label>
-                <Textarea id="description" value={editingProject.description} onChange={e => handleFormChange('description', e.target.value)} />
-              </div>
-               <div className="space-y-2">
                 <Label htmlFor="progress">Progreso ({editingProject.progress || 0}%)</Label>
                 <Slider
                   id="progress"
@@ -429,22 +399,6 @@ export function ProjectsView() {
                   />
                 </div>
               )}
-              <div className="space-y-2">
-                <Label htmlFor="status">Estado</Label>
-                <Select
-                  value={editingProject.status}
-                  onValueChange={(value) => handleFormChange('status', value as ClientProject['status'])}
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="Selecciona un estado..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Activo</SelectItem>
-                    <SelectItem value="on-hold">En Pausa</SelectItem>
-                    <SelectItem value="completed">Completado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </form>
             <DialogFooter>
               <DialogClose asChild><Button type="button" variant="secondary" disabled={isSubmitting}>Cancelar</Button></DialogClose>

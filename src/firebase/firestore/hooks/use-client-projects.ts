@@ -2,12 +2,11 @@
 
 import { collection, query, orderBy, where, QueryConstraint } from 'firebase/firestore';
 import { useCollection } from '../use-collection';
-import { ClientProject } from '@/lib/project-types';
+import { Project } from '@/lib/project-types';
 import { useFirestore, useMemoFirebase } from '@/firebase';
 
 export const useClientProjects = (options?: {
   clientId?: string;
-  status?: 'active' | 'completed' | 'on-hold';
 }) => {
   const firestore = useFirestore();
 
@@ -16,28 +15,22 @@ export const useClientProjects = (options?: {
       return null;
     }
     
-    // If a clientId is provided as a filter, it must be a valid non-empty string.
-    // If it's undefined (still loading) or an empty string, we must return null to prevent an invalid query.
-    if (options && 'clientId' in options && !options.clientId) {
-      return null;
-    }
-
-    const queryConstraints: QueryConstraint[] = [orderBy('title', 'asc')];
+    const queryConstraints: QueryConstraint[] = [
+      where('type', '==', 'client'),
+      orderBy('createdAt', 'desc')
+    ];
     
-    // Only add the where clause if a valid clientId is provided.
-    // If no clientId is provided in options, it fetches all projects (for owner view).
     if (options?.clientId) {
+      // This case is for the client portal, fetching only their own projects.
       queryConstraints.push(where('clientId', '==', options.clientId));
     }
-  
-    if (options?.status) {
-      queryConstraints.push(where('status', '==', options.status));
-    }
+    // If no clientId is provided, the hook will fetch ALL client projects,
+    // which is the desired behavior for the owner's panel.
 
-    return query(collection(firestore, 'client-projects'), ...queryConstraints);
+    return query(collection(firestore, 'projects'), ...queryConstraints);
 
-  }, [firestore, options?.clientId, options?.status]);
+  }, [firestore, options?.clientId]);
 
 
-  return useCollection<ClientProject>(clientProjectsQuery);
+  return useCollection<Project>(clientProjectsQuery);
 };

@@ -7,77 +7,53 @@ service cloud.firestore {
     }
 
     function isOwner() {
-      return isSignedIn() && 
-        exists(/databases/$(database)/documents/owners/$(request.auth.uid));
+      return isSignedIn() && exists(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
 
     function isClient(clientId) {
       return isSignedIn() && request.auth.uid == clientId;
     }
-
-    function userOwnsDocument() {
-      return isSignedIn() && resource.data.userId == request.auth.uid;
-    }
-
-    function isProjectOwner() {
-      return isSignedIn() && (
-        isOwner() || 
-        resource.data.clientId == request.auth.uid
-      );
-    }
-
-    // 🔥 PORTFOLIO PÚBLICO (existente - mantener)
+    
     match /projects/{projectId} {
-      allow read: if true;  // Totalmente público
-      allow write: if isOwner();  // Solo tú
+      // Los proyectos públicos (portafolio) son legibles por todos.
+      // Los proyectos de clientes son legibles por el propietario o el cliente asignado.
+      allow read: if resource.data.isPublic == true || isOwner() || isClient(resource.data.clientId);
+      
+      // Solo el propietario puede crear, actualizar o eliminar proyectos.
+      allow write: if isOwner();
     }
-
-    // 🔥 NUEVA: PROYECTOS DE CLIENTES (PRIVADOS)
-    match /client-projects/{projectId} {
-      allow read, write: if isProjectOwner();
-      allow create: if isSignedIn() && (
-        isOwner() || 
-        request.auth.uid == request.resource.data.clientId
-      );
-    }
-
-    // 🔥 CLIENTES
-    match /clients/{clientId} {
-      allow read, write: if isOwner() || isClient(clientId);
-      allow create: if isOwner();
-    }
-
-    // 🔥 OWNERS (existente)
+    
     match /owners/{ownerId} {
       allow read, write: if isOwner() && request.auth.uid == ownerId;
     }
 
-    // 🔥 CONTACT FORM (existente)
-    match /contactFormSubmissions/{submissionId} {
-      allow create: if true;
-      allow read, update, delete: if isOwner();
+    match /clients/{clientId} {
+      allow create: if isOwner();
+      allow read, update: if isOwner() || isClient(clientId);
+      // La eliminación debe ser manejada por una función en la nube para limpiar la autenticación también.
+      allow delete: if isOwner();
     }
 
-    // 🔥 SETTINGS (existente)
+    match /tickets/{ticketId} {
+      allow read, write: if isOwner() || isClient(resource.data.clientId);
+      
+      match /comments/{commentId} {
+        allow read, write: if isOwner() || isClient(get(/databases/$(database)/documents/tickets/$(ticketId)).data.clientId);
+      }
+    }
+
+    match /invoices/{invoiceId} {
+      allow read, write: if isOwner() || isClient(resource.data.clientId);
+    }
+    
     match /settings/{docId} {
       allow read: if true;
       allow write: if isOwner();
     }
 
-    // 🔥 TICKETS & INVOICES (existentes)
-    match /tickets/{ticketId} {
-      allow read, write: if isOwner() || 
-        (isSignedIn() && resource.data.clientId == request.auth.uid);
-      
-      match /comments/{commentId} {
-        allow read, write: if isOwner() || 
-          (isSignedIn() && resource.data.authorId == request.auth.uid);
-      }
-    }
-
-    match /invoices/{invoiceId} {
-      allow read, write: if isOwner() || 
-        (isSignedIn() && resource.data.clientId == request.auth.uid);
+    match /contactFormSubmissions/{submissionId} {
+      allow create: if true;
+      allow read, update, delete: if isOwner();
     }
   }
 }

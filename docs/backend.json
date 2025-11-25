@@ -17,9 +17,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Project",
       "type": "object",
-      "description": "Represents a project in the portfolio or for a client.",
+      "description": "Represents a project, either for the public portfolio or for a private client.",
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the Project entity." },
+        "clientId": { "type": "string", "description": "The UID of the client this project belongs to (if type is 'client')." },
+        "clientName": { "type": "string", "description": "The name of the client for display purposes." },
         "type": { "type": "string", "enum": ["portfolio", "client"], "description": "The type of project." },
         "title": { "type": "string", "description": "The title of the project." },
         "tagline": { "type": "string", "description": "A short, catchy phrase describing the project." },
@@ -39,20 +41,6 @@
         "isPublic": { "type": "boolean", "description": "Controls if the project is visible in the public portfolio." },
         "progress": { "type": "number", "description": "Overall project completion percentage (0-100)." },
         "estimatedDeliveryDate": { "type": "string", "format": "date", "description": "Estimated delivery date for the project." },
-        "stages": {
-          "type": "array",
-          "description": "The different stages or milestones of the project.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": { "type": "string" },
-              "status": { "type": "string", "enum": ["Completed", "In Progress", "Pending"] }
-            },
-            "required": ["name", "status"]
-          }
-        },
-        "previewUrl": { "type": "string", "format": "uri", "description": "URL to the project preview." },
-        "credentials": { "type": "string", "description": "Encrypted credentials related to the project." },
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was created." },
         "updatedAt": { "type": "string", "format": "date-time", "description": "The timestamp when the project was last updated." },
         "progressHistory": {
@@ -182,11 +170,7 @@
       },
        {
         "path": "/projects/{projectId}",
-        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "Stores all public portfolio projects." }
-      },
-      {
-        "path": "/client-projects/{projectId}",
-        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "Stores projects that are specific to a client and private." }
+        "definition": { "schema": { "$ref": "#/entities/Project" }, "description": "Stores all projects, both public portfolio projects and private client projects." }
       },
       {
         "path": "/clients/{clientId}",
