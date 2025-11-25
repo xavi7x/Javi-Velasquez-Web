@@ -13,6 +13,7 @@ import {
   User,
   Globe,
   FileText,
+  Users,
 } from 'lucide-react';
 import { DashboardView } from '@/components/propietario/DashboardView';
 import { MyWebView } from '@/components/propietario/MyWebView';
@@ -24,6 +25,7 @@ import {
 import { AnalyticsView } from '@/components/propietario/AnalyticsView';
 import { FinancesView } from '@/components/propietario/FinancesView';
 import { ClientProjectsView } from '@/components/propietario/ClientProjectsView';
+import { ClientsView } from '@/components/propietario/ClientsView';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -142,6 +144,8 @@ export default function OwnerDashboard() {
         return <MyWebView />;
       case 'projects':
         return <ClientProjectsView />;
+      case 'clients':
+        return <ClientsView />;
       case 'requests':
         return <RequestsPage />;
       case 'finance':
@@ -219,6 +223,14 @@ export default function OwnerDashboard() {
         >
           <Briefcase className="h-4 w-4" />
           <span>Proyectos</span>
+        </Button>
+        <Button
+          variant={activeView === 'clients' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('clients')}
+        >
+          <Users className="h-4 w-4" />
+          <span>Clientes</span>
         </Button>
         <Button
           variant={activeView === 'requests' ? 'default' : 'ghost'}
@@ -310,6 +322,7 @@ export default function OwnerDashboard() {
                 {activeView === 'messages' && 'Bandeja de Entrada'}
                 {activeView === 'my-web' && 'Gestión de Mi Web'}
                 {activeView === 'projects' && 'Gestión de Proyectos de Clientes'}
+                {activeView === 'clients' && 'Gestión de Clientes'}
                 {activeView === 'requests' && 'Gestión de Solicitudes'}
                 {activeView === 'finance' && 'Gestión Financiera'}
                 {activeView === 'profile' && 'Mi Perfil'}
@@ -320,6 +333,7 @@ export default function OwnerDashboard() {
                 {activeView === 'messages' && 'Mensajes recibidos desde tu formulario de contacto.'}
                 {activeView === 'my-web' && 'Gestiona los proyectos de tu portafolio y tu página "Sobre mí".'}
                 {activeView === 'projects' && 'Añade, edita y gestiona los proyectos de tus clientes.'}
+                {activeView === 'clients' && 'Añade, edita y gestiona los clientes con acceso al portal.'}
                 {activeView === 'requests' && 'Visualiza y gestiona las solicitudes de tus clientes.'}
                 {activeView === 'finance' && 'Visualiza el estado de las facturas y pagos.'}
                 {activeView === 'profile' && 'Actualiza tu información pública y de perfil.'}

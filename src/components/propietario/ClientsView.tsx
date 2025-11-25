@@ -39,10 +39,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import type { Client } from '@/lib/project-types';
-import { PlusCircle, Trash, Loader2, Copy, Edit, KeyRound } from 'lucide-react';
+import { PlusCircle, Trash, Loader2, Copy, Edit, KeyRound, Users } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError, useAuth } from '@/firebase';
 import { collection, doc, setDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
-import { initializeApp, getApps, getApp, deleteApp } from 'firebase/app';
+import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { firebaseConfig } from '@/firebase/config';
 import { useToast } from '@/hooks/use-toast';
@@ -249,8 +249,8 @@ export function ClientsView() {
       <Card>
         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <CardTitle>Clientes Activos</CardTitle>
-            <CardDescription>Lista de todos los clientes con acceso al portal.</CardDescription>
+            <CardTitle>Gestión de Clientes</CardTitle>
+            <CardDescription>Añade, edita y gestiona los clientes con acceso al portal.</CardDescription>
           </div>
           <Button onClick={openAddModal}>
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -258,7 +258,7 @@ export function ClientsView() {
           </Button>
         </CardHeader>
         <CardContent>
-           <div className="relative w-full overflow-auto">
+           <div className="relative w-full overflow-auto border rounded-lg">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -276,22 +276,26 @@ export function ClientsView() {
                             <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                             <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-48" /></TableCell>
                             <TableCell className="text-right space-x-2">
-                                <Skeleton className="h-9 w-9 rounded-full inline-block" />
-                                <Skeleton className="h-9 w-9 rounded-full inline-block" />
+                                <Skeleton className="h-9 w-9 rounded-md inline-block" />
+                                <Skeleton className="h-9 w-9 rounded-md inline-block" />
                             </TableCell>
                         </TableRow>
                     ))
-                ) : clients?.length === 0 ? (
+                ) : !clients || clients.length === 0 ? (
                     <TableRow>
-                        <TableCell colSpan={4} className="h-24 text-center">
-                            No hay clientes. Empieza añadiendo uno.
+                        <TableCell colSpan={4} className="h-48 text-center">
+                            <div className="flex flex-col items-center gap-4">
+                                <Users className="h-12 w-12 text-muted-foreground" />
+                                <h3 className="font-semibold">No hay clientes registrados</h3>
+                                <p className="text-muted-foreground text-sm">Empieza añadiendo uno nuevo.</p>
+                            </div>
                         </TableCell>
                     </TableRow>
                 ) : clients?.map((client) => (
                   <TableRow key={client.id}>
-                    <TableCell className="font-medium max-w-xs truncate">{client.name}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-xs truncate">{client.email}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-xs truncate hidden sm:table-cell">
+                    <TableCell className="font-medium max-w-[150px] truncate">{client.name}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{client.email}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate hidden sm:table-cell">
                       {client.companyName || 'N/A'}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
@@ -344,30 +348,32 @@ export function ClientsView() {
                 <form onSubmit={handleFormSubmit} id="client-form" className="grid gap-4 py-4">
                     <div className="space-y-2">
                         <Label htmlFor="name">Nombre completo</Label>
-                        <Input id="name" value={editingClient.name || ''} onChange={e => setEditingClient({...editingClient, name: e.target.value})} placeholder="Ej: John Doe" disabled={isSubmitting} />
+                        <Input id="name" value={editingClient.name || ''} onChange={e => setEditingClient({...editingClient, name: e.target.value})} placeholder="Ej: John Doe" disabled={isSubmitting} required />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" value={editingClient.email || ''} onChange={e => setEditingClient({...editingClient, email: e.target.value})} placeholder="cliente@email.com" disabled={isSubmitting || isEditing} />
+                        <Input id="email" type="email" value={editingClient.email || ''} onChange={e => setEditingClient({...editingClient, email: e.target.value})} placeholder="cliente@email.com" disabled={isSubmitting || isEditing} required />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="companyName">Nombre de la Empresa</Label>
+                        <Label htmlFor="companyName">Nombre de la Empresa (Opcional)</Label>
                         <Input id="companyName" value={editingClient.companyName || ''} onChange={e => setEditingClient({...editingClient, companyName: e.target.value})} placeholder="Ej: Acme Inc." disabled={isSubmitting}/>
                     </div>
                 </form>
             )}
 
-            <DialogFooter className="sm:justify-between">
+            <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full">
               {isEditing && (
                  <Button type="button" variant="outline" onClick={handlePasswordReset} disabled={isSubmitting}>
                   <KeyRound className="mr-2 h-4 w-4" />
                   Reiniciar Contraseña
                  </Button>
               )}
-              <div className="flex gap-2 justify-end">
-                <Button type="button" variant="secondary" onClick={closeModal} className={isEditing ? 'hidden' : ''}>
-                  {newPassword ? 'Cerrar' : 'Cancelar'}
-                </Button>
+              <div className="flex gap-2 justify-end sm:ml-auto">
+                <DialogClose asChild>
+                    <Button type="button" variant="secondary" disabled={isSubmitting}>
+                      {newPassword ? 'Cerrar' : 'Cancelar'}
+                    </Button>
+                </DialogClose>
                 {!newPassword && (
                   <Button type="submit" form="client-form" disabled={isSubmitting}>
                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -385,13 +391,12 @@ export function ClientsView() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción eliminará el registro del cliente de la base de datos.
-              Por ahora, no elimina al usuario de Firebase Authentication.
+              Esta acción eliminará el registro del cliente de la base de datos de Firestore. Para eliminar completamente al usuario, también debes hacerlo desde la consola de Firebase Authentication.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteClient}>
+            <AlertDialogAction onClick={handleDeleteClient} className="bg-destructive hover:bg-destructive/90">
               Sí, eliminar cliente
             </AlertDialogAction>
           </AlertDialogFooter>
