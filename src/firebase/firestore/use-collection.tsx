@@ -24,22 +24,22 @@ export function useCollection<T>(
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    // If the query is not ready, or the user is still loading, do nothing.
+    // If the query is not ready, or the user is still loading, set to loading and wait.
     if (!memoizedQuery || isUserLoading) {
-      setLoading(true); // Explicitly set loading to true while waiting
-      return;
-    }
-    
-    // If there's no authenticated user, we don't proceed.
-    if (!user) {
+      setLoading(true);
       setData(null);
-      setLoading(false);
-      // It's not a "real" error, but an expected state.
-      // You could set an error if unauthenticated access is truly an error condition.
-      // setError(new Error("Authentication required.")); 
       return;
     }
     
+    // If there's no authenticated user, we don't proceed. This is an expected state.
+    if (!user) {
+      setLoading(false);
+      setData(null);
+      // We don't set an error here because it's a valid state (e.g., logged out).
+      return;
+    }
+    
+    // At this point, we have a user and a query, so we can start the subscription.
     setLoading(true);
 
     const unsubscribe = onSnapshot(memoizedQuery, 
@@ -50,7 +50,7 @@ export function useCollection<T>(
         })) as WithId<T>[];
         setData(items);
         setLoading(false);
-        setError(null); // Clear previous errors
+        setError(null); // Clear previous errors on success
       },
       (err: FirestoreError) => {
         // Create a rich, contextual error for better debugging
@@ -66,6 +66,7 @@ export function useCollection<T>(
       }
     );
 
+    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, [memoizedQuery, user, isUserLoading]);
 
