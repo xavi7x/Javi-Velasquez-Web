@@ -12,22 +12,20 @@ export const useClientProjects = (options?: {
   const firestore = useFirestore();
 
   const clientProjectsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    // STRICT GUARD: Do not proceed if firestore is not available or if the clientId is invalid.
+    // This is the primary fix to prevent queries with "undefined" paths.
+    if (!firestore || !options?.clientId || typeof options.clientId !== 'string' || options.clientId.trim() === '') {
+      return null;
+    }
     
     const queryConstraints: QueryConstraint[] = [
-      where('type', '==', 'client')
+      where('type', '==', 'client'),
+      where('clientId', '==', options.clientId)
     ];
-    
-    // If filtering by a specific client, ensure the ID is valid before adding the constraint.
-    if (options?.clientId && options.clientId.trim() !== '') {
-      queryConstraints.push(where('clientId', '==', options.clientId));
-    }
     
     queryConstraints.push(orderBy('createdAt', 'desc'));
 
-    // Note: The collection is 'projects' not 'client-projects' based on recent changes.
-    // This allows public (portfolio) and private (client) projects to live together,
-    // differentiated by the 'type' field.
+    // The collection is 'projects' not 'client-projects'.
     return query(collection(firestore, 'projects'), ...queryConstraints);
 
   }, [firestore, options?.clientId, options?.status]);

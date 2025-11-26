@@ -25,7 +25,7 @@ export function useCollection<T>(
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    // If the query is not ready (still being constructed), or if the user state is still loading,
+    // If the query is not ready (still being constructed), or if the user state is still loading for a protected query,
     // we must wait. This is the main guard against invalid queries.
     if (!memoizedQuery || isUserLoading) {
       setLoading(true);
@@ -34,7 +34,7 @@ export function useCollection<T>(
       return;
     }
     
-    // If there's no authenticated user for a protected query, we don't proceed.
+    // If there's no authenticated user, we don't proceed.
     // This is an expected state, not an error.
     if (!user) {
       setLoading(false);
@@ -83,5 +83,3 @@ export function useCollection<T>(
 
   return { data, loading, error };
 };
-
-    
