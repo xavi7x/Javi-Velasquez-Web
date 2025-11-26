@@ -39,7 +39,6 @@ import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePe
 import { collection, doc, setDoc, addDoc, query, orderBy, Timestamp, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
-import { useClientProjects } from '@/firebase/firestore/hooks/use-client-projects';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '../ui/badge';
@@ -150,7 +149,12 @@ export function ClientProjectsView() {
   const { toast } = useToast();
   const firestore = useFirestore();
 
-  const { data: projects, isLoading: isLoadingProjects } = useClientProjects();
+    const projectsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'client-projects'), orderBy('createdAt', 'desc'));
+    }, [firestore]);
+
+  const { data: projects, isLoading: isLoadingProjects } = useCollection<Project>(projectsQuery);
   
   const clientsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -204,7 +208,7 @@ export function ClientProjectsView() {
     const isEditing = !!editingProject.id;
     
     try {
-        const collectionRef = collection(firestore, 'projects');
+        const collectionRef = collection(firestore, 'client-projects');
         if (isEditing) {
             const projectId = editingProject.id!;
             const projectRef = doc(collectionRef, projectId);
@@ -245,7 +249,7 @@ export function ClientProjectsView() {
       setIsModalOpen(false);
       setEditingProject(null);
     } catch (error: any) {
-        const path = isEditing && editingProject.id ? `projects/${editingProject.id}` : 'projects';
+        const path = isEditing && editingProject.id ? `client-projects/${editingProject.id}` : 'client-projects';
         const operation = isEditing ? 'update' : 'create';
         const contextualError = new FirestorePermissionError({
             path,
