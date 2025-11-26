@@ -151,7 +151,7 @@ export default function ClientDashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
+                {areProjectsLoading ? (
                   [...Array(2)].map((_, i) => (
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-5 w-32" /></TableCell>
@@ -203,7 +203,7 @@ export default function ClientDashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
+                {areInvoicesLoading ? (
                    [...Array(2)].map((_, i) => (
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-5 w-20" /></TableCell>
@@ -240,5 +240,6 @@ export default function ClientDashboardPage() {
   );
 
     
+
 
 

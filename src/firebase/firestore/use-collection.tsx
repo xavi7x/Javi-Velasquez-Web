@@ -8,7 +8,7 @@ import { useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
 type WithId<T> = T & { id: string };
 
 /**
- * React hook to subscribe to a Firestore collection in real-time, gated by authentication.
+ * React hook to subscribe to a Firestore collection in real-time.
  * Handles nullable queries gracefully.
  *
  * @template T - The type of the documents in the collection.
@@ -39,8 +39,8 @@ export function useCollection<T>(
       return;
     }
     
-    // At this point, we have a user and a query, so we can start the subscription.
     setLoading(true);
+    setError(null);
 
     const unsubscribe = onSnapshot(memoizedQuery, 
       (snapshot) => {
@@ -50,19 +50,24 @@ export function useCollection<T>(
         })) as WithId<T>[];
         setData(items);
         setLoading(false);
-        setError(null); // Clear previous errors on success
+        setError(null);
       },
       (err: FirestoreError) => {
-        if (!memoizedQuery) return;
-        // Create a rich, contextual error for better debugging
+        // This check is crucial. If memoizedQuery is null, we can't access .path
+        if (!memoizedQuery) {
+            setError(new Error("Firestore query is not available."));
+            setLoading(false);
+            return;
+        };
+        
         const permissionError = new FirestorePermissionError({
           path: memoizedQuery.path,
           operation: 'list',
         });
+        
         setError(permissionError);
         setLoading(false);
 
-        // Emit the error for the global listener to catch and display
         errorEmitter.emit('permission-error', permissionError);
       }
     );

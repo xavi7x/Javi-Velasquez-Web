@@ -86,7 +86,12 @@ export function useDoc<T = any>(
         setIsLoading(false);
       },
       (err: FirestoreError) => {
-        if (!memoizedDocRef) return;
+        if (!memoizedDocRef) {
+          setError(new Error("Firestore document reference is not available."));
+          setIsLoading(false);
+          return;
+        };
+
         const contextualError = new FirestorePermissionError({
           operation: 'get',
           path: memoizedDocRef.path,
