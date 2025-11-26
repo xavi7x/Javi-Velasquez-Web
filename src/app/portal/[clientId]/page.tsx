@@ -63,6 +63,24 @@ export default function ClientDashboardPage() {
 
   const isLoading = isUserLoading || isClientLoading || areProjectsLoading || areInvoicesLoading;
 
+  // STRICT GUARD: Do not render anything until we have a client ID.
+  // This is the primary fix for the "undefined path" error.
+  if (!clientId || typeof clientId !== 'string') {
+    return (
+        <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 space-y-8">
+            <header>
+                <Skeleton className="h-9 w-1/2 mb-2" />
+                <Skeleton className="h-5 w-1/3" />
+            </header>
+            <div className="grid gap-4 md:grid-cols-3">
+                 <Skeleton className="h-28 w-full" />
+                 <Skeleton className="h-28 w-full" />
+                 <Skeleton className="h-28 w-full" />
+            </div>
+        </div>
+    );
+  }
+
   // Security check: ensure the logged-in user matches the client ID in the URL
   if (!isUserLoading && user && user.uid !== clientId) {
     // Also check if user is owner

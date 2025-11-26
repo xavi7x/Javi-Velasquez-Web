@@ -55,6 +55,7 @@ export function useDoc<T = any>(
     if (!memoizedDocRef) {
       setIsLoading(true);
       setData(null);
+      setError(null);
       return;
     }
     
@@ -62,6 +63,7 @@ export function useDoc<T = any>(
     if (!isPublic && isUserLoading) {
       setIsLoading(true);
       setData(null);
+      setError(null);
       return;
     }
     
@@ -69,6 +71,7 @@ export function useDoc<T = any>(
     if (!isPublic && !user) {
       setIsLoading(false);
       setData(null);
+      setError(null);
       return;
     }
 

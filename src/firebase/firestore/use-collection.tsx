@@ -25,18 +25,21 @@ export function useCollection<T>(
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    // If the query is not ready, or the user is still loading, set to loading and wait.
+    // If the query is not ready (still being constructed), or if the user state is still loading,
+    // we must wait. This is the main guard against invalid queries.
     if (!memoizedQuery || isUserLoading) {
       setLoading(true);
       setData(null);
+      setError(null);
       return;
     }
     
-    // If there's no authenticated user, we don't proceed. This is an expected state.
+    // If there's no authenticated user for a protected query, we don't proceed.
+    // This is an expected state, not an error.
     if (!user) {
       setLoading(false);
       setData(null);
-      // We don't set an error here because it's a valid state (e.g., logged out).
+      setError(null);
       return;
     }
     
@@ -55,6 +58,7 @@ export function useCollection<T>(
       },
       (err: FirestoreError) => {
         // This check is crucial. If memoizedQuery is null, we can't access .path
+        // Although the top-level guard should prevent this, it's a good safety measure.
         if (!memoizedQuery) {
             setError(new Error("Firestore query is not available."));
             setLoading(false);
