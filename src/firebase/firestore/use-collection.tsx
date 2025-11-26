@@ -1,3 +1,4 @@
+
 'use client';
 
 import { onSnapshot, Query, FirestoreError } from 'firebase/firestore';
@@ -78,3 +79,5 @@ export function useCollection<T>(
 
   return { data, loading, error };
 };
+
+    

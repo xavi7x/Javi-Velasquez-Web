@@ -64,7 +64,10 @@ export default function ClientDashboardPage() {
   const isLoading = isUserLoading || isClientLoading || areProjectsLoading || areInvoicesLoading;
 
   // Security check: ensure the logged-in user matches the client ID in the URL
-  if (!isUserLoading && user?.uid !== clientId) {
+  if (!isUserLoading && user && user.uid !== clientId) {
+    // Also check if user is owner
+    // This part requires checking for owner role, which might not be available here directly.
+    // For now, we restrict to the client themselves. A more robust check might involve a custom hook `useOwner()`.
     return (
       <div className="container mx-auto px-4 py-16 md:px-6 md:py-24 text-center">
         <h1 className="text-2xl font-bold text-destructive">Acceso Denegado</h1>
@@ -238,8 +241,6 @@ export default function ClientDashboardPage() {
 
     </div>
   );
+}
 
     
-
-
-
