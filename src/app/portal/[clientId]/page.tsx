@@ -44,14 +44,14 @@ export default function ClientDashboardPage() {
 
   // Fetch Client Projects
   const projectsQuery = useMemoFirebase(() => {
-    if (!firestore || !clientId) return null;
+    if (!firestore || typeof clientId !== 'string' || !clientId.trim()) return null;
     return query(collection(firestore, 'client-projects'), where('clientId', '==', clientId));
   }, [firestore, clientId]);
   const { data: projects, isLoading: areProjectsLoading } = useCollection<Project>(projectsQuery);
 
   // Fetch Client Invoices
   const invoicesQuery = useMemoFirebase(() => {
-    if (!firestore || !clientId) return null;
+    if (!firestore || typeof clientId !== 'string' || !clientId.trim()) return null;
     return query(collection(firestore, 'invoices'), where('clientId', '==', clientId));
   }, [firestore, clientId]);
   const { data: invoices, isLoading: areInvoicesLoading } = useCollection<Invoice>(invoicesQuery);
@@ -240,4 +240,5 @@ export default function ClientDashboardPage() {
   );
 
     
+
 

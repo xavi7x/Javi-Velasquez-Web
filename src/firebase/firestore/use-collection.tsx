@@ -53,6 +53,7 @@ export function useCollection<T>(
         setError(null); // Clear previous errors on success
       },
       (err: FirestoreError) => {
+        if (!memoizedQuery) return;
         // Create a rich, contextual error for better debugging
         const permissionError = new FirestorePermissionError({
           path: memoizedQuery.path,
