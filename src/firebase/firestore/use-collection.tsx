@@ -25,16 +25,23 @@ export function useCollection<T>(
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    // If the query is not ready (still being constructed), or if the user state is still loading for a protected query,
+    // PRIMARY GUARD: If the query is not ready or is explicitly null/undefined,
     // we must wait. This is the main guard against invalid queries.
-    if (!memoizedQuery || isUserLoading) {
-      setLoading(true);
+    if (!memoizedQuery) {
+      setLoading(false); // Set loading to false as we are intentionally not fetching.
       setData(null);
       setError(null);
       return;
     }
     
-    // If there's no authenticated user, we don't proceed.
+    // SECONDARY GUARD: For queries that require authentication, wait for user state to be resolved.
+    // We check this after the primary guard to ensure we don't proceed with a null user for a valid query.
+    if (isUserLoading) {
+      setLoading(true);
+      return;
+    }
+
+    // If there's no authenticated user for a protected query, we stop.
     // This is an expected state, not an error.
     if (!user) {
       setLoading(false);
@@ -83,3 +90,5 @@ export function useCollection<T>(
 
   return { data, loading, error };
 };
+
+    
