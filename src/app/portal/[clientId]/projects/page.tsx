@@ -7,7 +7,6 @@ import { collection, query, where, Timestamp } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Briefcase, History, AlertCircle, ExternalLink, FileText, BadgeDollarSign, CalendarDays, Info } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -24,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Invoice } from '@/lib/project-types';
+import { ProgressTimeline } from '@/components/shared/ProgressTimeline';
 
 
 // --- TIPOS ---
@@ -217,7 +217,10 @@ export default function ProjectsPage() {
                         <span className="font-medium">Avance General</span>
                         <span className="font-bold text-primary">{project.progress || 0}%</span>
                       </div>
-                      <Progress value={project.progress || 0} className="h-2.5" />
+                      <ProgressTimeline
+                        progress={project.progress || 0}
+                        history={project.progressHistory || []}
+                      />
                     </div>
                   </CardContent>
 
