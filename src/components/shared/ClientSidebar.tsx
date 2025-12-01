@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Sidebar,
@@ -11,9 +11,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarSeparator,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   Briefcase,
@@ -27,8 +25,10 @@ import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 
-export function ClientSidebar({ clientId }: { clientId: string }) {
+export function ClientSidebar() {
   const pathname = usePathname();
+  const params = useParams();
+  const clientId = params.clientId as string;
   const auth = useAuth();
   const router = useRouter();
 
@@ -81,7 +81,6 @@ export function ClientSidebar({ clientId }: { clientId: string }) {
             <SidebarMenuItem key={link.label}>
               <Link href={link.href} passHref>
                 <SidebarMenuButton
-                  as="a"
                   isActive={pathname === link.href}
                   tooltip={link.label}
                 >

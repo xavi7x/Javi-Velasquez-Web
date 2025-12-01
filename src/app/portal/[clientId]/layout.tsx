@@ -7,16 +7,14 @@ import { ClientSidebar } from '@/components/shared/ClientSidebar';
 
 export default function ClientPortalLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: { clientId: string };
 }) {
   return (
     <AuthGuard>
       <CursorGradientWrapper>
         <SidebarProvider>
-          <ClientSidebar clientId={params.clientId} />
+          <ClientSidebar />
           <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       </CursorGradientWrapper>
