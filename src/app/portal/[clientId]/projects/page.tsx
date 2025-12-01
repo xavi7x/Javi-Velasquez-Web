@@ -7,16 +7,12 @@ import { collection, query, where, Timestamp } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Briefcase, History, AlertCircle, ExternalLink, FileText, BadgeDollarSign, CalendarDays, Info } from 'lucide-react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
   DialogTrigger
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -24,6 +20,9 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Invoice } from '@/lib/project-types';
 import { ProgressTimeline } from '@/components/shared/ProgressTimeline';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 // --- TIPOS ---
@@ -64,7 +63,7 @@ function ProjectHistory({ history }: { history?: ProgressUpdate[] }) {
   });
 
   return (
-    <div className="p-4 space-y-4 bg-muted/30 rounded-b-lg">
+    <div className="p-4 space-y-4 rounded-b-lg">
       <h4 className="font-semibold flex items-center gap-2 text-sm text-foreground">
         <History className="h-4 w-4" />
         Historial de Avances
@@ -194,7 +193,7 @@ export default function ProjectsPage() {
             projects && projects.length > 0 ? (
               projects.map(project => (
                 <Card key={project.id} className="overflow-hidden border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-4">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <DialogTrigger asChild>
@@ -211,7 +210,7 @@ export default function ProjectsPage() {
                     </div>
                   </CardHeader>
                   
-                  <CardContent className="pb-6">
+                  <CardContent className="pb-6 px-6">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm mb-1">
                         <span className="font-medium">Avance General</span>
@@ -223,18 +222,6 @@ export default function ProjectsPage() {
                       />
                     </div>
                   </CardContent>
-
-                  {/* Acordeón de Historial */}
-                  <Accordion type="single" collapsible className="w-full border-t bg-muted/10">
-                    <AccordionItem value="history" className="border-b-0">
-                      <AccordionTrigger className="px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:no-underline transition-colors">
-                        Ver historial de avances
-                      </AccordionTrigger>
-                      <AccordionContent className="p-0">
-                        <ProjectHistory history={project.progressHistory} />
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
                 </Card>
               ))
             ) : (
@@ -253,7 +240,7 @@ export default function ProjectsPage() {
       </div>
       
       {selectedProject && (
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl h-[90vh] flex flex-col">
            <DialogHeader>
               <DialogTitle className="text-2xl">{selectedProject.title}</DialogTitle>
               <DialogDescription>
@@ -280,48 +267,54 @@ export default function ProjectsPage() {
                 )}
             </div>
 
-            <div className="grid gap-6 py-4">
-              {selectedProject.downloadUrl && (
-                  <Button asChild>
-                    <Link href={selectedProject.downloadUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Acceder al Proyecto
-                    </Link>
-                  </Button>
-              )}
+            <ScrollArea className="flex-grow">
+              <div className="grid gap-6 py-4 pr-6">
+                {selectedProject.downloadUrl && (
+                    <Button asChild>
+                      <Link href={selectedProject.downloadUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Acceder al Proyecto
+                      </Link>
+                    </Button>
+                )}
 
-              <div className="space-y-4">
-                  <h4 className="font-semibold text-foreground flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Factura Asociada
-                  </h4>
-                  {isLoadingInvoices ? (
-                    <Skeleton className="h-24 w-full" />
-                  ) : associatedInvoice ? (
-                      <div className="border rounded-lg p-4 space-y-3">
-                          <div className="flex justify-between items-center">
-                            <p className="font-mono text-sm">#{associatedInvoice.invoiceNumber}</p>
-                            <Badge variant={getStatusVariant(associatedInvoice.status)}>
-                              {getStatusLabel(associatedInvoice.status)}
-                            </Badge>
-                          </div>
-                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <BadgeDollarSign className="h-4 w-4" />
-                              <span className="font-semibold">{formatCurrency(associatedInvoice.amount)}</span>
+                <div className="space-y-4">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Factura Asociada
+                    </h4>
+                    {isLoadingInvoices ? (
+                      <Skeleton className="h-24 w-full" />
+                    ) : associatedInvoice ? (
+                        <div className="border rounded-lg p-4 space-y-3">
+                            <div className="flex justify-between items-center">
+                              <p className="font-mono text-sm">#{associatedInvoice.invoiceNumber}</p>
+                              <Badge variant={getStatusVariant(associatedInvoice.status)}>
+                                {getStatusLabel(associatedInvoice.status)}
+                              </Badge>
                             </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <CalendarDays className="h-4 w-4" />
-                            <span>Emisión: {format(new Date(associatedInvoice.issueDate), 'dd MMM yyyy', { locale: es })}</span>
-                          </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <BadgeDollarSign className="h-4 w-4" />
+                                <span className="font-semibold">{formatCurrency(associatedInvoice.amount)}</span>
+                              </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <CalendarDays className="h-4 w-4" />
+                              <span>Emisión: {format(new Date(associatedInvoice.issueDate), 'dd MMM yyyy', { locale: es })}</span>
+                            </div>
+                        </div>
+                    ) : (
+                      <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-lg flex items-center justify-center gap-2">
+                        <Info className="h-4 w-4" />
+                        No hay una factura asociada a este proyecto.
                       </div>
-                  ) : (
-                    <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-lg flex items-center justify-center gap-2">
-                      <Info className="h-4 w-4" />
-                      No hay una factura asociada a este proyecto.
-                    </div>
-                  )}
+                    )}
+                </div>
+
+                <div className="border-t pt-4">
+                   <ProjectHistory history={selectedProject.progressHistory} />
+                </div>
               </div>
-            </div>
+            </ScrollArea>
         </DialogContent>
       )}
 
