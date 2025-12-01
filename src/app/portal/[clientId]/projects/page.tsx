@@ -16,7 +16,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
@@ -40,6 +39,7 @@ interface ProjectData {
   progress: number;
   progressHistory?: ProgressUpdate[];
   clientId: string;
+  createdAt?: Timestamp;
   updatedAt?: Timestamp;
   downloadUrl?: string;
   invoiceId?: string;
@@ -256,6 +256,26 @@ export default function ProjectsPage() {
                   {typeof selectedProject.description === 'string' ? selectedProject.description : selectedProject.description?.challenge}
               </DialogDescription>
             </DialogHeader>
+
+             <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground border-y py-4">
+                {(selectedProject.createdAt || selectedProject.updatedAt) && (
+                    <>
+                        {selectedProject.createdAt && (
+                             <div className="flex items-center gap-2">
+                                <CalendarDays className="h-4 w-4"/>
+                                <span><span className="font-semibold text-foreground">Inicio:</span> {format(selectedProject.createdAt.toDate(), "dd MMM, yyyy", { locale: es })}</span>
+                            </div>
+                        )}
+                         {selectedProject.updatedAt && (
+                            <div className="flex items-center gap-2">
+                                <CalendarDays className="h-4 w-4" />
+                                <span><span className="font-semibold text-foreground">Últ. Act:</span> {format(selectedProject.updatedAt.toDate(), "dd MMM, yyyy", { locale: es })}</span>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+
             <div className="grid gap-6 py-4">
               {selectedProject.downloadUrl && (
                   <Button asChild>
