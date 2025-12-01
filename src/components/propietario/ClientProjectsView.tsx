@@ -311,7 +311,7 @@ export function ClientProjectsView() {
               ) : (
                 projects.map((project) => (
                   <Collapsible asChild key={project.id}>
-                    <>
+                    <React.Fragment>
                       <CollapsibleTrigger asChild>
                         <TableRow className="cursor-pointer group">
                           <TableCell className="font-medium max-w-[200px] truncate">{project.title}</TableCell>
@@ -339,7 +339,7 @@ export function ClientProjectsView() {
                             </TableCell>
                         </TableRow>
                       </CollapsibleContent>
-                    </>
+                    </React.Fragment>
                   </Collapsible>
                 ))
               )}
