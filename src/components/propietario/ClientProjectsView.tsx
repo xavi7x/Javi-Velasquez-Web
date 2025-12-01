@@ -34,7 +34,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import type { ProgressUpdate, Project, Client, Invoice, ClientProject } from '@/lib/project-types';
-import { PlusCircle, Loader2, Edit, ChevronDown, History, ChevronLeft, ChevronRight, Briefcase, Link } from 'lucide-react';
+import { PlusCircle, Loader2, Edit, ChevronDown, History, ChevronLeft, ChevronRight, Briefcase, Link, XCircle } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, setDoc, addDoc, query, orderBy, Timestamp, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -352,7 +352,7 @@ export function ClientProjectsView() {
                 ) : (
                 projects.map((project) => (
                   <Collapsible asChild key={project.id}>
-                    <TableBody>
+                    <tbody className="border-b">
                       <TableRow className="group">
                         <TableCell className="font-medium max-w-[200px] truncate">{project.title}</TableCell>
                         <TableCell className="text-muted-foreground">{project.clientName}</TableCell>
@@ -390,7 +390,7 @@ export function ClientProjectsView() {
                           </TableCell>
                         </TableRow>
                       </CollapsibleContent>
-                    </TableBody>
+                    </tbody>
                   </Collapsible>
                 ))
               )}
@@ -473,23 +473,34 @@ export function ClientProjectsView() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="invoiceId">Asociar Factura</Label>
-                        <Select
-                            value={editingProject.invoiceId || ''}
-                            onValueChange={(value) => handleFormChange('invoiceId', value)}
-                            disabled={isLoadingInvoices || !editingProject.clientId}
-                        >
-                        <SelectTrigger id="invoiceId">
-                            <SelectValue placeholder="Selecciona una factura..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="">Ninguna</SelectItem>
-                            {invoicesForSelectedClient.map(invoice => (
-                                <SelectItem key={invoice.id} value={invoice.id}>
-                                    #{invoice.invoiceNumber} - {invoice.concept}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                        </Select>
+                         <div className="flex items-center gap-2">
+                            <Select
+                                value={editingProject.invoiceId || ''}
+                                onValueChange={(value) => handleFormChange('invoiceId', value)}
+                                disabled={isLoadingInvoices || !editingProject.clientId}
+                            >
+                            <SelectTrigger id="invoiceId">
+                                <SelectValue placeholder="Selecciona una factura..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {invoicesForSelectedClient.map(invoice => (
+                                    <SelectItem key={invoice.id} value={invoice.id}>
+                                        #{invoice.invoiceNumber} - {invoice.concept}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                             {editingProject.invoiceId && (
+                                <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => handleFormChange('invoiceId', '')}
+                                >
+                                    <XCircle className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
                 )}
@@ -507,3 +518,5 @@ export function ClientProjectsView() {
     </div>
   );
 }
+
+    
