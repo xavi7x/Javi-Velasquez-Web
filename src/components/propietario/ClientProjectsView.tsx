@@ -33,8 +33,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import type { ProgressUpdate, Project, Client } from '@/lib/project-types';
-import { PlusCircle, Loader2, Edit, ChevronDown, History, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
+import type { ProgressUpdate, Project, Client, Invoice, ClientProject } from '@/lib/project-types';
+import { PlusCircle, Loader2, Edit, ChevronDown, History, ChevronLeft, ChevronRight, Briefcase, Link } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, setDoc, addDoc, query, orderBy, Timestamp, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -48,15 +48,16 @@ import { Progress } from '../ui/progress';
 import { Slider } from '../ui/slider';
 import React from 'react';
 
-const emptyProject: Partial<Project> = {
+const emptyProject: Partial<ClientProject> = {
   title: '',
-  description: { challenge: '', solution: '', results: '' },
-  type: 'client',
+  description: '',
   clientId: '',
   clientName: '',
   progress: 0,
   progressHistory: [],
-  isPublic: false,
+  status: 'active',
+  downloadUrl: '',
+  invoiceId: '',
 };
 
 const ITEMS_PER_PAGE = 5;
@@ -142,7 +143,7 @@ const ProjectHistory = ({ history }: { history: ProgressUpdate[] }) => {
 
 export function ClientProjectsView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
+  const [editingProject, setEditingProject] = useState<Partial<ClientProject> | null>(null);
   const [progressComment, setProgressComment] = useState('');
   const [showProgressComment, setShowProgressComment] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -154,14 +155,39 @@ export function ClientProjectsView() {
         return query(collection(firestore, 'client-projects'), orderBy('createdAt', 'desc'));
     }, [firestore]);
 
-  const { data: projects, isLoading: isLoadingProjects } = useCollection<Project>(projectsQuery);
+  const { data: projects, isLoading: isLoadingProjects } = useCollection<ClientProject>(projectsQuery);
   
   const clientsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'clients'), orderBy('name', 'asc'));
   }, [firestore]);
-
   const { data: clients, isLoading: isLoadingClients } = useCollection<Client>(clientsQuery);
+  
+  const invoicesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'invoices'), orderBy('issueDate', 'desc'));
+  }, [firestore]);
+  const { data: invoices, isLoading: isLoadingInvoices } = useCollection<Invoice>(invoicesQuery);
+  
+  const unassignedInvoices = useMemo(() => {
+    if (!invoices) return [];
+    const assignedInvoiceIds = projects?.map(p => p.invoiceId).filter(Boolean) || [];
+    return invoices.filter(i => !assignedInvoiceIds.includes(i.id));
+  }, [invoices, projects]);
+  
+  const invoicesForSelectedClient = useMemo(() => {
+    if (!editingProject?.clientId) return [];
+    const clientInvoices = unassignedInvoices.filter(i => i.clientId === editingProject.clientId);
+    // If we're editing a project that already has an invoice, add it to the list
+    if (editingProject.invoiceId && invoices) {
+        const currentInvoice = invoices.find(i => i.id === editingProject.invoiceId);
+        if (currentInvoice && !clientInvoices.some(i => i.id === currentInvoice.id)) {
+            clientInvoices.unshift(currentInvoice);
+        }
+    }
+    return clientInvoices;
+}, [editingProject, invoices, unassignedInvoices]);
+
 
   const openAddModal = () => {
     setEditingProject(emptyProject);
@@ -170,14 +196,14 @@ export function ClientProjectsView() {
     setIsModalOpen(true);
   };
   
-  const openEditModal = (project: Project) => {
+  const openEditModal = (project: ClientProject) => {
     setEditingProject(project);
     setProgressComment('');
     setShowProgressComment(false);
     setIsModalOpen(true);
   };
   
-  const handleFormChange = (field: keyof Project, value: any) => {
+  const handleFormChange = (field: keyof ClientProject, value: any) => {
     setEditingProject(prev => prev ? { ...prev, [field]: value } : null);
   };
   
@@ -186,7 +212,8 @@ export function ClientProjectsView() {
      setEditingProject(prev => prev ? { 
          ...prev, 
          clientId: clientId,
-         clientName: client?.name || ''
+         clientName: client?.name || '',
+         invoiceId: '', // Reset invoice when client changes
      } : null);
   };
 
@@ -213,10 +240,13 @@ export function ClientProjectsView() {
             const projectId = editingProject.id!;
             const projectRef = doc(collectionRef, projectId);
 
-            const updateData: Partial<Project> & { progressHistory?: any } = {
+            const updateData: Partial<ClientProject> & { progressHistory?: any, updatedAt: Timestamp } = {
                 title: editingProject.title,
                 clientName: editingProject.clientName,
                 progress: editingProject.progress || 0,
+                updatedAt: Timestamp.now(),
+                downloadUrl: editingProject.downloadUrl || '',
+                invoiceId: editingProject.invoiceId || '',
             };
 
             if (showProgressComment && progressComment.trim() !== '') {
@@ -234,8 +264,16 @@ export function ClientProjectsView() {
               description: `El proyecto "${editingProject.title}" ha sido actualizado.`
             });
         } else {
-             const newProject: Partial<Project> = {
-                ...editingProject,
+             const newProject: Omit<ClientProject, 'id'> & { createdAt: Timestamp, updatedAt: Timestamp } = {
+                title: editingProject.title!,
+                description: editingProject.description || '',
+                clientId: editingProject.clientId!,
+                clientName: editingProject.clientName || '',
+                status: 'active',
+                progress: editingProject.progress || 0,
+                progressHistory: [],
+                downloadUrl: editingProject.downloadUrl || '',
+                invoiceId: editingProject.invoiceId || '',
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
              };
@@ -286,7 +324,7 @@ export function ClientProjectsView() {
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
-              {isLoadingProjects ? (
+                {isLoadingProjects ? (
                   <TableBody>
                     {[...Array(3)].map((_, i) => (
                       <TableRow key={i}>
@@ -299,7 +337,7 @@ export function ClientProjectsView() {
                       </TableRow>
                     ))}
                   </TableBody>
-              ) : !projects || projects.length === 0 ? (
+                ) : !projects || projects.length === 0 ? (
                   <TableBody>
                     <TableRow>
                       <TableCell colSpan={4} className="h-48 text-center">
@@ -311,38 +349,48 @@ export function ClientProjectsView() {
                       </TableCell>
                     </TableRow>
                   </TableBody>
-              ) : (
+                ) : (
                 projects.map((project) => (
-                  <Collapsible asChild key={project.id} >
-                     <TableBody>
-                        <CollapsibleTrigger asChild>
-                          <TableRow className="cursor-pointer group">
-                            <TableCell className="font-medium max-w-[200px] truncate">{project.title}</TableCell>
-                            <TableCell className="text-muted-foreground">{project.clientName}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Progress value={project.progress || 0} className="w-[60%]" />
-                                <span className="text-xs text-muted-foreground">{project.progress || 0}%</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <Button variant="outline" size="icon" className="h-9 w-9" onClick={(e) => {e.stopPropagation(); openEditModal(project); }}>
-                                      <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent asChild>
-                          <TableRow>
-                              <TableCell colSpan={5} className='p-0'>
-                                  <ProjectHistory history={project.progressHistory || []} />
-                              </TableCell>
-                          </TableRow>
-                        </CollapsibleContent>
-                      </TableBody>
+                  <Collapsible asChild key={project.id}>
+                    <TableBody>
+                      <TableRow className="group">
+                        <TableCell className="font-medium max-w-[200px] truncate">{project.title}</TableCell>
+                        <TableCell className="text-muted-foreground">{project.clientName}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Progress value={project.progress || 0} className="w-[60%]" />
+                            <span className="text-xs text-muted-foreground">{project.progress || 0}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-9 w-9"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditModal(project);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <CollapsibleTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-9 w-9">
+                                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                              </Button>
+                            </CollapsibleTrigger>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      <CollapsibleContent asChild>
+                        <TableRow>
+                          <TableCell colSpan={4} className="p-0">
+                            <ProjectHistory history={project.progressHistory || []} />
+                          </TableCell>
+                        </TableRow>
+                      </CollapsibleContent>
+                    </TableBody>
                   </Collapsible>
                 ))
               )}
@@ -405,10 +453,50 @@ export function ClientProjectsView() {
                   />
                 </div>
               )}
+                {/* Nuevos campos para entrega */}
+                {editingProject.progress === 100 && (
+                 <div className="space-y-4 pt-4 border-t">
+                     <h3 className="text-sm font-medium text-muted-foreground">Entrega del Proyecto</h3>
+                    <div className="space-y-2">
+                        <Label htmlFor="downloadUrl">Enlace de Descarga</Label>
+                         <div className="flex items-center">
+                            <Link className="h-9 w-9 flex-shrink-0 flex items-center justify-center border rounded-l-md bg-muted text-muted-foreground" />
+                            <Input 
+                                id="downloadUrl" 
+                                type="url"
+                                value={editingProject.downloadUrl || ''} 
+                                onChange={e => handleFormChange('downloadUrl', e.target.value)} 
+                                placeholder="https://..."
+                                className="rounded-l-none"
+                            />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="invoiceId">Asociar Factura</Label>
+                        <Select
+                            value={editingProject.invoiceId || ''}
+                            onValueChange={(value) => handleFormChange('invoiceId', value)}
+                            disabled={isLoadingInvoices || !editingProject.clientId}
+                        >
+                        <SelectTrigger id="invoiceId">
+                            <SelectValue placeholder="Selecciona una factura..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="">Ninguna</SelectItem>
+                            {invoicesForSelectedClient.map(invoice => (
+                                <SelectItem key={invoice.id} value={invoice.id}>
+                                    #{invoice.invoiceNumber} - {invoice.concept}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                )}
             </form>
             <DialogFooter>
               <DialogClose asChild><Button type="button" variant="secondary" disabled={isSubmitting}>Cancelar</Button></DialogClose>
-              <Button type="submit" form="client-project-form" disabled={isSubmitting || isLoadingClients}>
+              <Button type="submit" form="client-project-form" disabled={isSubmitting || isLoadingClients || isLoadingInvoices}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {isSubmitting ? 'Guardando...' : 'Guardar Proyecto'}
               </Button>

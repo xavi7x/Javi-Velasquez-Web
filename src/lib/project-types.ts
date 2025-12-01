@@ -38,10 +38,13 @@ export interface ClientProject {
   clientId: string;
   clientName?: string;
   status: 'active' | 'completed' | 'on-hold';
-  deadline: Date | Timestamp;
+  deadline?: Date | Timestamp;
   progress?: number;
   progressHistory?: ProgressUpdate[];
   createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+  downloadUrl?: string; // Nuevo campo
+  invoiceId?: string; // Nuevo campo
 }
 
 export interface Client {
