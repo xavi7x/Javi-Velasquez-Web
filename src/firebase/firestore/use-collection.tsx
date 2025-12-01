@@ -1,4 +1,3 @@
-
 'use client';
 
 import { onSnapshot, Query, FirestoreError } from 'firebase/firestore';
@@ -11,10 +10,6 @@ type WithId<T> = T & { id: string };
 /**
  * React hook to subscribe to a Firestore collection in real-time.
  * Handles nullable queries gracefully.
- *
- * @template T - The type of the documents in the collection.
- * @param {Query | null | undefined} memoizedQuery - The memoized Firestore Query object. Hook execution will wait if it's null or undefined.
- * @returns An object containing the collection data, loading state, and any error.
  */
 export function useCollection<T>(
   memoizedQuery: Query | null | undefined
@@ -22,34 +17,29 @@ export function useCollection<T>(
   const [data, setData] = useState<WithId<T>[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { user, isUserLoading } = useUser();
+  
+  // Obtenemos el estado de carga del usuario para evitar condiciones de carrera,
+  // pero NO bloqueamos la ejecución si el usuario es null (para permitir queries públicas).
+  const { isUserLoading } = useUser();
 
   useEffect(() => {
-    // PRIMARY GUARD: If the query is not ready or is explicitly null/undefined,
-    // we must wait. This is the main guard against invalid queries.
+    // 1. GUARDIA PRINCIPAL: Si la query es null/undefined, no hacemos nada.
+    // Esto es lo que detiene las llamadas cuando los datos no están listos.
     if (!memoizedQuery) {
-      setLoading(false); // Set loading to false as we are intentionally not fetching.
-      setData(null);
-      setError(null);
+      setLoading(false);
+      // Opcional: setData(null) si quieres limpiar los datos al perder la query.
       return;
     }
     
-    // SECONDARY GUARD: For queries that require authentication, wait for user state to be resolved.
-    // We check this after the primary guard to ensure we don't proceed with a null user for a valid query.
+    // 2. GUARDIA DE CARGA: Si la autenticación aún está cargando, esperamos.
+    // Esto evita que se lancen queries que dependen del usuario antes de saber si existe.
     if (isUserLoading) {
       setLoading(true);
       return;
     }
 
-    // If there's no authenticated user for a protected query, we stop.
-    // This is an expected state, not an error.
-    if (!user) {
-      setLoading(false);
-      setData(null);
-      setError(null);
-      return;
-    }
-    
+    // (Eliminado el bloque "if (!user) return" para permitir colecciones públicas)
+
     setLoading(true);
     setError(null);
 
@@ -64,31 +54,35 @@ export function useCollection<T>(
         setError(null);
       },
       (err: FirestoreError) => {
-        // This check is crucial. If memoizedQuery is null, we can't access .path
-        // Although the top-level guard should prevent this, it's a good safety measure.
-        if (!memoizedQuery) {
-            setError(new Error("Firestore query is not available."));
-            setLoading(false);
-            return;
-        };
-        
+        console.error("Error en useCollection:", err);
+
+        // Intento seguro de obtener el path para depuración
+        // En consultas complejas (Query), .path no siempre es accesible directamente en tipado estricto
+        const queryPath = (memoizedQuery as any).path || 'unknown-path';
+
+        // DETECCIÓN INTELIGENTE DEL ERROR "UNDEFINED"
+        if (typeof queryPath === 'string' && queryPath.includes('/undefined')) {
+             console.warn(`🚨 ALERTA CRÍTICA: Se intentó consultar la ruta "${queryPath}". Revisa el componente que llama a este hook, está pasando una variable undefined como nombre de colección o ID.`);
+        }
+
         const permissionError = new FirestorePermissionError({
-          path: memoizedQuery.path,
+          path: queryPath,
           operation: 'list',
         });
         
         setError(permissionError);
         setLoading(false);
 
-        errorEmitter.emit('permission-error', permissionError);
+        // Solo emitimos al escuchador global si es un error real de permisos
+        if (err.code === 'permission-denied') {
+            errorEmitter.emit('permission-error', permissionError);
+        }
       }
     );
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [memoizedQuery, user, isUserLoading]);
+  }, [memoizedQuery, isUserLoading]); // Quitamos 'user' de dependencias para evitar re-suscripciones innecesarias
 
   return { data, loading, error };
 };
-
-    

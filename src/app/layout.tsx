@@ -74,6 +74,7 @@ export default function RootLayout({
             <Suspense fallback={<QuantumLoader />}>
               {children}
             </Suspense>
+            {/* Ahora que useCollection es seguro, podemos usar esto sin miedo */}
             <AvailabilityStatus />
             <Toaster />
           </FirebaseClientProvider>
