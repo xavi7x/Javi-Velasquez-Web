@@ -13,7 +13,7 @@ export default function ClientPortalLayout({
     <AuthGuard>
       <CursorGradientWrapper>
         <ClientPortalHeader />
-          <main className="flex-1">
+          <main className="flex-1 bg-background text-foreground">
             {children}
           </main>
       </CursorGradientWrapper>

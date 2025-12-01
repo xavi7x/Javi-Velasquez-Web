@@ -7,7 +7,6 @@ import { useFirestore, useMemoFirebase } from '@/firebase';
 
 export const useClientProjects = (options?: {
   clientId?: string;
-  status?: 'active' | 'completed' | 'on-hold';
 }) => {
   const firestore = useFirestore();
 
@@ -19,16 +18,15 @@ export const useClientProjects = (options?: {
     }
     
     const queryConstraints: QueryConstraint[] = [
-      where('type', '==', 'client'),
       where('clientId', '==', options.clientId)
     ];
     
     queryConstraints.push(orderBy('createdAt', 'desc'));
 
-    // The collection is 'projects' not 'client-projects'.
-    return query(collection(firestore, 'projects'), ...queryConstraints);
+    // The collection is 'client-projects'.
+    return query(collection(firestore, 'client-projects'), ...queryConstraints);
 
-  }, [firestore, options?.clientId, options?.status]);
+  }, [firestore, options?.clientId]);
 
 
   return useCollection<Project>(clientProjectsQuery);
