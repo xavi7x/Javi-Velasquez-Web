@@ -15,11 +15,11 @@ service cloud.firestore {
     }
     
     match /projects/{projectId} {
-      // Los proyectos públicos (portafolio) son legibles por todos.
-      // Los proyectos de clientes son legibles por el propietario o el cliente asignado.
+      // Public projects are readable by everyone.
+      // Client projects are readable by the owner or the assigned client.
       allow read: if resource.data.isPublic == true || isOwner() || isClient(resource.data.clientId);
       
-      // Solo el propietario puede crear, actualizar o eliminar proyectos.
+      // Only the owner can create, update, or delete projects.
       allow write: if isOwner();
     }
     
@@ -30,10 +30,14 @@ service cloud.firestore {
     match /clients/{clientId} {
       allow create: if isOwner();
       allow read, update: if isOwner() || isClient(clientId);
-      // La eliminación debe ser manejada por una función en la nube para limpiar la autenticación también.
+      // Deletion should be handled by a cloud function to also clean up auth.
       allow delete: if isOwner();
     }
 
+    match /client-projects/{projectId} {
+      allow read, write: if isOwner() || isClient(resource.data.clientId);
+    }
+    
     match /tickets/{ticketId} {
       allow read, write: if isOwner() || isClient(resource.data.clientId);
       

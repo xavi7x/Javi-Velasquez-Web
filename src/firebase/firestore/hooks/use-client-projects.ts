@@ -23,8 +23,8 @@ export const useClientProjects = (options?: {
     
     queryConstraints.push(orderBy('createdAt', 'desc'));
 
-    // The collection is 'client-projects'.
-    return query(collection(firestore, 'client-projects'), ...queryConstraints);
+    // The collection is now 'projects'
+    return query(collection(firestore, 'projects'), ...queryConstraints);
 
   }, [firestore, options?.clientId]);
 
