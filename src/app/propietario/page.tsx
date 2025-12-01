@@ -14,6 +14,7 @@ import {
   Globe,
   FileText,
   Users,
+  ChevronDown,
 } from 'lucide-react';
 import { DashboardView } from '@/components/propietario/DashboardView';
 import { MyWebView } from '@/components/propietario/MyWebView';
@@ -53,6 +54,12 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import RequestsPage from './projects/page';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 
 export default function OwnerDashboard() {
@@ -208,14 +215,33 @@ export default function OwnerDashboard() {
             </Badge>
           )}
         </Button>
-        <Button
-          variant={activeView === 'my-web' ? 'default' : 'ghost'}
-          className="justify-start gap-3"
-          onClick={() => handleViewChange('my-web')}
-        >
-          <Globe className="h-4 w-4" />
-          <span>Mi Web</span>
-        </Button>
+
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant={activeView === 'my-web' || activeView === 'profile' ? 'secondary' : 'ghost'}
+              className="justify-between gap-3 w-full group"
+              onClick={() => handleViewChange('my-web')}
+            >
+              <span className="flex items-center gap-3">
+                <Globe className="h-4 w-4" />
+                <span>Mi Web</span>
+              </span>
+              <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="py-1 pl-8">
+            <Button
+              variant={activeView === 'profile' ? 'default' : 'ghost'}
+              className="justify-start gap-3 w-full"
+              onClick={() => handleViewChange('profile')}
+            >
+              <User className="h-4 w-4" />
+              <span>Mi Perfil</span>
+            </Button>
+          </CollapsibleContent>
+        </Collapsible>
+        
         <Button
           variant={activeView === 'projects' ? 'default' : 'ghost'}
           className="justify-start gap-3"
@@ -247,14 +273,6 @@ export default function OwnerDashboard() {
         >
           <CreditCard className="h-4 w-4" />
           <span>Finanzas</span>
-        </Button>
-         <Button
-          variant={activeView === 'profile' ? 'default' : 'ghost'}
-          className="justify-start gap-3"
-          onClick={() => handleViewChange('profile')}
-        >
-          <User className="h-4 w-4" />
-          <span>Mi Perfil</span>
         </Button>
       </nav>
 
