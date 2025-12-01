@@ -79,16 +79,14 @@ export function ClientSidebar({ clientId }: { clientId: string }) {
         <SidebarMenu>
           {navLinks.map((link) => (
             <SidebarMenuItem key={link.label}>
-              <Link href={link.href} legacyBehavior passHref>
+              <Link href={link.href} passHref>
                 <SidebarMenuButton
+                  as="a"
                   isActive={pathname === link.href}
                   tooltip={link.label}
-                  asChild
                 >
-                  <a>
-                    <link.icon />
-                    <span>{link.label}</span>
-                  </a>
+                  <link.icon />
+                  <span>{link.label}</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
