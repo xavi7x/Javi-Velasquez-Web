@@ -311,35 +311,35 @@ export function ClientProjectsView() {
               ) : (
                 projects.map((project) => (
                   <Collapsible asChild key={project.id}>
-                    <React.Fragment>
-                      <CollapsibleTrigger asChild>
-                        <TableRow className="cursor-pointer group">
-                          <TableCell className="font-medium max-w-[200px] truncate">{project.title}</TableCell>
-                          <TableCell className="text-muted-foreground">{project.clientName}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress value={project.progress || 0} className="w-[60%]" />
-                              <span className="text-xs text-muted-foreground">{project.progress || 0}%</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Button variant="outline" size="icon" className="h-9 w-9" onClick={(e) => {e.stopPropagation(); openEditModal(project); }}>
-                                    <Edit className="h-4 w-4" />
-                                </Button>
-                                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent asChild>
-                        <TableRow>
-                            <TableCell colSpan={5} className='p-0'>
-                                <ProjectHistory history={project.progressHistory || []} />
+                      <React.Fragment>
+                        <CollapsibleTrigger asChild>
+                          <TableRow className="cursor-pointer group">
+                            <TableCell className="font-medium max-w-[200px] truncate">{project.title}</TableCell>
+                            <TableCell className="text-muted-foreground">{project.clientName}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Progress value={project.progress || 0} className="w-[60%]" />
+                                <span className="text-xs text-muted-foreground">{project.progress || 0}%</span>
+                              </div>
                             </TableCell>
-                        </TableRow>
-                      </CollapsibleContent>
-                    </React.Fragment>
+                            <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button variant="outline" size="icon" className="h-9 w-9" onClick={(e) => {e.stopPropagation(); openEditModal(project); }}>
+                                      <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent asChild>
+                          <TableRow>
+                              <TableCell colSpan={5} className='p-0'>
+                                  <ProjectHistory history={project.progressHistory || []} />
+                              </TableCell>
+                          </TableRow>
+                        </CollapsibleContent>
+                      </React.Fragment>
                   </Collapsible>
                 ))
               )}
