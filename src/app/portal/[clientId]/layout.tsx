@@ -1,21 +1,24 @@
 'use client';
 
 import { AuthGuard } from '@/components/auth/AuthGuard';
-import { ClientPortalHeader } from '@/components/shared/ClientPortalHeader';
 import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { ClientSidebar } from '@/components/shared/ClientSidebar';
 
 export default function ClientPortalLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: { clientId: string };
 }) {
   return (
     <AuthGuard>
       <CursorGradientWrapper>
-        <ClientPortalHeader />
-          <main className="flex-1 bg-background text-foreground">
-            {children}
-          </main>
+        <SidebarProvider>
+          <ClientSidebar clientId={params.clientId} />
+          <SidebarInset>{children}</SidebarInset>
+        </SidebarProvider>
       </CursorGradientWrapper>
     </AuthGuard>
   );
