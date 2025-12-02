@@ -15,6 +15,7 @@ import {
   FileText,
   Users,
   ChevronDown,
+  Landmark,
 } from 'lucide-react';
 import { DashboardView } from '@/components/propietario/DashboardView';
 import { MyWebView } from '@/components/propietario/MyWebView';
@@ -54,6 +55,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import RequestsPage from './projects/page';
+import InversionesPage from './inversiones/page';
 import {
   Collapsible,
   CollapsibleContent,
@@ -157,6 +159,8 @@ export default function OwnerDashboard() {
         return <RequestsPage />;
       case 'finance':
         return <FinancesView />;
+      case 'inversiones':
+        return <InversionesPage />;
       case 'profile':
         return <ProfileView />;
       default:
@@ -221,9 +225,8 @@ export default function OwnerDashboard() {
             <Button
               variant={activeView === 'my-web' || activeView === 'profile' ? 'secondary' : 'ghost'}
               className="justify-between gap-3 w-full group"
-              onClick={() => handleViewChange('my-web')}
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center gap-3" onClick={() => handleViewChange('my-web')}>
                 <Globe className="h-4 w-4" />
                 <span>Mi Web</span>
               </span>
@@ -273,6 +276,14 @@ export default function OwnerDashboard() {
         >
           <CreditCard className="h-4 w-4" />
           <span>Finanzas</span>
+        </Button>
+        <Button
+          variant={activeView === 'inversiones' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('inversiones')}
+        >
+          <Landmark className="h-4 w-4" />
+          <span>Inversiones</span>
         </Button>
       </nav>
 
@@ -343,6 +354,7 @@ export default function OwnerDashboard() {
                 {activeView === 'clients' && 'Gestión de Clientes'}
                 {activeView === 'requests' && 'Gestión de Solicitudes'}
                 {activeView === 'finance' && 'Gestión Financiera'}
+                {activeView === 'inversiones' && 'Gestión de Inversiones'}
                 {activeView === 'profile' && 'Mi Perfil'}
               </h1>
               <p className="text-muted-foreground text-sm md:text-base">
@@ -354,6 +366,7 @@ export default function OwnerDashboard() {
                 {activeView === 'clients' && 'Añade, edita y gestiona los clientes con acceso al portal.'}
                 {activeView === 'requests' && 'Visualiza y gestiona las solicitudes de tus clientes.'}
                 {activeView === 'finance' && 'Visualiza el estado de las facturas y pagos.'}
+                {activeView === 'inversiones' && 'Visualiza y gestiona tus inversiones.'}
                 {activeView === 'profile' && 'Actualiza tu información pública y de perfil.'}
               </p>
             </div>
