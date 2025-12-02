@@ -1,8 +1,15 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
 import { Badge } from '@/components/ui/badge';
 import { CursorGradientWrapper } from '@/components/shared/CursorGradientWrapper';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useInView } from 'react-intersection-observer';
 
 const tools = [
   { name: 'Next.js' },
@@ -16,42 +23,173 @@ const tools = [
   { name: 'Git & GitHub' },
 ];
 
+interface AboutContent {
+  headline: string;
+  subheadline: string;
+  mainParagraph: string;
+  imageUrl: string;
+}
+
+const AnimatedStat = ({
+  finalValue,
+  label,
+  suffix = '',
+}: {
+  finalValue: number;
+  label: string;
+  suffix?: string;
+}) => {
+  const [count, setCount] = useState(0);
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  useEffect(() => {
+    if (inView) {
+      let start = 0;
+      const end = finalValue;
+      if (start === end) return;
+
+      const duration = 1500; // 1.5 seconds
+      const incrementTime = Math.max(10, Math.floor(duration / end));
+      
+      const timer = setInterval(() => {
+        start += 1;
+        setCount(start);
+        if (start === end) clearInterval(timer);
+      }, incrementTime);
+
+      return () => clearInterval(timer);
+    }
+  }, [inView, finalValue]);
+
+  return (
+    <div ref={ref} className="text-center">
+      <p className="text-3xl sm:text-4xl font-bold tracking-tighter">
+        {count}
+        {suffix}
+      </p>
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+    </div>
+  );
+};
+
+
 export default function AboutPage() {
   const extendedTools = [...tools, ...tools]; // Duplicate for seamless loop
+  const firestore = useFirestore();
+
+  const aboutContentRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'settings', 'about');
+  }, [firestore]);
+
+  const { data: aboutContent, isLoading } = useDoc<AboutContent>(aboutContentRef);
+  
+  const content = aboutContent || {
+      headline: "Transformando Ideas en Código",
+      subheadline: "Soy Javier, un desarrollador apasionado por construir productos digitales que sean eficientes, escalables y resuelvan problemas reales.",
+      mainParagraph: "Me apasiona la intersección entre la creatividad y la tecnología. Utilizo un flujo de trabajo potenciado por IA que me permite saltar las barreras técnicas tradicionales y construir plataformas robustas de manera ágil. Mi objetivo no es solo que la web funcione, sino que sea escalable, estética y fácil de mantener, abarcando todo el ciclo de vida del proyecto con una visión integral.",
+      imageUrl: "https://picsum.photos/seed/101/600/800"
+  };
+  
+  const stats = [
+    { value: 5, label: 'Años Exp.', suffix: '+' },
+    { value: 20, label: 'Proyectos', suffix: '+' },
+    { value: 100, label: 'Compromiso', suffix: '%' },
+  ];
 
   return (
     <CursorGradientWrapper>
       <Header />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-16 md:px-6 md:py-24">
-          <div className="grid gap-12 md:grid-cols-2 lg:gap-24">
-            <div className="flex flex-col justify-center space-y-6">
+          <div className="grid gap-8 lg:grid-cols-3 lg:gap-12 items-start">
+            
+            {/* --- Text Content Column --- */}
+            <div className="flex flex-col space-y-6 lg:col-span-2">
+              
+              {/* Headline */}
               <header>
-                <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
-                  Transformando Ideas en Código
-                </h1>
-                <p className="mt-4 max-w-xl text-lg text-muted-foreground md:text-xl">
-                  Soy Javier Velásquez, un desarrollador de software apasionado por construir productos digitales que sean eficientes, escalables y resuelvan problemas reales.
-                </p>
+                 {isLoading ? (
+                  <Skeleton className="h-12 w-3/4" />
+                ) : (
+                  <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+                    {content.headline}
+                  </h1>
+                 )}
               </header>
-              <p className="leading-relaxed text-muted-foreground">
-                Mi enfoque combina una profunda comprensión de la arquitectura de software con la habilidad para escribir código limpio y mantenible. Disfruto cada etapa del ciclo de vida del desarrollo, desde el análisis de requerimientos y el diseño técnico hasta la implementación y el despliegue.
-              </p>
-              <p className="leading-relaxed text-muted-foreground">
-                Fuera del trabajo, me encontrarás explorando nuevas tecnologías, contribuyendo a proyectos de código abierto o buscando inspiración en la resolución de algoritmos complejos.
-              </p>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-4 py-6">
+                {stats.map((stat, index) => (
+                  <AnimatedStat key={index} finalValue={stat.value} label={stat.label} suffix={stat.suffix} />
+                ))}
+              </div>
+
+              {/* Image (Mobile Only) */}
+              <div className="relative group w-full max-w-[280px] mx-auto lg:hidden">
+                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                {isLoading ? (
+                   <Skeleton className="aspect-[3/4] w-full rounded-3xl" />
+                ) : (
+                  <Image
+                    src={content.imageUrl}
+                    alt="Javier Velásquez"
+                    width={450}
+                    height={600}
+                    className="relative h-full w-full rounded-3xl object-cover"
+                    data-ai-hint="portrait person"
+                    priority
+                  />
+                )}
+              </div>
+
+              {/* Subheadline */}
+              {isLoading ? (
+                <div className="space-y-2">
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-5/6" />
+                </div>
+              ) : (
+                <p className="max-w-prose text-lg text-muted-foreground md:text-xl">
+                  {content.subheadline}
+                </p>
+              )}
+
+              {/* Main Paragraph */}
+              {isLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-4/5" />
+                </div>
+              ) : (
+                 <p className="leading-relaxed text-muted-foreground max-w-prose">
+                  {content.mainParagraph}
+                </p>
+              )}
             </div>
-            <div className="relative group order-first md:order-last">
+
+            {/* --- Image Column (Desktop Only) --- */}
+            <div className="relative group w-full max-w-xs mx-auto hidden lg:block lg:order-first">
                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-              <Image
-                src="https://picsum.photos/seed/101/600/800"
-                alt="Javier Velásquez"
-                width={600}
-                height={800}
-                className="relative h-full w-full rounded-3xl object-cover"
-                data-ai-hint="portrait person"
-              />
+              {isLoading ? (
+                 <Skeleton className="aspect-[3/4] w-full rounded-3xl" />
+              ) : (
+                <Image
+                  src={content.imageUrl}
+                  alt="Javier Velásquez"
+                  width={450}
+                  height={600}
+                  className="relative h-full w-full rounded-3xl object-cover"
+                  data-ai-hint="portrait person"
+                  priority
+                />
+              )}
             </div>
+
           </div>
         </div>
         <section

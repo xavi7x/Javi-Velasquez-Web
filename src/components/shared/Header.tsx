@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Lock, Menu, X } from 'lucide-react';
+import { User, Menu, X } from 'lucide-react';
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -72,20 +72,20 @@ export function Header() {
           );
         })}
         <Link
-          href="/propietario"
+          href="/login"
           onClick={closeSheet}
           className={cn(
             'transition-colors hover:text-foreground',
-            pathname === '/propietario'
+            pathname === '/login'
               ? 'text-foreground'
               : 'text-muted-foreground',
             inSheet && 'py-2 flex items-center gap-2'
           )}
           prefetch={false}
-          aria-label="Admin"
+          aria-label="Portal de Clientes"
         >
-          <Lock className="h-4 w-4" />
-          {inSheet && <span>Admin</span>}
+          <User className="h-4 w-4" />
+          {inSheet && <span>Portal</span>}
         </Link>
       </nav>
     );

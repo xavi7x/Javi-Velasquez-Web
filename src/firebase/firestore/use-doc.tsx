@@ -1,3 +1,4 @@
+
 'use client';
     
 import { useState, useEffect } from 'react';
@@ -10,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useUser } from '../provider';
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -26,38 +28,55 @@ export interface UseDocResult<T> {
 
 /**
  * React hook to subscribe to a single Firestore document in real-time.
- * Handles nullable references.
- * 
- * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
- * references
+ * Handles nullable references and user authentication state.
  *
+ * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedDocRef or BAD THINGS WILL HAPPEN.
+ * Use useMemoFirebase to memoize it per React guidance. Also, ensure its dependencies are stable.
  *
  * @template T Optional type for document data. Defaults to any.
- * @param {DocumentReference<DocumentData> | null | undefined} docRef -
+ * @param {DocumentReference<DocumentData> | null | undefined} memoizedDocRef -
  * The Firestore DocumentReference. Waits if null/undefined.
+ * @param {boolean} [isPublic=false] - If true, doesn't require an authenticated user.
  * @returns {UseDocResult<T>} Object with data, isLoading, error.
  */
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
+  isPublic: boolean = false
 ): UseDocResult<T> {
   type StateDataType = WithId<T> | null;
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
+  const { user, isUserLoading } = useUser();
 
   useEffect(() => {
+    // If the docRef is not ready, set to loading and wait.
     if (!memoizedDocRef) {
+      setIsLoading(true);
       setData(null);
+      setError(null);
+      return;
+    }
+    
+    // For non-public docs, if user is loading, also wait.
+    if (!isPublic && isUserLoading) {
+      setIsLoading(true);
+      setData(null);
+      setError(null);
+      return;
+    }
+    
+    // For non-public docs, if there's no authenticated user, stop.
+    if (!isPublic && !user) {
       setIsLoading(false);
+      setData(null);
       setError(null);
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    // Optional: setData(null); // Clear previous data instantly
 
     const unsubscribe = onSnapshot(
       memoizedDocRef,
@@ -65,29 +84,36 @@ export function useDoc<T = any>(
         if (snapshot.exists()) {
           setData({ ...(snapshot.data() as T), id: snapshot.id });
         } else {
-          // Document does not exist
-          setData(null);
+          setData(null); // Document does not exist
         }
-        setError(null); // Clear any previous error on successful snapshot (even if doc doesn't exist)
+        setError(null); // Clear any previous error on successful snapshot
         setIsLoading(false);
       },
-      (error: FirestoreError) => {
+      (err: FirestoreError) => {
+        if (!memoizedDocRef) {
+          setError(new Error("Firestore document reference is not available."));
+          setIsLoading(false);
+          return;
+        };
+
         const contextualError = new FirestorePermissionError({
           operation: 'get',
           path: memoizedDocRef.path,
-        })
+        });
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
 
-        // trigger global error propagation
+        // Trigger global error propagation
         errorEmitter.emit('permission-error', contextualError);
       }
     );
 
     return () => unsubscribe();
-  }, [memoizedDocRef]); // Re-run if the memoizedDocRef changes.
+  }, [memoizedDocRef, user, isUserLoading, isPublic]);
 
   return { data, isLoading, error };
 }
+
+    

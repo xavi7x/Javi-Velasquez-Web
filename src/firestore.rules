@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner() {
+      // The user is an owner if their UID exists in the /owners collection.
+      return exists(/databases/$(database)/documents/owners/$(request.auth.uid));
+    }
+    
+    function isClient(clientId) {
+      return isSignedIn() && request.auth.uid == clientId;
+    }
+
+    // 🔥 NUEVA REGLA PARA NETTING - Lectura pública
+    match /netting/{document} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // Owners: Can read/write their own document.
+    match /owners/{ownerId} {
+      allow read, write: if isOwner() && request.auth.uid == ownerId;
+    }
+
+    // 💥 REGLAS PARA LA COLECCIÓN DE RAÍZ /projects 💥
+    // (Esta es la colección que quieres que sea tu portafolio público)
+    match /projects/{projectId} {
+      
+      // PERMITE LA LECTURA (GET y LIST) A CUALQUIER PERSONA, AUTENTICADA O NO.
+      allow read: if true; 
+      
+      // La escritura (creación, actualización o eliminación) solo la permitimos al Owner.
+      allow write: if isOwner();
+    }
+    
+    // Clients: Owner can create, Owner or the client themselves can read/update.
+    match /clients/{clientId} {
+      allow create: if isOwner();
+      allow read, update: if isOwner() || isClient(clientId);
+    }
+
+    // Tickets: Owner or the associated client can read/write.
+    match /tickets/{ticketId} {
+      allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
+      
+      // Comments: Owner or the author can read/write.
+      match /comments/{commentId} {
+        allow read, write: if isOwner() || (isSignedIn() && resource.data.authorId == request.auth.uid);
+      }
+    }
+
+    // Invoices: Owner or the associated client can read/write.
+    match /invoices/{invoiceId} {
+      allow read, write: if isOwner() || (isSignedIn() && resource.data.clientId == request.auth.uid);
+    }
+    
+    // Settings: Publicly readable, only owner can write.
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // Contact Submissions: Anyone can create, only owner can manage.
+    match /contactFormSubmissions/{submissionId} {
+      allow create: if true;
+      allow read, update, delete: if isOwner();
+    }
+  }
+}

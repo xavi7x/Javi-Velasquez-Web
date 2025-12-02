@@ -4,17 +4,18 @@ import { useRef, useEffect, type ReactNode } from 'react';
 
 export function CursorGradientWrapper({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      containerRef.current.style.setProperty('--x', `${x}px`);
-      containerRef.current.style.setProperty('--y', `${y}px`);
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        containerRef.current.style.setProperty('--x', `${x}px`);
+        containerRef.current.style.setProperty('--y', `${y}px`);
+      }
     };
-
+    
     const currentRef = containerRef.current;
     if (currentRef) {
       currentRef.addEventListener('mousemove', handleMouseMove);
@@ -28,11 +29,10 @@ export function CursorGradientWrapper({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative overflow-hidden bg-background text-foreground">
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-background"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_400px_400px_at_var(--x,50%)_var(--y,50%),rgba(120,119,198,0.3),transparent)]"></div>
-      </div>
+    <div
+      ref={containerRef}
+      className="cursor-gradient-wrapper relative overflow-hidden bg-background text-foreground"
+    >
       <div className="relative z-10 flex min-h-dvh flex-col">
         {children}
       </div>

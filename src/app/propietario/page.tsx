@@ -8,13 +8,26 @@ import {
   AreaChart,
   ExternalLink,
   Menu,
+  CreditCard,
+  LayoutDashboard,
+  User,
+  Globe,
+  FileText,
+  Users,
+  ChevronDown,
+  Landmark,
 } from 'lucide-react';
-import { ProjectsView } from '@/components/propietario/ProjectsView';
+import { DashboardView } from '@/components/propietario/DashboardView';
+import { MyWebView } from '@/components/propietario/MyWebView';
+import { ProfileView } from '@/components/propietario/ProfileView';
 import {
   MessagesView,
   type Message,
 } from '@/components/propietario/MessagesView';
 import { AnalyticsView } from '@/components/propietario/AnalyticsView';
+import { FinancesView } from '@/components/propietario/FinancesView';
+import { ClientProjectsView } from '@/components/propietario/ClientProjectsView';
+import { ClientsView } from '@/components/propietario/ClientsView';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -25,7 +38,7 @@ import {
   useDoc,
   useMemoFirebase,
   errorEmitter,
-  FirestorePermissionError
+  FirestorePermissionError,
 } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -33,8 +46,6 @@ import Image from 'next/image';
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useAvailability } from '@/hooks/use-availability';
 import {
   Sheet,
@@ -43,10 +54,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import RequestsPage from './projects/page';
+import InversionesPage from './inversiones/page';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 
+
 export default function OwnerDashboard() {
-  const [activeView, setActiveView] = useState('projects');
+  const [activeView, setActiveView] = useState('dashboard');
   const [newMessagesCount, setNewMessagesCount] = useState(0);
   const { user } = useUser();
   const auth = useAuth();
@@ -71,15 +90,14 @@ export default function OwnerDashboard() {
   const setIsMaintenanceMode = async (value: boolean) => {
     if (settingsRef) {
       const data = { isMaintenanceMode: value };
-      setDoc(settingsRef, data, { merge: true })
-        .catch(error => {
-          const contextualError = new FirestorePermissionError({
-            path: settingsRef.path,
-            operation: 'update',
-            requestResourceData: data,
-          });
-          errorEmitter.emit('permission-error', contextualError);
+      setDoc(settingsRef, data, { merge: true }).catch((error) => {
+        const contextualError = new FirestorePermissionError({
+          path: settingsRef.path,
+          operation: 'update',
+          requestResourceData: data,
         });
+        errorEmitter.emit('permission-error', contextualError);
+      });
     }
   };
 
@@ -93,7 +111,7 @@ export default function OwnerDashboard() {
 
   const {
     data: messages,
-    isLoading,
+    loading: isLoading,
     error,
   } = useCollection<Message>(messagesQuery);
 
@@ -105,6 +123,7 @@ export default function OwnerDashboard() {
   }, [messages]);
 
   const handleLogout = async () => {
+    if (!auth) return;
     await signOut(auth);
     router.push('/login');
   };
@@ -116,20 +135,44 @@ export default function OwnerDashboard() {
 
   const renderView = () => {
     switch (activeView) {
-      case 'projects':
-        return <ProjectsView />;
-      case 'messages':
+      case 'dashboard':
         return (
-          <MessagesView
-            messages={messages}
-            isLoading={isLoading}
-            error={error}
+          <DashboardView
+            setActiveView={setActiveView}
+            isAvailable={isAvailable}
+            setIsAvailable={setIsAvailable}
+            isMaintenanceMode={isMaintenanceMode}
+            setIsMaintenanceMode={setIsMaintenanceMode}
           />
         );
       case 'traffic':
         return <AnalyticsView />;
+      case 'messages':
+        return <MessagesView messages={messages} isLoading={isLoading} error={error} />;
+      case 'my-web':
+        return <MyWebView />;
+      case 'projects':
+        return <ClientProjectsView />;
+      case 'clients':
+        return <ClientsView />;
+      case 'requests':
+        return <RequestsPage />;
+      case 'finance':
+        return <FinancesView />;
+      case 'inversiones':
+        return <InversionesPage />;
+      case 'profile':
+        return <ProfileView />;
       default:
-        return <ProjectsView />;
+        return (
+          <DashboardView
+            setActiveView={setActiveView}
+            isAvailable={isAvailable}
+            setIsAvailable={setIsAvailable}
+            isMaintenanceMode={isMaintenanceMode}
+            setIsMaintenanceMode={setIsMaintenanceMode}
+          />
+        );
     }
   };
 
@@ -148,25 +191,12 @@ export default function OwnerDashboard() {
 
       <nav className="flex flex-col gap-2">
         <Button
-          variant={activeView === 'projects' ? 'default' : 'ghost'}
+          variant={activeView === 'dashboard' ? 'default' : 'ghost'}
           className="justify-start gap-3"
-          onClick={() => handleViewChange('projects')}
+          onClick={() => handleViewChange('dashboard')}
         >
-          <Briefcase className="h-4 w-4" />
-          <span>Proyectos</span>
-        </Button>
-        <Button
-          variant={activeView === 'messages' ? 'default' : 'ghost'}
-          className="justify-start gap-3"
-          onClick={() => handleViewChange('messages')}
-        >
-          <MessageSquare className="h-4 w-4" />
-          <span className="flex-1 text-left">Mensajes</span>
-          {newMessagesCount > 0 && (
-            <Badge className="h-6 w-6 justify-center p-0 rounded-full bg-primary text-primary-foreground">
-              {newMessagesCount}
-            </Badge>
-          )}
+          <LayoutDashboard className="h-4 w-4" />
+          <span>Dashboard</span>
         </Button>
         <Button
           variant={activeView === 'traffic' ? 'default' : 'ghost'}
@@ -176,37 +206,88 @@ export default function OwnerDashboard() {
           <AreaChart className="h-4 w-4" />
           <span>Tráfico</span>
         </Button>
+        <Button
+          variant={activeView === 'messages' ? 'default' : 'ghost'}
+          className="justify-start gap-3 relative"
+          onClick={() => handleViewChange('messages')}
+        >
+          <MessageSquare className="h-4 w-4" />
+          <span>Mensajes</span>
+          {newMessagesCount > 0 && (
+            <Badge className="absolute right-3 top-1/2 -translate-y-1/2 h-5">
+              {newMessagesCount}
+            </Badge>
+          )}
+        </Button>
+
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant={['my-web', 'profile'].includes(activeView) ? 'secondary' : 'ghost'}
+              className="justify-between gap-3 w-full group"
+            >
+              <span className="flex items-center gap-3" onClick={() => handleViewChange('my-web')}>
+                <Globe className="h-4 w-4" />
+                <span>Mi Web</span>
+              </span>
+              <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="py-1 pl-8">
+            <Button
+              variant={activeView === 'profile' ? 'default' : 'ghost'}
+              className="justify-start gap-3 w-full"
+              onClick={() => handleViewChange('profile')}
+            >
+              <User className="h-4 w-4" />
+              <span>Mi Perfil</span>
+            </Button>
+          </CollapsibleContent>
+        </Collapsible>
+        
+        <Button
+          variant={activeView === 'projects' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('projects')}
+        >
+          <Briefcase className="h-4 w-4" />
+          <span>Proyectos</span>
+        </Button>
+        <Button
+          variant={activeView === 'clients' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('clients')}
+        >
+          <Users className="h-4 w-4" />
+          <span>Clientes</span>
+        </Button>
+        <Button
+          variant={activeView === 'requests' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('requests')}
+        >
+          <FileText className="h-4 w-4" />
+          <span>Solicitudes</span>
+        </Button>
+        <Button
+          variant={activeView === 'finance' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('finance')}
+        >
+          <CreditCard className="h-4 w-4" />
+          <span>Finanzas</span>
+        </Button>
+        <Button
+          variant={activeView === 'inversiones' ? 'default' : 'ghost'}
+          className="justify-start gap-3"
+          onClick={() => handleViewChange('inversiones')}
+        >
+          <Landmark className="h-4 w-4" />
+          <span>Inversiones</span>
+        </Button>
       </nav>
 
       <div className="mt-auto space-y-4">
-        <div className="flex items-center space-x-2 rounded-lg p-3">
-          <Switch
-            id="availability-mode"
-            checked={isAvailable}
-            onCheckedChange={setIsAvailable}
-          />
-          <Label htmlFor="availability-mode" className="flex flex-col">
-            <span>Disponibilidad</span>
-            <span className="font-normal text-xs text-muted-foreground">
-              {isAvailable ? 'Visible' : 'Oculto'}
-            </span>
-          </Label>
-        </div>
-
-        <div className="flex items-center space-x-2 rounded-lg p-3">
-          <Switch
-            id="maintenance-mode"
-            checked={isMaintenanceMode}
-            onCheckedChange={setIsMaintenanceMode}
-          />
-          <Label htmlFor="maintenance-mode" className="flex flex-col">
-            <span>Modo Construcción</span>
-            <span className="font-normal text-xs text-muted-foreground">
-              {isMaintenanceMode ? 'Activo' : 'Inactivo'}
-            </span>
-          </Label>
-        </div>
-
         <div className="flex items-center justify-between">
           {user && (
             <div className="text-sm">
@@ -247,51 +328,67 @@ export default function OwnerDashboard() {
         <SidebarContent />
       </aside>
 
-      <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto bg-background rounded-2xl m-2 md:ml-0 border border-border">
-        <header className="mb-8 flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden">
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-64 p-0">
-                <SheetHeader>
-                  <SheetTitle className="sr-only">Menú del Panel</SheetTitle>
-                </SheetHeader>
-                <SidebarContent />
-              </SheetContent>
-            </Sheet>
-            <div>
-              <h1 className="text-xl md:text-3xl font-bold tracking-tight">
-                {activeView === 'projects' && 'Gestión de Proyectos'}
-                {activeView === 'messages' && 'Mensajes Recibidos'}
-                {activeView === 'traffic' && 'Análisis de Tráfico'}
-              </h1>
-              <p className="text-muted-foreground text-sm md:text-base">
-                {activeView === 'projects' &&
-                  'Añade, edita y elimina los proyectos de tu portafolio.'}
-                {activeView === 'messages' &&
-                  'Aquí puedes ver los mensajes enviados desde el formulario de contacto.'}
-                {activeView === 'traffic' &&
-                  'Visualiza las métricas de visitas y rendimiento de tu sitio web.'}
-              </p>
+      <main className={cn(
+        "flex-1 overflow-y-auto bg-background rounded-2xl m-2 md:ml-0 border border-border",
+        activeView !== 'inversiones' && "p-4 sm:p-6 md:p-8"
+      )}>
+        {activeView !== 'inversiones' && (
+          <header className="mb-8 flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="md:hidden">
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-64 p-0">
+                  <SheetHeader>
+                    <SheetTitle className="sr-only">Menú del Panel</SheetTitle>
+                  </SheetHeader>
+                  <SidebarContent />
+                </SheetContent>
+              </Sheet>
+              <div>
+                <h1 className="text-xl md:text-3xl font-bold tracking-tight">
+                  {activeView === 'dashboard' && 'Dashboard'}
+                  {activeView === 'traffic' && 'Análisis de Tráfico'}
+                  {activeView === 'messages' && 'Bandeja de Entrada'}
+                  {activeView === 'my-web' && 'Gestión de Mi Web'}
+                  {activeView === 'projects' && 'Gestión de Proyectos de Clientes'}
+                  {activeView === 'clients' && 'Gestión de Clientes'}
+                  {activeView === 'requests' && 'Gestión de Solicitudes'}
+                  {activeView === 'finance' && 'Gestión Financiera'}
+                  {activeView === 'inversiones' && 'Gestión de Inversiones'}
+                  {activeView === 'profile' && 'Mi Perfil'}
+                </h1>
+                <p className="text-muted-foreground text-sm md:text-base">
+                  {activeView === 'dashboard' && 'Una vista general de toda tu actividad.'}
+                  {activeView === 'traffic' && 'Métricas de visitantes de tu sitio web.'}
+                  {activeView === 'messages' && 'Mensajes recibidos desde tu formulario de contacto.'}
+                  {activeView === 'my-web' && 'Gestiona los proyectos de tu portafolio y tu página "Sobre mí".'}
+                  {activeView === 'projects' && 'Añade, edita y gestiona los proyectos de tus clientes.'}
+                  {activeView === 'clients' && 'Añade, edita y gestiona los clientes con acceso al portal.'}
+                  {activeView === 'requests' && 'Visualiza y gestiona las solicitudes de tus clientes.'}
+                  {activeView === 'finance' && 'Visualiza el estado de las facturas y pagos.'}
+                  {activeView === 'inversiones' && 'Visualiza y gestiona tus inversiones.'}
+                  {activeView === 'profile' && 'Actualiza tu información pública y de perfil.'}
+                </p>
+              </div>
             </div>
-          </div>
-          {activeView === 'traffic' && (
-            <Button asChild>
-              <Link
-                href="https://analytics.google.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Ver en Google Analytics
-              </Link>
-            </Button>
-          )}
-        </header>
+            {activeView === 'traffic' && (
+              <Button asChild>
+                <Link
+                  href="https://analytics.google.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Ver en Google Analytics
+                </Link>
+              </Button>
+            )}
+          </header>
+        )}
         {renderView()}
       </main>
     </div>

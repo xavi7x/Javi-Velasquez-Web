@@ -1,33 +1,44 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { Suspense } from 'react';
 import { MainContent } from '@/components/home/MainContent';
 import { ComingSoon } from '@/components/home/ComingSoon';
+import { QuantumLoader } from '@/components/shared/QuantumLoader';
+import { useDoc } from '@/firebase/firestore/use-doc';
 import { doc } from 'firebase/firestore';
+import { useFirestore, useMemoFirebase } from '@/firebase';
+import { usePortfolio } from '@/firebase/firestore/hooks/use-portfolio';
+import type { Project } from '@/lib/project-types';
 
-export default function Home() {
-  const [isClient, setIsClient] = useState(false);
+function HomePageContent() {
   const firestore = useFirestore();
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const settingsRef = useMemoFirebase(() => {
     if (!firestore) return null;
     return doc(firestore, 'settings', 'site');
   }, [firestore]);
 
-  const { data: settings, isLoading } = useDoc<{ isMaintenanceMode: boolean }>(
+  const { data: settings, isLoading: isSettingsLoading } = useDoc<{ isMaintenanceMode: boolean }>(
     settingsRef
   );
+  
+  const { data: projects, loading: areProjectsLoading } = usePortfolio();
 
-  // Render ComingSoon by default and on server to avoid layout shifts/skeletons.
-  // Once the client loads and confirms maintenance mode is off, show MainContent.
-  if (!isClient || isLoading || settings?.isMaintenanceMode) {
+  if (isSettingsLoading || areProjectsLoading) {
+    return <QuantumLoader />;
+  }
+
+  if (settings?.isMaintenanceMode) {
     return <ComingSoon />;
   }
 
-  return <MainContent />;
+  return <MainContent projects={projects as Project[] | null} isLoading={areProjectsLoading}/>;
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<QuantumLoader />}>
+      <HomePageContent />
+    </Suspense>
+  );
 }
