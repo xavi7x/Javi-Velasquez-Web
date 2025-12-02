@@ -223,7 +223,7 @@ export default function OwnerDashboard() {
         <Collapsible>
           <CollapsibleTrigger asChild>
             <Button
-              variant={activeView === 'my-web' || activeView === 'profile' ? 'secondary' : 'ghost'}
+              variant={['my-web', 'profile'].includes(activeView) ? 'secondary' : 'ghost'}
               className="justify-between gap-3 w-full group"
             >
               <span className="flex items-center gap-3" onClick={() => handleViewChange('my-web')}>
@@ -328,62 +328,67 @@ export default function OwnerDashboard() {
         <SidebarContent />
       </aside>
 
-      <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto bg-background rounded-2xl m-2 md:ml-0 border border-border">
-        <header className="mb-8 flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden">
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-64 p-0">
-                <SheetHeader>
-                  <SheetTitle className="sr-only">Menú del Panel</SheetTitle>
-                </SheetHeader>
-                <SidebarContent />
-              </SheetContent>
-            </Sheet>
-            <div>
-              <h1 className="text-xl md:text-3xl font-bold tracking-tight">
-                {activeView === 'dashboard' && 'Dashboard'}
-                {activeView === 'traffic' && 'Análisis de Tráfico'}
-                {activeView === 'messages' && 'Bandeja de Entrada'}
-                {activeView === 'my-web' && 'Gestión de Mi Web'}
-                {activeView === 'projects' && 'Gestión de Proyectos de Clientes'}
-                {activeView === 'clients' && 'Gestión de Clientes'}
-                {activeView === 'requests' && 'Gestión de Solicitudes'}
-                {activeView === 'finance' && 'Gestión Financiera'}
-                {activeView === 'inversiones' && 'Gestión de Inversiones'}
-                {activeView === 'profile' && 'Mi Perfil'}
-              </h1>
-              <p className="text-muted-foreground text-sm md:text-base">
-                {activeView === 'dashboard' && 'Una vista general de toda tu actividad.'}
-                {activeView === 'traffic' && 'Métricas de visitantes de tu sitio web.'}
-                {activeView === 'messages' && 'Mensajes recibidos desde tu formulario de contacto.'}
-                {activeView === 'my-web' && 'Gestiona los proyectos de tu portafolio y tu página "Sobre mí".'}
-                {activeView === 'projects' && 'Añade, edita y gestiona los proyectos de tus clientes.'}
-                {activeView === 'clients' && 'Añade, edita y gestiona los clientes con acceso al portal.'}
-                {activeView === 'requests' && 'Visualiza y gestiona las solicitudes de tus clientes.'}
-                {activeView === 'finance' && 'Visualiza el estado de las facturas y pagos.'}
-                {activeView === 'inversiones' && 'Visualiza y gestiona tus inversiones.'}
-                {activeView === 'profile' && 'Actualiza tu información pública y de perfil.'}
-              </p>
+      <main className={cn(
+        "flex-1 overflow-y-auto bg-background rounded-2xl m-2 md:ml-0 border border-border",
+        activeView !== 'inversiones' && "p-4 sm:p-6 md:p-8"
+      )}>
+        {activeView !== 'inversiones' && (
+          <header className="mb-8 flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="md:hidden">
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-64 p-0">
+                  <SheetHeader>
+                    <SheetTitle className="sr-only">Menú del Panel</SheetTitle>
+                  </SheetHeader>
+                  <SidebarContent />
+                </SheetContent>
+              </Sheet>
+              <div>
+                <h1 className="text-xl md:text-3xl font-bold tracking-tight">
+                  {activeView === 'dashboard' && 'Dashboard'}
+                  {activeView === 'traffic' && 'Análisis de Tráfico'}
+                  {activeView === 'messages' && 'Bandeja de Entrada'}
+                  {activeView === 'my-web' && 'Gestión de Mi Web'}
+                  {activeView === 'projects' && 'Gestión de Proyectos de Clientes'}
+                  {activeView === 'clients' && 'Gestión de Clientes'}
+                  {activeView === 'requests' && 'Gestión de Solicitudes'}
+                  {activeView === 'finance' && 'Gestión Financiera'}
+                  {activeView === 'inversiones' && 'Gestión de Inversiones'}
+                  {activeView === 'profile' && 'Mi Perfil'}
+                </h1>
+                <p className="text-muted-foreground text-sm md:text-base">
+                  {activeView === 'dashboard' && 'Una vista general de toda tu actividad.'}
+                  {activeView === 'traffic' && 'Métricas de visitantes de tu sitio web.'}
+                  {activeView === 'messages' && 'Mensajes recibidos desde tu formulario de contacto.'}
+                  {activeView === 'my-web' && 'Gestiona los proyectos de tu portafolio y tu página "Sobre mí".'}
+                  {activeView === 'projects' && 'Añade, edita y gestiona los proyectos de tus clientes.'}
+                  {activeView === 'clients' && 'Añade, edita y gestiona los clientes con acceso al portal.'}
+                  {activeView === 'requests' && 'Visualiza y gestiona las solicitudes de tus clientes.'}
+                  {activeView === 'finance' && 'Visualiza el estado de las facturas y pagos.'}
+                  {activeView === 'inversiones' && 'Visualiza y gestiona tus inversiones.'}
+                  {activeView === 'profile' && 'Actualiza tu información pública y de perfil.'}
+                </p>
+              </div>
             </div>
-          </div>
-          {activeView === 'traffic' && (
-            <Button asChild>
-              <Link
-                href="https://analytics.google.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Ver en Google Analytics
-              </Link>
-            </Button>
-          )}
-        </header>
+            {activeView === 'traffic' && (
+              <Button asChild>
+                <Link
+                  href="https://analytics.google.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Ver en Google Analytics
+                </Link>
+              </Button>
+            )}
+          </header>
+        )}
         {renderView()}
       </main>
     </div>

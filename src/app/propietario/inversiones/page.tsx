@@ -69,7 +69,7 @@ export default function InvestmentsDashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 p-6 flex justify-center">
+    <div className="min-h-full text-slate-200 font-sans selection:bg-indigo-500/30 p-6 flex justify-center">
       
       <div className="max-w-7xl w-full space-y-8">
         
