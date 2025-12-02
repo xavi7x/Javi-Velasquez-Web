@@ -73,25 +73,6 @@ export default function InvestmentsDashboard() {
       
       <div className="max-w-7xl w-full space-y-8">
         
-        {/* HEADER DE SECCIÓN (Estilo Badge "Sobre Mí") */}
-        <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-                <span className="px-3 py-1 rounded-full text-xs font-medium border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 animate-fade-in">
-                    Portal Privado
-                </span>
-            </div>
-            {/* User Profile Pill */}
-            <div className="flex items-center gap-3 px-4 py-2 bg-slate-900 rounded-full border border-white/5">
-                <div className="text-right hidden sm:block">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider">Javi Velásquez</p>
-                    <p className="text-xs font-bold text-white">Administrador</p>
-                </div>
-                <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-lg">
-                    JV
-                </div>
-            </div>
-        </div>
-
         {/* TÍTULO PRINCIPAL CON GRADIENTE */}
         <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-8">
           <div>
