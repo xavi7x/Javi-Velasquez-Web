@@ -23,37 +23,20 @@ import { useToast } from '@/hooks/use-toast';
 
 export function Hero() {
   const [text, setText] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [loopNum, setLoopNum] = useState(0);
-  const [typingSpeed, setTypingSpeed] = useState(150);
+  const [typingSpeed] = useState(100);
   const { toast } = useToast();
-
-  const words = ['Páginas Web', 'Tiendas Online', 'Aplicaciones Web'];
+  
+  const fullText = "Yo me encargo de tu tecnología.";
 
   useEffect(() => {
-    const handleTyping = () => {
-      const i = loopNum % words.length;
-      const fullText = words[i];
+    if (text.length < fullText.length) {
+      const timer = setTimeout(() => {
+        setText(fullText.substring(0, text.length + 1));
+      }, typingSpeed);
+      return () => clearTimeout(timer);
+    }
+  }, [text, fullText, typingSpeed]);
 
-      setText(
-        isDeleting
-          ? fullText.substring(0, text.length - 1)
-          : fullText.substring(0, text.length + 1)
-      );
-
-      setTypingSpeed(isDeleting ? 80 : 150);
-
-      if (!isDeleting && text === fullText) {
-        setTimeout(() => setIsDeleting(true), 1500);
-      } else if (isDeleting && text === '') {
-        setIsDeleting(false);
-        setLoopNum(loopNum + 1);
-      }
-    };
-
-    const timer = setTimeout(handleTyping, typingSpeed);
-    return () => clearTimeout(timer);
-  }, [text, isDeleting, loopNum]);
 
   const [message, setMessage] = useState('');
   const [name, setName] = useState('');
