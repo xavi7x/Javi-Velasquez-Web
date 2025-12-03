@@ -64,16 +64,21 @@ export function MarqueeTestimonials() {
                   <div className={`p-2 rounded-lg bg-white/5 ${item.color} group-hover:bg-white/10 transition-colors`}>
                     <Icon size={20} />
                   </div>
-                  <span className="text-xs font-mono text-slate-500 uppercase tracking-widest">{item.type}</span>
+                  {/* ESTRELLAS AGREGADAS */}
+                  <div className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={12} className="fill-yellow-500 text-yellow-500" />
+                    ))}
+                  </div>
                 </div>
                 
                 <p className="text-slate-300 text-sm leading-relaxed mb-4 font-light">
                   "{item.text}"
                 </p>
 
-                <div className="flex items-center gap-2 border-t border-white/5 pt-3">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+                <div className="flex items-center justify-between border-t border-white/5 pt-3">
                   <span className="text-xs font-bold text-slate-200">{item.client}</span>
+                  <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">{item.type}</span>
                 </div>
               </div>
             );
