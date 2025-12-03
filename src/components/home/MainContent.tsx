@@ -1,7 +1,7 @@
-
 'use client';
 import { PortfolioGrid } from '@/components/home/PortfolioGrid';
 import { Hero } from '@/components/home/Hero';
+import { MarqueeTestimonials } from '@/components/home/MarqueeTestimonials'; // <--- IMPORTAR
 import { About } from '@/components/home/About';
 import { ContactCTA } from '@/components/home/ContactCTA';
 import { Header } from '@/components/shared/Header';
@@ -20,6 +20,10 @@ export function MainContent({ projects, isLoading }: MainContentProps) {
       <Header />
       <main>
         <Hero />
+        
+        {/* INYECCIÓN DE PRUEBA SOCIAL HIGH-TICKET */}
+        <MarqueeTestimonials /> 
+        
         <div className="container mx-auto px-4 md:px-6">
           <PortfolioGrid projects={projects} isLoading={isLoading} />
         </div>

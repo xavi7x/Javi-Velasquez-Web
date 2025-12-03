@@ -23,20 +23,37 @@ import { useToast } from '@/hooks/use-toast';
 
 export function Hero() {
   const [text, setText] = useState('');
-  const [typingSpeed] = useState(100);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [loopNum, setLoopNum] = useState(0);
+  const [typingSpeed, setTypingSpeed] = useState(150);
   const { toast } = useToast();
-  
-  const fullText = "Yo me encargo de tu tecnología.";
+
+  const words = ['Páginas Web', 'Tiendas Online', 'Aplicaciones Web'];
 
   useEffect(() => {
-    if (text.length < fullText.length) {
-      const timer = setTimeout(() => {
-        setText(fullText.substring(0, text.length + 1));
-      }, typingSpeed);
-      return () => clearTimeout(timer);
-    }
-  }, [text, fullText, typingSpeed]);
+    const handleTyping = () => {
+      const i = loopNum % words.length;
+      const fullText = words[i];
 
+      setText(
+        isDeleting
+          ? fullText.substring(0, text.length - 1)
+          : fullText.substring(0, text.length + 1)
+      );
+
+      setTypingSpeed(isDeleting ? 80 : 150);
+
+      if (!isDeleting && text === fullText) {
+        setTimeout(() => setIsDeleting(true), 1500);
+      } else if (isDeleting && text === '') {
+        setIsDeleting(false);
+        setLoopNum(loopNum + 1);
+      }
+    };
+
+    const timer = setTimeout(handleTyping, typingSpeed);
+    return () => clearTimeout(timer);
+  }, [text, isDeleting, loopNum]);
 
   const [message, setMessage] = useState('');
   const [name, setName] = useState('');
@@ -222,13 +239,11 @@ export function Hero() {
             <div className="space-y-4">
               <h1
                 style={{ animationDelay: '0.2s' }}
-                className="animate-fade-in-up font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl py-2"
+                className="animate-fade-in-up bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text font-headline text-4xl font-bold tracking-tighter text-transparent sm:text-5xl md:text-6xl lg:text-7xl py-2"
               >
-                <span className="block text-foreground">Dedícate a facturar.</span>
-                <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                    {text}
-                    <span className="animate-pulse">|</span>
-                </span>
+                <span className="block">Desarrollo</span>
+                <span>{text}</span>
+                <span className="animate-pulse">|</span>
               </h1>
               <p
                 style={{ animationDelay: '0.6s' }}
