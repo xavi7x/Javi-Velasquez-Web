@@ -1,8 +1,9 @@
 'use client';
 import { PortfolioGrid } from '@/components/home/PortfolioGrid';
 import { Hero } from '@/components/home/Hero';
-import { MarqueeTestimonials } from '@/components/home/MarqueeTestimonials'; // <--- IMPORTAR
+import { MarqueeTestimonials } from '@/components/home/MarqueeTestimonials';
 import { About } from '@/components/home/About';
+import { ProcessTimeline } from '@/components/home/ProcessTimeline'; // <--- IMPORTAR
 import { ContactCTA } from '@/components/home/ContactCTA';
 import { Header } from '@/components/shared/Header';
 import { Footer } from '@/components/shared/Footer';
@@ -20,14 +21,18 @@ export function MainContent({ projects, isLoading }: MainContentProps) {
       <Header />
       <main>
         <Hero />
+        <MarqueeTestimonials />
         
-        {/* INYECCIÓN DE PRUEBA SOCIAL HIGH-TICKET */}
-        <MarqueeTestimonials /> 
+        {/* Reordené About antes del Portfolio para explicar QUÉ haces antes de mostrarlo */}
+        <About /> 
         
         <div className="container mx-auto px-4 md:px-6">
           <PortfolioGrid projects={projects} isLoading={isLoading} />
         </div>
-        <About />
+
+        {/* Nueva Sección de Proceso */}
+        <ProcessTimeline />
+        
         <ContactCTA />
       </main>
       <Footer />
