@@ -20,8 +20,8 @@ const testimonials = [
   },
   {
     client: "Al Punto App",
-    text: "La optimización de nuestra PWA mejoró la retención de usuarios un 40%.",
-    type: "Aplicación Móvil",
+    text: "La implementación PWA mejoró la gestión de nuestro restaurante en un 40%.",
+    type: "Aplicación Web",
     icon: Smartphone,
     color: "text-orange-600 dark:text-orange-400"
   },
