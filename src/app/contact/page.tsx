@@ -120,7 +120,7 @@ export default function ContactPage() {
                   <div>
                      <h4 className="text-sm font-bold text-foreground">Disponibilidad Actual</h4>
                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Aceptando nuevos proyectos para <span className="text-emerald-500 font-medium">Q4 2024</span>
+                        Aceptando nuevos proyectos para <span className="text-emerald-500 font-medium">Q1 2026</span>
                      </p>
                   </div>
                </div>
