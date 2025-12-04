@@ -18,8 +18,8 @@ import {
   Users,
 } from 'lucide-react';
 import { getAnalyticsData, type AnalyticsDataOutput } from '@/ai/flows/get-analytics-data';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, query, orderBy, limit, doc, setDoc } from 'firebase/firestore';
 import type { Invoice, Message } from '@/lib/project-types';
 import { Skeleton } from '../ui/skeleton';
 import { Switch } from '@/components/ui/switch';
@@ -112,6 +112,22 @@ export function DashboardView({
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
   }
 
+  const handleMaintenanceToggle = (value: boolean) => {
+    if (!firestore) return;
+    const settingsRef = doc(firestore, 'settings', 'site');
+    const data = { isMaintenanceMode: value };
+    setDoc(settingsRef, data, { merge: true })
+      .then(() => setIsMaintenanceMode(value))
+      .catch((error) => {
+        const contextualError = new FirestorePermissionError({
+          path: settingsRef.path,
+          operation: 'update',
+          requestResourceData: data,
+        });
+        errorEmitter.emit('permission-error', contextualError);
+      });
+  };
+
   return (
     <div className="space-y-8">
       {/* Quick Stats */}
@@ -175,7 +191,7 @@ export function DashboardView({
                       <Switch
                         id="maintenance-mode"
                         checked={isMaintenanceMode}
-                        onCheckedChange={setIsMaintenanceMode}
+                        onCheckedChange={handleMaintenanceToggle}
                       />
                       <Label htmlFor="maintenance-mode" className="flex flex-col">
                         <span>Modo Construcción</span>

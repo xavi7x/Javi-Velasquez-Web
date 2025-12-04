@@ -50,6 +50,7 @@ service cloud.firestore {
       allow read, write: if isOwner() || isClient(resource.data.clientId);
     }
     
+    // Updated rule for all settings documents
     match /settings/{docId} {
       allow read: if true;
       allow write: if isOwner();

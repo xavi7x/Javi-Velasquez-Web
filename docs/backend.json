@@ -140,6 +140,14 @@
       "properties": { "isMaintenanceMode": { "type": "boolean" } },
       "required": ["isMaintenanceMode"]
     },
+    "AvailabilitySettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AvailabilitySettings",
+      "type": "object",
+      "description": "Controls the public visibility of the availability status.",
+      "properties": { "isAvailable": { "type": "boolean" } },
+      "required": ["isAvailable"]
+    },
     "ContactFormSubmission": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ContactFormSubmission",
@@ -199,6 +207,10 @@
       {
         "path": "/settings/about",
         "definition": { "schema": { "$ref": "#/entities/AboutPageContent" }, "description": "Stores the dynamic content for the 'About Me' page." }
+      },
+      {
+        "path": "/settings/availability",
+        "definition": { "schema": { "$ref": "#/entities/AvailabilitySettings" }, "description": "Controls the public visibility of the availability status." }
       }
     ]
   }

@@ -1,57 +1,36 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { doc, setDoc } from 'firebase/firestore';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 
-const AVAILABILITY_KEY = 'portfolio-availability-status';
+interface AvailabilitySettings {
+  isAvailable: boolean;
+}
 
 export function useAvailability() {
-  const [isAvailable, setIsAvailableState] = useState<boolean>(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    try {
-      const storedValue = localStorage.getItem(AVAILABILITY_KEY);
-      // Default to true if nothing is stored, for the first-time user experience.
-      setIsAvailableState(storedValue === null ? true : JSON.parse(storedValue));
-    } catch (error) {
-      console.error("Failed to read availability from localStorage", error);
-      setIsAvailableState(true); // Fallback to a default if parsing fails
-    }
-    setIsLoaded(true);
-  }, []);
+  const availabilityRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'settings', 'availability');
+  }, [firestore]);
 
-  useEffect(() => {
-    if (isLoaded) {
-      try {
-        localStorage.setItem(AVAILABILITY_KEY, JSON.stringify(isAvailable));
-      } catch (error) {
-        console.error("Failed to write availability to localStorage", error);
-      }
-    }
-  }, [isAvailable, isLoaded]);
-  
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === AVAILABILITY_KEY) {
-        try {
-          if (event.newValue !== null) {
-            setIsAvailableState(JSON.parse(event.newValue));
-          }
-        } catch (error) {
-           console.error("Failed to parse availability from storage event", error);
-        }
-      }
-    };
+  const { data, isLoading: isLoaded } = useDoc<AvailabilitySettings>(availabilityRef, true);
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
+  const setIsAvailable = (value: boolean | ((prevState: boolean) => boolean)) => {
+    if (!availabilityRef) return;
+    
+    const newValue = typeof value === 'function' ? value(data?.isAvailable ?? false) : value;
 
-  const setIsAvailable = useCallback((value: boolean | ((prevState: boolean) => boolean)) => {
-    setIsAvailableState(value);
-  }, []);
+    // Persist to Firestore
+    setDoc(availabilityRef, { isAvailable: newValue }, { merge: true }).catch(err => {
+      console.error("Failed to update availability status in Firestore:", err);
+    });
+  };
+
+  // If data hasn't been loaded yet, we can assume a default or wait.
+  // Defaulting to 'true' if the document doesn't exist yet for a good first-time experience.
+  const isAvailable = data === null ? true : data.isAvailable;
 
   return { isAvailable, setIsAvailable, isLoaded };
 }
